@@ -1,6 +1,7 @@
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
-from bars.models import Bar
+from backend.bars.models import Bar
 
 
 class EventDefinition(models.Model):
@@ -9,8 +10,8 @@ class EventDefinition(models.Model):
     rules = models.JSONField(default=dict, blank=True)
 
     class Meta:
-        verbose_name = "event definition"
-        verbose_name_plural = "event definitions"
+        verbose_name = _("event definition")
+        verbose_name_plural = _("event definitions")
 
     def __str__(self) -> str:
         return self.name
@@ -25,8 +26,8 @@ class ActiveEvent(models.Model):
 
     class Meta:
         ordering = ["starts_at"]
-        verbose_name = "active event"
-        verbose_name_plural = "active events"
+        verbose_name = _("active event")
+        verbose_name_plural = _("active events")
 
     def __str__(self) -> str:
         return f"{self.definition.name} @ {self.bar.slug}"

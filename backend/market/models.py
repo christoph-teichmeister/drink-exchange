@@ -1,6 +1,7 @@
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
-from bars.models import Bar
+from backend.bars.models import Bar
 
 
 class Drink(models.Model):
@@ -11,6 +12,8 @@ class Drink(models.Model):
 
     class Meta:
         ordering = ["name"]
+        verbose_name = _("drink")
+        verbose_name_plural = _("drinks")
 
     def __str__(self) -> str:
         return f"{self.name} ({self.bar.slug})"
@@ -25,6 +28,8 @@ class Trade(models.Model):
 
     class Meta:
         ordering = ["-executed_at"]
+        verbose_name = _("trade")
+        verbose_name_plural = _("trades")
 
     def __str__(self) -> str:
         return f"{self.quantity}x {self.drink.name} @ {self.price}"

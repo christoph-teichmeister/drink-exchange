@@ -7,6 +7,7 @@
 - Always commit lockfiles: uv.lock, pnpm-lock.yaml.
 - Update .env.example whenever adding env vars.
 - Never use relative imports; always reference modules with their full package paths.
+- Wrap new user-facing text with translation utilities (e.g., `gettext_lazy`) so every string stays localizable.
 
 ## Definition of Done (run what’s relevant)
 

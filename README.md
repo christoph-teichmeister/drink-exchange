@@ -38,6 +38,7 @@ uv run python manage.py createsuperuser
 ## Coding Guidelines
 
 - Prefer absolute imports everywhere; do not rely on relative imports so cross-module references stay explicit and consistent.
+- Wrap user-facing strings with translation helpers (`gettext_lazy`) to keep the UI ready for localization.
 
 ## Next Steps
 
