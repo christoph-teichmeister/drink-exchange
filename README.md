@@ -41,9 +41,11 @@ uv run python manage.py createsuperuser
 
 - Prefer absolute imports everywhere; do not rely on relative imports so cross-module references stay explicit and
   consistent.
+- Do not add `from __future__ import annotations`; the project keeps annotation evaluation standard and relies on
+  explicit typing imports.
 - Wrap user-facing strings with translation helpers (`gettext_lazy`) to keep the UI ready for localization.
 - Keep at most one Python class per file; structure domains so each module defines a single class.
-- Avoid putting documentation or explanatory comments at the top of files; instead, rely on class docstrings and inline
+- Avoid module docstrings or explanatory comments at the top of files; rely on class docstrings and inline
   notes within each class so new contributors can understand the intent immediately.
 
 ## Next Steps

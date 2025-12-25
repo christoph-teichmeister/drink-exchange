@@ -1,4 +1,3 @@
-"""Development settings overriding the shared base config."""
 import os
 
 from backend.config.settings.base import *  # noqa: F401,F403

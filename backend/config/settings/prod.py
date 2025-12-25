@@ -1,4 +1,3 @@
-"""Production settings that extend the shared base."""
 import os
 
 from backend.config.settings.base import *  # noqa: F401,F403

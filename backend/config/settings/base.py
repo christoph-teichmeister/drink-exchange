@@ -1,6 +1,3 @@
-"""Shared Django settings for every environment."""
-from __future__ import annotations
-
 import os
 from pathlib import Path
 

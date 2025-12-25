@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from backend.market.models.drink import Drink
 from backend.market.models.trade import Trade
 
