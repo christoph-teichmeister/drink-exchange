@@ -31,6 +31,16 @@ exclude = ["tests*"]
 [tool.ruff]
 line-length = 120
 target-version = "py313"
+exclude = [
+    ".cache",
+    ".cache/**",
+    ".ruff_cache",
+    ".ruff_cache/**",
+    "__pypackages__",
+    "__pypackages__/**",
+    ".venv",
+    ".venv/**",
+]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "C90", "I"]
