@@ -1,3 +1,4 @@
+from ambient_toolbox.models import CommonInfo
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -5,7 +6,7 @@ from backend.bars.models import Bar
 from backend.market.models.drink import Drink
 
 
-class Trade(models.Model):
+class Trade(CommonInfo):
     """Log each completed drink trade so dashboards can display the most recent activity."""
 
     drink = models.ForeignKey(Drink, on_delete=models.CASCADE, related_name="trades")

@@ -1,7 +1,8 @@
+from ambient_toolbox.models import CommonInfo
 from django.db import models
 
 
-class Bar(models.Model):
+class Bar(CommonInfo):
     """Represents a bar location with metadata."""
 
     slug = models.SlugField(max_length=64, unique=True)

@@ -1,3 +1,4 @@
+from ambient_toolbox.models import CommonInfo
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -5,7 +6,7 @@ from backend.bars.models import Bar
 from backend.events.models.event_definition import EventDefinition
 
 
-class ActiveEvent(models.Model):
+class ActiveEvent(CommonInfo):
     """Track when a definition is running at a bar so we can display live status and history."""
 
     definition = models.ForeignKey(

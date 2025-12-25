@@ -1,8 +1,9 @@
+from ambient_toolbox.models import CommonInfo
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 
-class EventDefinition(models.Model):
+class EventDefinition(CommonInfo):
     """Describe the reusable structure and instructions for an event that bars can host."""
 
     name = models.CharField(max_length=128)
