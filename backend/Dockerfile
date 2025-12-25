@@ -16,12 +16,12 @@ FROM python:3.13-slim AS runtime-base
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PATH="/app/__pypackages__/3.13/bin:${PATH}"
+    PATH="/app/.venv/bin:${PATH}"
 
 WORKDIR /app
 
 # Reuse the dependency snapshot from the deps stage to keep installs cached.
-COPY --from=deps /app/__pypackages__ ./__pypackages__
+COPY --from=deps /app/.venv ./.venv
 
 FROM runtime-base AS dev
 
