@@ -1,0 +1,145 @@
+name: Backend CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    env:
+      DJANGO_SECRET_KEY: django-insecure-change-me
+      DJANGO_DEBUG: "true"
+      DJANGO_ALLOWED_HOSTS: localhost,127.0.0.1
+      DJANGO_SETTINGS_MODULE: config.settings.dev
+      PYTHONUNBUFFERED: 1
+      DATABASE_URL: postgres://drink_exchange:drink_exchange@localhost:5432/drink_exchange
+      REDIS_URL: redis://localhost:6379/0
+      CELERY_BROKER_URL: redis://localhost:6379/0
+      CELERY_RESULT_BACKEND: redis://localhost:6379/0
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: drink_exchange
+          POSTGRES_USER: drink_exchange
+          POSTGRES_PASSWORD: drink_exchange
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U drink_exchange -d drink_exchange"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.13
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.13
+
+      - name: Cache pip and uv
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.cache/uv
+          key: ${{ runner.os }}-pip-uv-${{ hashFiles('backend/uv.lock', 'backend/pyproject.toml') }}
+          restore-keys: ${{ runner.os }}-pip-uv-
+
+      - name: Install uv
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install uv
+
+      - name: Sync dependencies
+        working-directory: backend
+        run: uv sync --frozen
+
+      - name: Run ruff lint
+        working-directory: backend
+        run: uv run ruff check .
+
+      - name: Run ruff format check
+        working-directory: backend
+        run: uv run ruff format --check .
+
+      - name: Wait for Postgres and Redis
+        working-directory: backend
+        run: |
+          uv run python - <<'PY'
+          import os
+          import time
+
+          import psycopg
+          import redis
+
+          deadline = time.time() + 60
+          db_url = os.environ["DATABASE_URL"]
+          redis_url = os.environ["REDIS_URL"]
+          print("waiting for postgres and redis to become available...")
+          while time.time() < deadline:
+              try:
+                  with psycopg.connect(db_url):
+                      pass
+                  redis.Redis.from_url(redis_url).ping()
+                  print("services ready")
+                  break
+              except Exception:
+                  time.sleep(1)
+          else:
+              raise SystemExit("services did not become available within 60 seconds")
+          PY
+
+      - name: Run migrations
+        working-directory: backend
+        run: uv run python manage.py migrate --noinput
+
+      - name: Run pytest
+        working-directory: backend
+        run: uv run pytest
+
+      - name: Start Celery worker/beat and run WebSocket health probe
+        working-directory: backend
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          pids=()
+
+          cleanup() {
+            if [ "${#pids[@]}" -eq 0 ]; then
+              return
+            fi
+            for pid in "${pids[@]}"; do
+              kill "$pid" 2>/dev/null || true
+            done
+            wait "${pids[@]}" 2>/dev/null || true
+          }
+
+          trap cleanup EXIT
+
+          uv run celery -A config worker --loglevel=info &
+          pids+=("$!")
+          uv run celery -A config beat --loglevel=info &
+          pids+=("$!")
+          uv run uvicorn config.asgi:application --host 0.0.0.0 --port 8000 &
+          pids+=("$!")
+
+          sleep 5
+          uv run python ../scripts/ws-health.py --bar ci-demo
+
+          cleanup
+          trap - EXIT
