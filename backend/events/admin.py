@@ -1,17 +1,4 @@
-from django.contrib import admin
+from importlib import import_module
 
-from backend.events.models import ActiveEvent, EventDefinition
-
-
-@admin.register(EventDefinition)
-class EventDefinitionAdmin(admin.ModelAdmin):
-    """Manages event definitions within the Django admin."""
-    list_display = ("name",)
-    search_fields = ("name",)
-
-
-@admin.register(ActiveEvent)
-class ActiveEventAdmin(admin.ModelAdmin):
-    """Surfaces active events so staff can review and filter them."""
-    list_display = ("definition", "bar", "starts_at", "ends_at", "is_active")
-    list_filter = ("bar", "is_active")
+import_module("backend.events.admin_event_definition")
+import_module("backend.events.admin_active_event")
