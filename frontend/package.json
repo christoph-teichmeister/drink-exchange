@@ -1,0 +1,31 @@
+{
+  "name": "drink-exchange-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "svelte-kit dev --host 0.0.0.0 --port 5173",
+    "build": "svelte-kit build",
+    "preview": "svelte-kit preview"
+  },
+  "dependencies": {
+    "@skeletonlabs/skeleton": "^0.47.0"
+  },
+  "devDependencies": {
+    "svelte-preprocess": "3.4.1",
+    "@sveltejs/adapter-auto": "2.1.0",
+    "@sveltejs/kit": "2.4.0",
+    "autoprefixer": "10.4.20",
+    "eslint": "8.52.0",
+    "eslint-config-prettier": "9.0.0",
+    "eslint-plugin-svelte": "4.0.0",
+    "eslint-plugin-sveltekit": "1.1.0",
+    "postcss": "8.4.29",
+    "prettier": "3.0.0",
+    "prettier-plugin-svelte": "3.0.0",
+    "svelte": "4.0.0",
+    "tailwindcss": "3.5.2",
+    "typescript": "5.3.3",
+    "vite-plugin-pwa": "0.19.8"
+  }
+}

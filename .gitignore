@@ -32,11 +32,14 @@ pip-log.txt
 
 #### Node / Frontend
 node_modules/
+frontend/node_modules/
 pnpm-lock.yaml
 .turbo/
 .next/
 .svelte-kit/
 .vite/
+
+!frontend/pnpm-lock.yaml
 
 #### Docker
 docker-compose.override.yml
