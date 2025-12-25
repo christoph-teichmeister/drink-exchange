@@ -3,9 +3,14 @@ from django.utils.translation import gettext_lazy as _
 
 
 class EventDefinition(models.Model):
+    """Describe the reusable structure and instructions for an event that bars can host."""
+
     name = models.CharField(max_length=128)
     description = models.TextField(blank=True)
-    rules = models.JSONField(default=dict, blank=True)
+    rules = models.JSONField(
+        default=dict,
+        blank=True,
+    )  # Stores the structured, versioned rules that describe how the event should behave.
 
     class Meta:
         verbose_name = _("event definition")

@@ -6,11 +6,21 @@ from backend.events.models.event_definition import EventDefinition
 
 
 class ActiveEvent(models.Model):
-    definition = models.ForeignKey(EventDefinition, on_delete=models.CASCADE, related_name="active_events")
-    bar = models.ForeignKey(Bar, on_delete=models.CASCADE, related_name="active_events")
+    """Track when a definition is running at a bar so we can display live status and history."""
+
+    definition = models.ForeignKey(
+        EventDefinition,
+        on_delete=models.CASCADE,
+        related_name="active_events",
+    )
+    bar = models.ForeignKey(
+        Bar,
+        on_delete=models.CASCADE,
+        related_name="active_events",
+    )
     starts_at = models.DateTimeField()
     ends_at = models.DateTimeField()
-    is_active = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=True)  # Flags whether the event is still running.
 
     class Meta:
         ordering = ["starts_at"]
