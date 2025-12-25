@@ -17,7 +17,7 @@ set -euo pipefail
 # - Assumes default branch is "main". Change MAIN_BRANCH if needed.
 
 TICKETS_DIR="${1:-docs/tickets/setup}"
-MAIN_BRANCH="${MAIN_BRANCH:-main}"
+MAIN_BRANCH="${MAIN_BRANCH:-develop}"
 REMOTE_NAME="${REMOTE_NAME:-origin}"
 
 # ---------- helpers ----------
