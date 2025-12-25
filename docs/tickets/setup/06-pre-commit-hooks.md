@@ -1,4 +1,5 @@
 > Scope: implement ONLY what is required here. No refactors, no extra tooling.
+
 ## User-Story
 
 Als Team möchte ich automatische Checks vor jedem Commit, damit Codequalität stabil bleibt.
@@ -18,6 +19,7 @@ Als Team möchte ich automatische Checks vor jedem Commit, damit Codequalität s
 - Dokumentation im README: `pre-commit install`
 - Die Hooks decken sowohl `backend/` (via `backend/pyproject.toml`) als auch `frontend/` PNPM-Tools ab, damit dieselben
   Regeln aus der Architektur (Python + PWA) gelten.
+- Markdown-Dateien werden mit `markdownlint` geprüft, damit die Dokumentation konsistent bleibt.
 
 ## Tech Notes
 
@@ -26,4 +28,5 @@ Als Team möchte ich automatische Checks vor jedem Commit, damit Codequalität s
 
 ## Dependencies
 
-- Needs the backend project (`01-backend-project.md`) and frontend setup (`02-frontend-setup.md`) to exist so the hooks target real files, and ideally should run after the helper commands (`05-commands.md`) are in place.
+- Needs the backend project (`01-backend-project.md`) and frontend setup (`02-frontend-setup.md`) to exist so the hooks
+  target real files, and ideally should run after the helper commands (`05-commands.md`) are in place.
