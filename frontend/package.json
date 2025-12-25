@@ -4,28 +4,31 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "svelte-kit dev --host 0.0.0.0 --port 5173",
-    "build": "svelte-kit build",
-    "preview": "svelte-kit preview"
+    "dev": "vite dev --host 0.0.0.0 --port 5173",
+    "build": "svelte-kit sync && vite build",
+    "preview": "vite preview",
+    "sync": "svelte-kit sync"
   },
   "dependencies": {
-    "@skeletonlabs/skeleton": "^0.47.0"
+    "@skeletonlabs/skeleton": "^0.99.5"
   },
   "devDependencies": {
-    "svelte-preprocess": "3.4.1",
+    "svelte-preprocess": "6.0.3",
     "@sveltejs/adapter-auto": "2.1.0",
     "@sveltejs/kit": "2.4.0",
+    "@sveltejs/vite-plugin-svelte": "3.1.2",
     "autoprefixer": "10.4.20",
     "eslint": "8.52.0",
     "eslint-config-prettier": "9.0.0",
-    "eslint-plugin-svelte": "4.0.0",
-    "eslint-plugin-sveltekit": "1.1.0",
+    "eslint-plugin-svelte": "3.13.1",
     "postcss": "8.4.29",
     "prettier": "3.0.0",
     "prettier-plugin-svelte": "3.0.0",
     "svelte": "4.0.0",
-    "tailwindcss": "3.5.2",
+    "tailwindcss": "3.4.19",
     "typescript": "5.3.3",
-    "vite-plugin-pwa": "0.19.8"
-  }
+    "vite-plugin-pwa": "0.19.8",
+    "vite": "5.4.21"
+  },
+  "packageManager": "pnpm@10.26.2+sha512.0e308ff2005fc7410366f154f625f6631ab2b16b1d2e70238444dd6ae9d630a8482d92a451144debc492416896ed16f7b114a86ec68b8404b2443869e68ffda6"
 }

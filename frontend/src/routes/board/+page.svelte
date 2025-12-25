@@ -6,7 +6,8 @@
   import Card from '$lib/components/Card.svelte';
   import { createMarketWebSocket } from '$lib/utils/ws-client';
   import { get } from 'svelte/store';
-  import { translations, BoardConnectionStatusKey } from '$lib/i18n';
+  import { translations } from '$lib/i18n';
+  import type { BoardConnectionStatusKey } from '$lib/i18n';
 
   const barId = 'main-stage';
   const marketWs = createMarketWebSocket(barId);
