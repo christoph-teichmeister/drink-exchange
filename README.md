@@ -39,6 +39,7 @@ uv run python manage.py createsuperuser
 
 - Prefer absolute imports everywhere; do not rely on relative imports so cross-module references stay explicit and consistent.
 - Wrap user-facing strings with translation helpers (`gettext_lazy`) to keep the UI ready for localization.
+- Keep at most one Python class per file; structure domains so each module defines a single class.
 
 ## Next Steps
 

@@ -8,6 +8,7 @@
 - Update .env.example whenever adding env vars.
 - Never use relative imports; always reference modules with their full package paths.
 - Wrap new user-facing text with translation utilities (e.g., `gettext_lazy`) so every string stays localizable.
+- Keep at most one Python class per file; split domains into separate modules so each file defines a single class.
 
 ## Definition of Done (run what’s relevant)
 
