@@ -1,0 +1,6 @@
+{
+  "semi": false,
+  "singleQuote": true,
+  "svelteSortOrder": "scripts-styles-markup",
+  "trailingComma": "none"
+}

@@ -7,7 +7,8 @@
 - Always commit lockfiles: uv.lock, pnpm-lock.yaml.
 - Update .env.example whenever adding env vars.
 - Never use relative imports; always reference modules with their full package paths.
-- Wrap new user-facing text with translation utilities (e.g., `gettext_lazy`) so every string stays localizable.
+- Wrap new user-facing text with translation utilities (backend via `gettext_lazy`, frontend via the `$translations` catalog in `frontend/src/lib/i18n.ts`) so every string stays localizable.
+- Keep `frontend/src/lib/i18n.ts` in sync when updating UI text and always consume `$translations` in Svelte views instead of hardcoding strings.
 - Keep at most one Python class per file; split domains into separate modules so each file defines a single class.
 - Avoid top-level module docstrings or comments; keep module-level explanations inside class docstrings or inline annotations so
   every class is self-describing for junior readers.

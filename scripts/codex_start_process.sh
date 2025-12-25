@@ -11,7 +11,7 @@ set -euo pipefail
 # - iterate tickets in numeric order
 # - for each ticket: create branch chore/<ticket basename without extension>
 # - run codex with a strict prompt that enforces:
-#   implement -> run checks -> commit -> push -> create PR via GitHub MCP
+#   implement -> run checks -> commit -> push. Script will then use the GitHub MCP server to create the PR.
 #
 # Notes:
 # - Requires a clean working tree at start and after each ticket.
@@ -21,6 +21,8 @@ TICKETS_DIR="${1:-docs/tickets/setup}"
 START_TICKET_RAW="${2:-}"
 MAIN_BRANCH="${MAIN_BRANCH:-develop}"
 REMOTE_NAME="${REMOTE_NAME:-origin}"
+GITHUB_MCP_URL="${GITHUB_MCP_URL:-https://api.githubcopilot.com/mcp/}"
+GITHUB_MCP_TOKEN="${GITHUB_COPILOT_MCP_TOKEN:-}"
 
 if [[ -n "$START_TICKET_RAW" ]]; then
   START_TICKET_ID="$(basename "${START_TICKET_RAW%.md}")"
@@ -78,6 +80,188 @@ extract_title_hint() {
   echo "$title"
 }
 
+compose_pr_body() {
+  local ticket_file="$1"
+  local ticket_id="$2"
+  local branch="$3"
+  local pr_title="$4"
+
+  cat <<EOF
+Summary of changes:
+- Implemented ${ticket_id} as described in ${ticket_file}.
+- Ensured the Codex workflow stayed focused on the AGENTS.md constraints for this ticket.
+
+How to verify:
+- cd backend && uv sync --frozen
+- cd backend && uv run ruff check .
+- cd backend && uv run ruff format --check .
+- cd backend && uv run pytest
+- cd backend && uv run python manage.py migrate
+- cd frontend && pnpm install --frozen-lockfile
+- cd frontend && pnpm build
+- docker compose build
+- docker compose up -d
+- docker compose ps
+
+Notes/assumptions:
+- Automated Codex execution honored AGENTS.md for ${ticket_id}.
+- Branch ${branch} already contains the final changes and is pushed.
+- PR title: ${pr_title}
+EOF
+}
+
+resolve_github_owner_repo() {
+  local remote_url owner_repo owner repo
+  remote_url="$(git remote get-url "$REMOTE_NAME")"
+  owner_repo="$(printf '%s\n' "$remote_url" | sed -E 's#^.*github\\.com[:/]+([^/]+)/([^/]+).*#\\1/\\2#')"
+  if [[ "$owner_repo" == "$remote_url" || "$owner_repo" != */* ]]; then
+    die "Unable to parse GitHub owner/repo from remote URL: $remote_url"
+  fi
+  owner="${owner_repo%%/*}"
+  repo="${owner_repo#*/}"
+  repo="${repo%.git}"
+  repo="${repo%%/*}"
+
+  if [[ -z "$owner" || -z "$repo" ]]; then
+    die "Unable to resolve GitHub owner/repo from remote URL: $remote_url"
+  fi
+
+  printf "%s %s" "$owner" "$repo"
+}
+
+extract_pr_url() {
+  local response_file="$1"
+  python - <<'PY' "$response_file"
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+text = path.read_text()
+try:
+    payload = json.loads(text)
+except json.JSONDecodeError:
+    sys.exit(2)
+
+def find_url(obj):
+    if isinstance(obj, dict):
+        for key in ("html_url", "url", "web_url", "htmlUrl"):
+            value = obj.get(key)
+            if isinstance(value, str) and value.startswith("http"):
+                return value
+        for value in obj.values():
+            candidate = find_url(value)
+            if candidate:
+                return candidate
+    elif isinstance(obj, list):
+        for item in obj:
+            candidate = find_url(item)
+            if candidate:
+                return candidate
+    elif isinstance(obj, str) and obj.startswith("http"):
+        return obj.strip()
+    return None
+
+result = None
+if isinstance(payload, dict) and "result" in payload:
+    result = find_url(payload["result"])
+if not result:
+    result = find_url(payload)
+print(result or "", end="")
+PY
+}
+
+create_pr_via_github_mcp() {
+  local pr_title="$1"
+  local branch="$2"
+  local ticket_path="$3"
+  local ticket_id="$4"
+
+  if [[ -z "$GITHUB_MCP_TOKEN" ]]; then
+    echo "SKIP: GITHUB_COPILOT_MCP_TOKEN is not set; GitHub MCP PR creation skipped." >&2
+    return
+  fi
+
+  local owner repo
+  read -r owner repo <<<"$(resolve_github_owner_repo)"
+
+  local pr_body
+  pr_body="$(compose_pr_body "$ticket_path" "$ticket_id" "$branch" "$pr_title")"
+
+  local body_file payload response_file http_status curl_exit pr_url
+  body_file="$(mktemp)"
+  printf '%s' "$pr_body" > "$body_file"
+
+  payload=$(
+    GITHUB_MCP_OWNER="$owner" \
+    GITHUB_MCP_REPO="$repo" \
+    GITHUB_MCP_TITLE="$pr_title" \
+    GITHUB_MCP_HEAD="$branch" \
+    GITHUB_MCP_BASE="$MAIN_BRANCH" \
+    PR_BODY_FILE="$body_file" \
+    python - <<'PY'
+import json
+import os
+from pathlib import Path
+
+args = os.environ
+body = Path(args["PR_BODY_FILE"]).read_text(encoding="utf-8")
+payload = {
+    "tool": "github.pull_request_create",
+    "arguments": {
+        "owner": args["GITHUB_MCP_OWNER"],
+        "repo": args["GITHUB_MCP_REPO"],
+        "title": args["GITHUB_MCP_TITLE"],
+        "head": args["GITHUB_MCP_HEAD"],
+        "base": args["GITHUB_MCP_BASE"],
+        "body": body,
+        "maintainer_can_modify": False,
+        "draft": False,
+    },
+}
+print(json.dumps(payload))
+PY
+  )
+  rm -f "$body_file"
+
+  response_file="$(mktemp)"
+  set +e
+  http_status="$(curl -sS -o "$response_file" -w "%{http_code}" \
+    -H "Authorization: Bearer $GITHUB_MCP_TOKEN" \
+    -H "Content-Type: application/json" \
+    -X POST \
+    -d "$payload" \
+    "$GITHUB_MCP_URL")"
+  curl_exit=$?
+  set -e
+
+  if [[ $curl_exit -ne 0 ]]; then
+    cat "$response_file"
+    rm -f "$response_file"
+    die "GitHub MCP request failed (curl exit $curl_exit)"
+  fi
+
+  if [[ "$http_status" -lt 200 || "$http_status" -ge 300 ]]; then
+    cat "$response_file"
+    rm -f "$response_file"
+    die "GitHub MCP returned HTTP $http_status"
+  fi
+
+  if ! pr_url="$(extract_pr_url "$response_file")"; then
+    cat "$response_file"
+    rm -f "$response_file"
+    die "Failed to parse GitHub MCP response."
+  fi
+
+  rm -f "$response_file"
+
+  if [[ -z "$pr_url" ]]; then
+    die "GitHub MCP response did not include a PR URL."
+  fi
+
+  echo "GitHub MCP created PR: $pr_url"
+}
+
 # ---------- preflight ----------
 require_cmd git
 require_cmd codex
@@ -85,6 +269,8 @@ require_cmd awk
 require_cmd sed
 require_cmd find
 require_cmd sort
+require_cmd curl
+require_cmd python
 
 [[ -d "$TICKETS_DIR" ]] || die "Tickets dir not found: $TICKETS_DIR"
 [[ -f "AGENTS.md" ]] || die "AGENTS.md not found in repo root. Create it first."
@@ -146,6 +332,7 @@ for ticket_path in "${TICKETS[@]}"; do
   branch="chore/${ticket_id}"
 
   title_hint="$(extract_title_hint "$ticket_path" "$ticket_id")"
+  pr_title="chore(${ticket_id}): ${title_hint}"
   extra_guidance="$EXTRA_GUIDANCE"
 
   echo "=== Processing $ticket_id ==="
@@ -175,7 +362,7 @@ for ticket_path in "${TICKETS[@]}"; do
   git checkout -b "$branch"
 
   # Compose strict prompt
-  # NOTE: We explicitly require PR creation via GitHub MCP and require Codex to output PR URL.
+  # NOTE: Codex only needs to push; PR creation is handled by this script via GitHub MCP afterwards.
   prompt="$(cat <<'PROMPT'
 You are Codex CLI running locally in a git repository. You MUST follow AGENTS.md and the ticket Scope line.
 
@@ -189,14 +376,6 @@ Mandatory process:
 4) Commit everything (including lockfiles) with message:
    "chore(<TICKET_ID>): <TITLE_HINT>"
 5) Push the branch to origin.
-6) Using your connected GitHub MCP, create a Pull Request for this branch:
-   - PR title: "chore(<TICKET_ID>): <TITLE_HINT>"
-   - Target branch: main
-   - PR body must include:
-     - Summary of changes (bullet list)
-     - How to verify (commands)
-     - Notes/assumptions
-   - Ensure the PR is created successfully and output the PR URL.
 
 Additional guidance:
 <EXTRA_GUIDANCE>
@@ -221,8 +400,10 @@ $(cat "$ticket_path")"
 
   git push --set-upstream "$REMOTE_NAME" "$branch"
 
+  create_pr_via_github_mcp "$pr_title" "$branch" "$ticket_path" "$ticket_id"
+
   echo "OK: $ticket_id completed, branch pushed: $branch"
-  echo "Next: merge PR (created by Codex via GitHub MCP) before continuing, if tickets depend on each other."
+  echo "Next: merge the PR created via GitHub MCP before continuing, if tickets depend on each other."
   echo
 
   # Go back to main (script continues; if you want to force merge-between-tickets, stop here manually)

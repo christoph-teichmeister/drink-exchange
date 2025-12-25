@@ -1,0 +1,60 @@
+@import '@skeletonlabs/skeleton/styles/skeleton.dark.css';
+@import '@skeletonlabs/skeleton/styles/skeleton.css';
+@import '@skeletonlabs/skeleton/styles/skeleton.app.css';
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+:root {
+  --market-primary: #28c07f;
+  --market-accent: #ffbf69;
+  --market-surface: #04050b;
+  --market-muted: #3f4b66;
+  --market-highlight: #f65c78;
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: var(--market-surface);
+  color: #f8fafc;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+.board-shell {
+  background: linear-gradient(180deg, rgba(5, 6, 11, 0.97) 0%, rgba(3, 5, 14, 0.95) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.ticker-line {
+  font-weight: 600;
+  letter-spacing: 0.15em;
+}
+
+.chart-skeleton {
+  background: radial-gradient(circle at top, rgba(255, 255, 255, 0.35), transparent 60%);
+  border-radius: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  min-height: 200px;
+}
+
+.event-chip {
+  border-radius: 9999px;
+  padding: 0.35rem 0.85rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(4, 5, 11, 0.75);
+  backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
