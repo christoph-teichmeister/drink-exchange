@@ -1,0 +1,31 @@
+from ambient_toolbox.models import CommonInfo
+from backend.bars.models import Bar
+from backend.events.models.event_definition import EventDefinition
+from django.db import models
+from django.utils.translation import gettext_lazy as _
+
+
+class ActiveEvent(CommonInfo):
+    """Track when a definition is running at a bar so we can display live status and history."""
+
+    definition = models.ForeignKey(
+        EventDefinition,
+        on_delete=models.CASCADE,
+        related_name="active_events",
+    )
+    bar = models.ForeignKey(
+        Bar,
+        on_delete=models.CASCADE,
+        related_name="active_events",
+    )
+    starts_at = models.DateTimeField()
+    ends_at = models.DateTimeField()
+    is_active = models.BooleanField(default=True)  # Flags whether the event is still running.
+
+    class Meta:
+        ordering = ["starts_at"]  # Keep active events ordered by their start time.
+        verbose_name = _("active event")
+        verbose_name_plural = _("active events")
+
+    def __str__(self) -> str:
+        return f"{self.definition.name} @ {self.bar.slug}"

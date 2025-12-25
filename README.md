@@ -1,6 +1,7 @@
 # Drink Exchange
 
-This repository bootstraps the Drink Exchange platform with a full-stack Django/Channels backend, a SvelteKit frontend, and the tooling needed to keep both environments aligned locally and in CI.
+This repository bootstraps the Drink Exchange platform with a full-stack Django/Channels backend, a SvelteKit frontend,
+and the tooling needed to keep both environments aligned locally and in CI.
 
 ## Prerequisites
 
@@ -33,8 +34,37 @@ uv run python manage.py createsuperuser
 
 - Backend: `uv sync --frozen`, `uv run ruff`, `uv run pytest`.
 - Frontend: `pnpm lint`, `pnpm build`.
-- CI workflows live under `.github/workflows` (see `07-ci-backend.md`, `08-ci-frontend.md`, `09-pre-commit-workflow.md` for descriptions).
+- CI workflows live under `.github/workflows` (see `07-ci-backend.md`, `08-ci-frontend.md`, `09-pre-commit-workflow.md`
+  for descriptions).
+
+## Coding Guidelines
+
+- Prefer absolute imports everywhere; do not rely on relative imports so cross-module references stay explicit and
+  consistent.
+- Do not add `from __future__ import annotations`; the project keeps annotation evaluation standard and relies on
+  explicit typing imports.
+- Wrap user-facing strings with translation helpers (`gettext_lazy`) to keep the UI ready for localization.
+- Keep at most one Python class per file; structure domains so each module defines a single class.
+- Always add a blank line immediately after any docstring so readers and tooling can clearly separate the summary from
+  the following definition.
+- Treat admin modules the same way: each `ModelAdmin` lives in its own file, the app-level `admin/__init__.py` imports
+  those classes directly (no `importlib.import_module`) and re-exports them via an explicit
+  `__all__ = ["ActiveEventAdmin", "EventDefinitionAdmin"]` so Django still registers them while the
+  single-class-per-file rule is preserved.
+- Initialize every package with an explicit `__all__` declaration (e.g., `__all__ = ["ActiveEvent", "EventDefinition"]`)
+  inside `__init__.py`, even if the module only wires admin imports, so the exports stay predictable for importers.
+- Derive every business model from `ambient_toolbox.models.CommonInfo` and pair the admin class with
+  `CommonInfoAdminMixin`, while leaving `CurrentRequestMiddleware` enabled so ownership fields (`created_by`,
+  `created_at`, `lastmodified_by`, `lastmodified_at`) stay accurate and the admin keeps those fields read-only unless a
+  subclass overrides `get_user_obj()` or sets `ALWAYS_UPDATE_FIELDS = False` (see
+  the [Ambient Toolbox CommonInfo docs](https://ambient-toolbox.readthedocs.io/en/latest/features/models.html#commoninfo)
+  for the available audit fields and helpers).
+- Avoid module docstrings or explanatory comments at the top of files; rely on class docstrings and inline
+  notes within each class so new contributors can understand the intent immediately.
+- Do not add docstrings to `Meta` inner classes; their configuration should be documented using inline comments if
+  needed.
 
 ## Next Steps
 
-Once dependencies are in place, follow `docs/tickets/setup/ORDER.md` to tackle the remaining setup tickets in sequence. Make sure `pre-commit` and CI workflows run after the local helper commands are working.
+Once dependencies are in place, follow `docs/tickets/setup/ORDER.md` to tackle the remaining setup tickets in sequence.
+Make sure `pre-commit` and CI workflows run after the local helper commands are working.

@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=65.5.1", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "drink-exchange-backend"
+version = "0.1.0"
+description = "Backend foundation for Drink Exchange built on Django, Channels, and uv tooling."
+readme = "README.md"
+requires-python = ">=3.13,<3.14"
+license = "MIT"
+authors = [ { name = "Drink Exchange" } ]
+dependencies = [
+    "Django>=6.0,<7",
+    "channels>=4.0,<5",
+    "channels-redis>=4.0,<5",
+    "uvicorn>=0.23,<0.24",
+    "dj-database-url>=1.0,<2",
+    "ruff>=0.14,<0.15",
+    "pytest>=7.0,<8",
+    "pytest-django>=4.0,<5",
+    "pytest-asyncio>=0.23,<0.25",
+    "python-dotenv>=1.0,<1.1",
+    "ambient-toolbox>=12.6,<13",
+]
+
+[tool.setuptools.packages.find]
+include = ["api*", "bars*", "config*", "events*", "market*"]
+exclude = ["tests*"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "C90", "I"]
+ignore = ["E203"]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings.dev"
+python_files = ["tests.py", "test_*.py", "*_tests.py"]
+addopts = "--reuse-db"

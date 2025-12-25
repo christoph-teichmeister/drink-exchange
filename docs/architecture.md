@@ -166,7 +166,7 @@ Payload-Standard:
 ## Observability
 
 - Structured logging (JSON)
-- Admin Audit Log: wer hat was konfiguriert
+- Admin Audit Log: wer hat was konfiguriert (CommonInfo liefert `created_by`/`lastmodified_by`, CommonInfoAdminMixin + CurrentRequestMiddleware pflegen den Kontext, siehe [Ambient Toolbox CommonInfo docs](https://ambient-toolbox.readthedocs.io/en/latest/features/models.html#commoninfo) für mehr Kontext zu den Audit-Feldern).
 - Metrics später: tick duration, broadcast counts, active users
 
 ---

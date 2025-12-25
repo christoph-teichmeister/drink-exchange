@@ -2,9 +2,10 @@
 set -euo pipefail
 
 # Usage:
-#   ./scripts/codex_start_process.sh            # defaults to docs/tickets/setup
-#   ./scripts/codex_start_process.sh <dir>      # custom tickets dir
-#
+#   ./scripts/codex_start_process.sh                       # defaults to docs/tickets/setup
+#   ./scripts/codex_start_process.sh <tickets-dir>         # custom tickets dir
+#   ./scripts/codex_start_process.sh <tickets-dir> <ticket> # resume starting at <ticket>
+# 
 # Expects tickets named: NN-description.md (e.g., 01-backend-project.md), numeric prefix determines order.
 # Will:
 # - iterate tickets in numeric order
@@ -17,8 +18,15 @@ set -euo pipefail
 # - Assumes default branch is "main". Change MAIN_BRANCH if needed.
 
 TICKETS_DIR="${1:-docs/tickets/setup}"
+START_TICKET_RAW="${2:-}"
 MAIN_BRANCH="${MAIN_BRANCH:-develop}"
 REMOTE_NAME="${REMOTE_NAME:-origin}"
+
+if [[ -n "$START_TICKET_RAW" ]]; then
+  START_TICKET_ID="$(basename "${START_TICKET_RAW%.md}")"
+else
+  START_TICKET_ID=""
+fi
 
 # ---------- helpers ----------
 die() { echo "ERROR: $*" >&2; exit 1; }
@@ -98,9 +106,29 @@ mapfile -t TICKETS < <(
 
 [[ ${#TICKETS[@]} -gt 0 ]] || die "No tickets found in $TICKETS_DIR (expected NN-description.md)."
 
+if [[ -n "$START_TICKET_ID" ]]; then
+  start_found=false
+  for ticket_path in "${TICKETS[@]}"; do
+    candidate="$(basename "$ticket_path" .md)"
+    if [[ "$candidate" == "$START_TICKET_ID"* ]]; then
+      start_found=true
+      break
+    fi
+  done
+  [[ "$start_found" == true ]] || die "Start ticket not found: $START_TICKET_ID"
+  echo "Will skip to ticket matching prefix: $START_TICKET_ID"
+  echo
+fi
+
 echo "Found ${#TICKETS[@]} tickets in $TICKETS_DIR:"
 for t in "${TICKETS[@]}"; do echo " - $(basename "$t")"; done
 echo
+
+START_REACHED="true"
+# if a starting ticket prefix is set, skip until we reach it
+if [[ -n "$START_TICKET_ID" ]]; then
+  START_REACHED="false"
+fi
 
 # ---------- main loop ----------
 EXTRA_GUIDANCE="No additional guidance."
@@ -117,6 +145,17 @@ for ticket_path in "${TICKETS[@]}"; do
   echo "Branch:  $branch"
   echo "Title:   $title_hint"
   echo
+
+  if [[ "$START_REACHED" == "false" ]]; then
+    if [[ "$ticket_id" == "$START_TICKET_ID"* ]]; then
+      START_REACHED="true"
+      echo "Resuming from ticket $ticket_id"
+    else
+      echo "Skipping $ticket_id (waiting for prefix $START_TICKET_ID)"
+      echo
+      continue
+    fi
+  fi
 
   # Always start from latest main to avoid drift
   git checkout "$MAIN_BRANCH" >/dev/null
@@ -173,9 +212,7 @@ $(cat "$ticket_path")"
   # Post-checks: ensure clean tree and branch pushed
   ensure_clean_tree || die "Working tree not clean after Codex. Aborting."
 
-  if ! git ls-remote --exit-code --heads "$REMOTE_NAME" "$branch" >/dev/null 2>&1; then
-    die "Remote branch not found on ${REMOTE_NAME}: $branch (Codex did not push?)"
-  fi
+  git push --set-upstream "$REMOTE_NAME" "$branch"
 
   echo "OK: $ticket_id completed, branch pushed: $branch"
   echo "Next: merge PR (created by Codex via GitHub MCP) before continuing, if tickets depend on each other."
