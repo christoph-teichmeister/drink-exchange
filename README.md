@@ -45,8 +45,8 @@ uv run python manage.py createsuperuser
   explicit typing imports.
 - Wrap user-facing strings with translation helpers (`gettext_lazy`) to keep the UI ready for localization.
 - Keep at most one Python class per file; structure domains so each module defines a single class.
-- Treat admin modules the same way: each `ModelAdmin` lives in its own file, and the app-level `admin.py` uses `import_module` calls so Django still discovers the registrations without defining multiple classes in one module.
-- Initialize every package with an explicit `__all__` declaration (e.g., `__all__ = ["ActiveEvent", "EventDefinition"]`) so consumers know which classes are exported from `__init__.py`.
+- Treat admin modules the same way: each `ModelAdmin` lives in its own file, and the app-level `admin/__init__.py` imports those classes directly and re-exports them via `__all__` so Django still registers them while the single-class-per-file rule is preserved.
+- Initialize every package with an explicit `__all__` declaration (e.g., `__all__ = ["ActiveEvent", "EventDefinition"]`) inside `__init__.py`, even if the module only wires admin imports, so the exports stay predictable for importers.
 - Derive every business model from `CommonInfo` and pair the admin class with `CommonInfoAdminMixin`, while leaving `CurrentRequestMiddleware` enabled so ownership fields (`created_by`, `created_at`, `lastmodified_by`, `lastmodified_at`) stay accurate and the admin keeps those fields read-only unless a subclass overrides `get_user_obj()` or sets `ALWAYS_UPDATE_FIELDS = False`.
 - Avoid module docstrings or explanatory comments at the top of files; rely on class docstrings and inline
   notes within each class so new contributors can understand the intent immediately.
