@@ -1,0 +1,11 @@
+version = 1
+revision = 0
+requires-python = "==3.13.*"
+
+# This lockfile could not be populated because the sandbox cannot reach PyPI.
+# Run `uv sync --frozen` from the backend directory once network access is available.
+
+[[package]]
+name = "drink-exchange-backend"
+version = "0.1.0"
+source = { path = ".", workspace = true }
