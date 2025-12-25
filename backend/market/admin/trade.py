@@ -1,6 +1,5 @@
 from ambient_toolbox.admin.model_admins.mixins import CommonInfoAdminMixin
 from django.contrib import admin
-
 from market.models import Trade
 
 

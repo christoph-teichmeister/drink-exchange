@@ -5,7 +5,7 @@ set -euo pipefail
 #   ./scripts/codex_start_process.sh                       # defaults to docs/tickets/setup
 #   ./scripts/codex_start_process.sh <tickets-dir>         # custom tickets dir
 #   ./scripts/codex_start_process.sh <tickets-dir> <ticket> # resume starting at <ticket>
-# 
+#
 # Expects tickets named: NN-description.md (e.g., 01-backend-project.md), numeric prefix determines order.
 # Will:
 # - iterate tickets in numeric order
