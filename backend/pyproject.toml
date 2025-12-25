@@ -35,3 +35,8 @@ target-version = "py313"
 [tool.ruff.lint]
 select = ["E", "F", "W", "C90", "I"]
 ignore = ["E203"]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings.dev"
+python_files = ["tests.py", "test_*.py", "*_tests.py"]
+addopts = "--reuse-db"
