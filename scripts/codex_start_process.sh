@@ -96,6 +96,14 @@ git remote get-url "$REMOTE_NAME" >/dev/null 2>&1 || die "Remote '${REMOTE_NAME}
 
 ensure_clean_tree || die "Commit/stash changes before running."
 
+update_main_branch_tip() {
+  git checkout "$MAIN_BRANCH" >/dev/null
+  git fetch "$REMOTE_NAME" "$MAIN_BRANCH" >/dev/null
+  git pull --ff-only "$REMOTE_NAME" "$MAIN_BRANCH"
+}
+
+update_main_branch_tip
+
 # Collect tickets named NN-description.md, numeric order via prefix
 mapfile -t TICKETS < <(
   find "$TICKETS_DIR" -maxdepth 1 -type f \
@@ -158,8 +166,7 @@ for ticket_path in "${TICKETS[@]}"; do
   fi
 
   # Always start from latest main to avoid drift
-  git checkout "$MAIN_BRANCH" >/dev/null
-  git pull --ff-only "$REMOTE_NAME" "$MAIN_BRANCH"
+  update_main_branch_tip
 
   # Create branch (fail if exists to avoid accidental reuse)
   if git show-ref --verify --quiet "refs/heads/${branch}"; then
