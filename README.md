@@ -47,6 +47,7 @@ uv run python manage.py createsuperuser
 - Keep at most one Python class per file; structure domains so each module defines a single class.
 - Avoid module docstrings or explanatory comments at the top of files; rely on class docstrings and inline
   notes within each class so new contributors can understand the intent immediately.
+- Do not add docstrings to `Meta` inner classes; their configuration should be documented using inline comments if needed.
 
 ## Next Steps
 

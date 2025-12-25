@@ -13,7 +13,7 @@ class EventDefinition(models.Model):
     )  # Stores the structured, versioned rules that describe how the event should behave.
 
     class Meta:
-        verbose_name = _("event definition")
+        verbose_name = _("event definition")  # Label event definitions clearly in the admin.
         verbose_name_plural = _("event definitions")
 
     def __str__(self) -> str:

@@ -13,7 +13,7 @@ class Drink(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ["name"]  # Help UIs list drinks alphabetically per bar.
+        ordering = ["name"]  # Order drinks alphabetically per bar for consistent UIs.
         verbose_name = _("drink")
         verbose_name_plural = _("drinks")
 

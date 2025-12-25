@@ -2,12 +2,14 @@ from django.db import models
 
 
 class Bar(models.Model):
+    """Represents a bar location with metadata."""
+
     slug = models.SlugField(max_length=64, unique=True)
     name = models.CharField(max_length=128)
     description = models.TextField(blank=True)
 
     class Meta:
-        ordering = ["name"]
+        ordering = ["name"]  # Sort bars alphabetically for listings.
 
     def __str__(self) -> str:
         return self.name

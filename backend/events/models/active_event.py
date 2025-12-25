@@ -23,7 +23,7 @@ class ActiveEvent(models.Model):
     is_active = models.BooleanField(default=True)  # Flags whether the event is still running.
 
     class Meta:
-        ordering = ["starts_at"]
+        ordering = ["starts_at"]  # Keep active events ordered by their start time.
         verbose_name = _("active event")
         verbose_name_plural = _("active events")
 

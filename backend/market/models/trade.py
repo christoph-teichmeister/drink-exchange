@@ -15,7 +15,7 @@ class Trade(models.Model):
     executed_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ["-executed_at"]  # Recent trades first for summaries and notifications.
+        ordering = ["-executed_at"]  # Keep recent trades at the top of summaries.
         verbose_name = _("trade")
         verbose_name_plural = _("trades")
 

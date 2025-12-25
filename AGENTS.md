@@ -11,6 +11,7 @@
 - Keep at most one Python class per file; split domains into separate modules so each file defines a single class.
 - Avoid top-level module docstrings or comments; keep module-level explanations inside class docstrings or inline annotations so
   every class is self-describing for junior readers.
+- Do not add docstrings to `Meta` inner classes; keep their configuration comments inline instead.
 - Do not add `from __future__ import annotations`; rely on explicit typing imports instead.
 
 ## Definition of Done (run what’s relevant)
