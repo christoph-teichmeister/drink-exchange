@@ -9,7 +9,8 @@
 - Never use relative imports; always reference modules with their full package paths.
 - Wrap new user-facing text with translation utilities (e.g., `gettext_lazy`) so every string stays localizable.
 - Keep at most one Python class per file; split domains into separate modules so each file defines a single class.
-- Avoid top-level module docstrings or comments; capture explanations in each class docstring and inline annotations so every class is self-describing for junior readers.
+- Avoid top-level module docstrings or comments; capture explanations in each class docstring and inline annotations so
+  every class is self-describing for junior readers.
 
 ## Definition of Done (run what’s relevant)
 
