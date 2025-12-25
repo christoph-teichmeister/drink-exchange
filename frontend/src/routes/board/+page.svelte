@@ -1,15 +1,17 @@
 <script lang="ts">
-  import { onDestroy, onMount } from 'svelte';
+  import { onMount } from 'svelte';
   import Alert from '$lib/components/Alert.svelte';
   import Badge from '$lib/components/Badge.svelte';
   import Table from '$lib/components/Table.svelte';
   import Card from '$lib/components/Card.svelte';
   import { createMarketWebSocket } from '$lib/utils/ws-client';
+  import { get } from 'svelte/store';
+  import { translations, BoardConnectionStatusKey } from '$lib/i18n';
 
   const barId = 'main-stage';
   const marketWs = createMarketWebSocket(barId);
 
-  let connectionStatus = 'verbindet...';
+  let connectionStatus = get(translations).board.connectionStatus.connecting;
   let rates = [
     { id: 'Barrel Index', price: '€23.12' },
     { id: 'Lager Index', price: '€18.41' },
@@ -17,12 +19,17 @@
   ];
   let events: { title: string; description: string }[] = [];
 
+  const setConnectionStatus = (key: BoardConnectionStatusKey) => {
+    connectionStatus = get(translations).board.connectionStatus[key];
+  };
+
   const priceHandler = (payload: { rates?: { id: string; price: string }[] }) => {
     if (payload.rates) {
       rates = payload.rates;
-      connectionStatus = 'verbunden';
+      setConnectionStatus('connected');
     }
   };
+
   const eventHandler = (payload: { event?: { title: string; description: string } }) => {
     if (payload.event) {
       events = [payload.event, ...events].slice(0, 4);
@@ -43,17 +50,17 @@
 </script>
 
 <svelte:head>
-  <title>Board View</title>
+  <title>{$translations.board.pageTitle}</title>
 </svelte:head>
 
 <div class="space-y-6 rounded-3xl border border-market-accent/30 px-6 py-6 board-shell">
   <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
     <div>
-      <p class="text-xs uppercase tracking-[0.4em] text-white/60">High Contrast Board</p>
-      <p class="text-4xl font-bold text-white">Ticker &amp; Event Command</p>
+      <p class="text-xs uppercase tracking-[0.4em] text-white/60">{$translations.board.header.kicker}</p>
+      <p class="text-4xl font-bold text-white">{$translations.board.header.title}</p>
     </div>
     <div class="flex items-center gap-4">
-      <Badge variant="accent">live</Badge>
+      <Badge variant="accent">{$translations.board.badges.live}</Badge>
       <Badge variant="muted">{connectionStatus}</Badge>
     </div>
   </div>
@@ -77,16 +84,22 @@
   <Card>
     <div class="flex flex-col gap-6">
       <div class="flex flex-wrap items-center justify-between gap-3 text-xs uppercase tracking-[0.3em] text-white/60">
-        <span>Prices</span>
-        <button class="rounded-full border border-white/20 px-4 py-1 text-white/70 hover:border-market-accent/80" on:click={marketWs.reconnect}>
-          Neustart
+        <span>{$translations.board.chart.sectionTitle}</span>
+        <button
+          class="rounded-full border border-white/20 px-4 py-1 text-white/70 hover:border-market-accent/80"
+          on:click={() => {
+            setConnectionStatus('connecting');
+            marketWs.reconnect();
+          }}
+        >
+          {$translations.board.chart.button}
         </button>
       </div>
       <Table>
         <thead>
           <tr class="text-left text-[0.55rem] uppercase tracking-[0.4em] text-white/40">
-            <th class="pb-2">Metrik</th>
-            <th class="pb-2">Wert</th>
+            <th class="pb-2">{$translations.board.chart.tableHeaders.metric}</th>
+            <th class="pb-2">{$translations.board.chart.tableHeaders.value}</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-white/5 text-base">
@@ -110,11 +123,17 @@
       {/each}
     {:else}
       <Card>
-        <p class="text-sm text-white/60">Warten auf das nächste Event...</p>
+        <p class="text-sm text-white/60">{$translations.board.noEvents}</p>
       </Card>
     {/if}
   </div>
   <Alert level="info">
-    <p class="text-sm text-white/80">Events und Preise werden über <strong>event.*</strong> und <strong>prices.update</strong> gesteuert.</p>
+    <p class="text-sm text-white/80">
+      {$translations.board.alert.prefix}
+      <strong>{$translations.board.alert.eventChannel}</strong>
+      {$translations.board.alert.middle}
+      <strong>{$translations.board.alert.priceChannel}</strong>
+      {$translations.board.alert.suffix}
+    </p>
   </Alert>
 </div>
