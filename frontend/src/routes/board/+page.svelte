@@ -67,7 +67,7 @@
   </div>
   <div class="chart-skeleton px-4 py-6">
     <div class="ticker-line text-2xl">
-      {#each rates as rate, index}
+      {#each rates as rate}
         <span class="mr-6 inline-block text-lg font-semibold">
           {rate.id}: {rate.price}
         </span>
