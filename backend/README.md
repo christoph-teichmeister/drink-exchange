@@ -1,40 +1,41 @@
 # Drink Exchange Backend
 
-Dieses Verzeichnis enthält den Django-Backend-Service mit Channels/ASGI, verwaltet über `uv`.
+This directory contains the Django backend service with Channels/ASGI, managed via `uv`.
 
 ## Quickstart
 
-1. SSL/Env vorbereiten (siehe `/ .env.example`):
+1. Prepare SSL/Environment (see `/ .env.example`):
    ```bash
    cp .env.example .env
    ```
-2. Abhängigkeiten installieren:
+2. Install dependencies:
    ```bash
    cd backend
    uv sync --frozen
    ```
-3. Datenbank migrieren und starten:
+3. Apply database migrations and start the server:
    ```bash
    uv run python manage.py migrate
    uv run uvicorn config.asgi:application --reload
    ```
 
-Alternativ kann `uv run python manage.py runserver` verwendet werden, wenn die Django-entwicklungsumgebung bevorzugt wird.
+Alternatively, use `uv run python manage.py runserver` if you prefer the Django development server.
 
-## Asgi & Channels
+## ASGI & Channels
 
-- ASGI-Server: `uvicorn config.asgi:application` (wir nutzen ASGI, damit Channels und Websockets nativ laufen).
-- Der Channel Layer hinterlegt in `config/settings` nutzt `REDIS_URL` und mappt Market-Events auf Gruppen wie `market.<bar_id>`.
-- Der `MarketConsumer` unter `market/consumers.py` bridged Websocket-Verbindungen zu genau diesen Gruppen.
+- ASGI server: `uvicorn config.asgi:application` (ASGI is used so Channels and WebSockets run natively).
+- The channel layer defined in `config/settings` uses `REDIS_URL` and maps market events to groups like
+  `market.<bar_id>`.
+- The `MarketConsumer` in `market/consumers.py` bridges WebSocket connections to those groups.
 
-## Umgebung
+## Environment
 
-Folgende Variablen sollten gesetzt werden (siehe `.env.example`):
+The following variables should be set (see `.env.example`):
 
-| Variable | Beschreibung |
-| --- | --- |
-| `DJANGO_SECRET_KEY` | Django-Secret-Key (produktiv muss ein sicherer Schlüssel gesetzt werden). |
-| `DATABASE_URL` | z.B. `sqlite:///db.sqlite3` oder `postgresql://user:pass@host/db`. |
-| `REDIS_URL` | z.B. `redis://127.0.0.1:6379/0` (Channel Layer). |
-| `DJANGO_ALLOWED_HOSTS` | Komma-separierte Liste erlaubter Hosts. |
-| `DJANGO_DEBUG` | `true` oder `false` für Debug-Modus. |
+| Variable               | Description                                                        |
+|------------------------|--------------------------------------------------------------------|
+| `DJANGO_SECRET_KEY`    | Django secret key (a secure key must be configured in production). |
+| `DATABASE_URL`         | e.g. `sqlite:///db.sqlite3` or `postgresql://user:pass@host/db`.   |
+| `REDIS_URL`            | e.g. `redis://127.0.0.1:6379/0` (channel layer backend).           |
+| `DJANGO_ALLOWED_HOSTS` | Comma-separated list of allowed hosts.                             |
+| `DJANGO_DEBUG`         | `true` or `false` to toggle debug mode.                            |
