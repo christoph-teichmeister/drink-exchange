@@ -26,4 +26,4 @@ Als Team möchte ich automatische Checks vor jedem Commit, damit Codequalität s
 
 ## Dependencies
 
-- Needs the backend project (`s3.md`) and frontend setup (`s4.md`) to exist so the hooks target real files, and ideally should run after the helper commands (`s5.md`) are in place.
+- Needs the backend project (`01-backend-project.md`) and frontend setup (`02-frontend-setup.md`) to exist so the hooks target real files, and ideally should run after the helper commands (`05-commands.md`) are in place.

@@ -31,5 +31,5 @@ entwickeln kann.
 
 ## Dependencies
 
-- Backend source and dependency config need to exist (see `s3.md`), and the backend image (`s2.md`) must be buildable.
-- Frontend assets or services (see `s4.md`) should be in place before wiring up Docker Compose so `make up` works end-to-end.
+- Backend source and dependency config need to exist (see `01-backend-project.md`), and the backend image (`03-backend-docker-image.md`) must be buildable.
+- Frontend assets or services (see `02-frontend-setup.md`) should be in place before wiring up Docker Compose so `make up` works end-to-end.

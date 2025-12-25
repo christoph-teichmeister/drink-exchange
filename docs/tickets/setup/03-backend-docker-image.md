@@ -31,4 +31,4 @@ Als Developer möchte ich ein schnelles, reproduzierbares Backend-Image bauen, d
 
 ## Dependencies
 
-- Requires the Django project scaffold, pyproject, and uv.lock that are described in `s3.md`.
+- Requires the Django project scaffold, pyproject, and uv.lock that are described in `01-backend-project.md`.

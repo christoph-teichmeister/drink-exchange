@@ -29,4 +29,4 @@ Als Maintainer möchte ich CI für das Backend, damit PRs automatisch geprüft w
 
 ## Dependencies
 
-- Requires the backend project + Docker setup (`s3.md`, `s2.md`, `s1.md`) so the CI services can start, and should run after the shared hooks/commands (`s6.md`/`s5.md`) to avoid duplication.
+- Requires the backend project + Docker setup (`01-backend-project.md`, `03-backend-docker-image.md`, `04-docker-compose.md`) so the CI services can start, and should run after the shared hooks/commands (`06-pre-commit-hooks.md`/`05-commands.md`) to avoid duplication.

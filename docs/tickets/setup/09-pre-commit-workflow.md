@@ -10,7 +10,7 @@ Als Maintainer möchte ich die gleichen Checks wie lokal im CI erzwingen, damit 
 - Nutzt caching
 - Fail wenn hooks failen
 - Klärt, ob Workflow nur geänderte Dateien oder ein Full run pro push ausführt und wie sich das auf die
-  backend-/frontend-hooks (s6) abstimmt, damit kein paraleller Check nötig ist.
+  backend-/frontend-hooks (`06-pre-commit-hooks.md`) abstimmt, damit kein paraleller Check nötig ist.
 
 ## Tech Notes
 
@@ -18,4 +18,4 @@ Als Maintainer möchte ich die gleichen Checks wie lokal im CI erzwingen, damit 
 
 ## Dependencies
 
-- Run this after the hooks (`s6.md`) and the backend/frontend CI workflows (`s7.md`, `s8.md`) exist so the overlap and caching strategy are clear.
+- Run this after the hooks (`06-pre-commit-hooks.md`) and the backend/frontend CI workflows (`07-ci-backend.md`, `08-ci-frontend.md`) exist so the overlap and caching strategy are clear.

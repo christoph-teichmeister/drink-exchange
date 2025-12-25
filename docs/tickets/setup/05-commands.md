@@ -24,4 +24,4 @@ Als Developer möchte ich einheitliche Commands, damit Setup und CI lokal identi
 
 ## Dependencies
 
-- Relies on the services defined in `s1.md`, plus backend/frontend targets from `s3.md`/`s4.md`, to make the commands actually work.
+- Relies on the services defined in `04-docker-compose.md`, plus backend/frontend targets from `01-backend-project.md`/`02-frontend-setup.md`, to make the commands actually work.

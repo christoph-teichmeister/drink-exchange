@@ -23,4 +23,4 @@ Als Maintainer möchte ich CI für das Frontend, damit Builds nicht kaputtgehen.
 
 ## Dependencies
 
-- Depends on the frontend skeleton (`s4.md`) and the shared command/hook setup (`s5.md`, `s6.md`) so the workflow can run actual scripts.
+- Depends on the frontend skeleton (`02-frontend-setup.md`) and the shared command/hook setup (`05-commands.md`, `06-pre-commit-hooks.md`) so the workflow can run actual scripts.

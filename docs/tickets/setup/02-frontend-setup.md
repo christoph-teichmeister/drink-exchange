@@ -50,4 +50,4 @@ können.
 
 ## Dependencies
 
-- Independent as the frontend foundation; should be available before wiring Docker Compose (`s1.md`) and the workspace commands (`s5.md`).
+- Independent as the frontend foundation; should be available before wiring Docker Compose (`04-docker-compose.md`) and the workspace commands (`05-commands.md`).
