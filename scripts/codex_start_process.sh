@@ -15,7 +15,7 @@ set -euo pipefail
 #
 # Notes:
 # - Requires a clean working tree at start and after each ticket.
-# - Assumes default branch is "main". Change MAIN_BRANCH if needed.
+# - Assumes default branch is "develop". Change MAIN_BRANCH if needed.
 
 TICKETS_DIR="${1:-docs/tickets/setup}"
 START_TICKET_RAW="${2:-}"
