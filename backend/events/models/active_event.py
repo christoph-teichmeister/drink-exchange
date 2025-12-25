@@ -1,8 +1,9 @@
 from ambient_toolbox.models import CommonInfo
-from bars.models import Bar
-from events.models.event_definition import EventDefinition
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+
+from bars.models import Bar
+from events.models.event_definition import EventDefinition
 
 
 class ActiveEvent(CommonInfo):
