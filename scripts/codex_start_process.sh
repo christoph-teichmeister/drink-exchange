@@ -5,10 +5,10 @@ set -euo pipefail
 #   ./scripts/codex_start_process.sh            # defaults to docs/tickets/setup
 #   ./scripts/codex_start_process.sh <dir>      # custom tickets dir
 #
-# Expects tickets named: s<number>.md (e.g., s1.md, s2.md, ...)
+# Expects tickets named: NN-description.md (e.g., 01-backend-project.md), numeric prefix determines order.
 # Will:
 # - iterate tickets in numeric order
-# - for each ticket: create branch chore/s<number>
+# - for each ticket: create branch chore/<ticket basename without extension>
 # - run codex with a strict prompt that enforces:
 #   implement -> run checks -> commit -> push -> create PR via GitHub MCP
 #
@@ -70,23 +70,6 @@ extract_title_hint() {
   echo "$title"
 }
 
-build_extra_guidance() {
-  local ticket_id="$1"
-  if [[ "$ticket_id" == "s1" ]]; then
-    cat <<'EXTRA'
-S1 specific guidance:
-- Do NOT scaffold a full Django project here (that is S3).
-- If the ticket requires "ASGI reachable on :8000" before Django exists, a tiny ASGI stub is acceptable (non-Django),
-  e.g. backend/asgi_stub.py run with uvicorn. Keep it minimal and ensure it won't conflict with S3.
-- worker/beat should reuse the same build context/image. If Celery is not wired yet, use a minimal long-running command
-  so services are up; keep implementation minimal and document assumptions in PR.
-- Provide Makefile target `up` so "make up" works (and keep it minimal).
-EXTRA
-  else
-    echo "No additional guidance."
-  fi
-}
-
 # ---------- preflight ----------
 require_cmd git
 require_cmd codex
@@ -94,7 +77,6 @@ require_cmd awk
 require_cmd sed
 require_cmd find
 require_cmd sort
-require_cmd cut
 
 [[ -d "$TICKETS_DIR" ]] || die "Tickets dir not found: $TICKETS_DIR"
 [[ -f "AGENTS.md" ]] || die "AGENTS.md not found in repo root. Create it first."
@@ -106,28 +88,29 @@ git remote get-url "$REMOTE_NAME" >/dev/null 2>&1 || die "Remote '${REMOTE_NAME}
 
 ensure_clean_tree || die "Commit/stash changes before running."
 
-# Collect tickets named s<number>.md, numeric sort (so s10 doesn't come before s2)
+# Collect tickets named NN-description.md, numeric order via prefix
 mapfile -t TICKETS < <(
-  find "$TICKETS_DIR" -maxdepth 1 -type f -name 's*.md' \
-  | sed -E 's#^.*/s([0-9]+)\.md$#\1\t&#' \
-  | sort -n \
-  | cut -f2-
+  find "$TICKETS_DIR" -maxdepth 1 -type f \
+    -regextype posix-extended \
+    -regex '.*/[0-9]{2}-[^/]+\.md' \
+  | sort -V
 )
 
-[[ ${#TICKETS[@]} -gt 0 ]] || die "No tickets found in $TICKETS_DIR (expected s<number>.md)."
+[[ ${#TICKETS[@]} -gt 0 ]] || die "No tickets found in $TICKETS_DIR (expected NN-description.md)."
 
 echo "Found ${#TICKETS[@]} tickets in $TICKETS_DIR:"
 for t in "${TICKETS[@]}"; do echo " - $(basename "$t")"; done
 echo
 
 # ---------- main loop ----------
+EXTRA_GUIDANCE="No additional guidance."
 for ticket_path in "${TICKETS[@]}"; do
   ticket_file="$(basename "$ticket_path")"
-  ticket_id="${ticket_file%.md}"           # e.g. "s1"
+  ticket_id="${ticket_file%.md}"           # e.g. "01-backend-project"
   branch="chore/${ticket_id}"
 
   title_hint="$(extract_title_hint "$ticket_path" "$ticket_id")"
-  extra_guidance="$(build_extra_guidance "$ticket_id")"
+  extra_guidance="$EXTRA_GUIDANCE"
 
   echo "=== Processing $ticket_id ==="
   echo "Ticket:  $ticket_path"
