@@ -1,5 +1,3 @@
-version: "2.4"
-
 x-backend-env: &backend-env
   DJANGO_DEBUG: "${DJANGO_DEBUG:-true}"
   DJANGO_ALLOWED_HOSTS: "${DJANGO_ALLOWED_HOSTS:-localhost,127.0.0.1}"
@@ -38,7 +36,7 @@ services:
       retries: 5
       start_period: 5s
 
-  backend-web:
+  backend:
     build:
       context: ./backend
       target: dev
@@ -53,7 +51,7 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
-  backend-worker:
+  celery-worker:
     build:
       context: ./backend
       target: dev
@@ -67,7 +65,7 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
-  backend-beat:
+  celery-beat:
     build:
       context: ./backend
       target: dev
@@ -80,6 +78,27 @@ services:
       redis:
         condition: service_healthy
     restart: unless-stopped
+
+  frontend:
+    image: node:22-bullseye
+    working_dir: /app
+    ports:
+      - "5173:5173"
+    depends_on:
+      backend:
+        condition: service_started
+    environment:
+      CHOKIDAR_USEPOLLING: "true"
+      CI: "true"
+    volumes:
+      - ./frontend:/app:cached
+    command: >
+      sh -c '
+        corepack enable &&
+        corepack prepare pnpm@10.26.2 --activate &&
+        pnpm install --frozen-lockfile &&
+        pnpm dev --host 0.0.0.0 --port 5173
+      '
 
 volumes:
   postgres-data:
