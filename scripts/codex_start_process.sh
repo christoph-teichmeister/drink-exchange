@@ -11,7 +11,7 @@ set -euo pipefail
 # - iterate tickets in numeric order
 # - for each ticket: create branch chore/<ticket basename without extension>
 # - run codex with a strict prompt that enforces:
-#   implement -> run checks -> commit -> push. Script will then use the GitHub MCP server to create the PR.
+#   implement -> run checks -> commit -> push. Script tries to use the GitHub MCP server for PR creation; if that step fails you must open the PR manually.
 #
 # Notes:
 # - Requires a clean working tree at start and after each ticket.
@@ -142,7 +142,8 @@ print(parts[0])
 print(parts[1])
 PY
 )"; then
-    die "Unable to parse GitHub owner/repo from remote URL: $remote_url"
+    echo "Unable to parse GitHub owner/repo from remote URL: $remote_url" >&2
+    return 1
   fi
 
   read -r owner repo <<<"$owner_repo"
@@ -200,11 +201,15 @@ create_pr_via_github_mcp() {
 
   if [[ -z "$GITHUB_MCP_TOKEN" ]]; then
     echo "SKIP: GITHUB_COPILOT_MCP_TOKEN is not set; GitHub MCP PR creation skipped." >&2
-    return
+    return 1
   fi
 
-  local owner repo
-  read -r owner repo <<<"$(resolve_github_owner_repo)"
+  local owner_repo
+  if ! owner_repo="$(resolve_github_owner_repo)"; then
+    echo "SKIP: cannot determine GitHub owner/repo; GitHub MCP PR creation skipped." >&2
+    return 1
+  fi
+  read -r owner repo <<<"$owner_repo"
 
   local pr_body
   pr_body="$(compose_pr_body "$ticket_path" "$ticket_id" "$branch" "$pr_title")"
@@ -260,28 +265,33 @@ PY
   if [[ $curl_exit -ne 0 ]]; then
     cat "$response_file"
     rm -f "$response_file"
-    die "GitHub MCP request failed (curl exit $curl_exit)"
+    echo "GitHub MCP request failed (curl exit $curl_exit)." >&2
+    return 1
   fi
 
   if [[ "$http_status" -lt 200 || "$http_status" -ge 300 ]]; then
     cat "$response_file"
     rm -f "$response_file"
-    die "GitHub MCP returned HTTP $http_status"
+    echo "GitHub MCP returned HTTP $http_status." >&2
+    return 1
   fi
 
   if ! pr_url="$(extract_pr_url "$response_file")"; then
     cat "$response_file"
     rm -f "$response_file"
-    die "Failed to parse GitHub MCP response."
+    echo "Failed to parse GitHub MCP response." >&2
+    return 1
   fi
 
   rm -f "$response_file"
 
   if [[ -z "$pr_url" ]]; then
-    die "GitHub MCP response did not include a PR URL."
+    echo "GitHub MCP response did not include a PR URL." >&2
+    return 1
   fi
 
   echo "GitHub MCP created PR: $pr_url"
+  return 0
 }
 
 # ---------- preflight ----------
@@ -384,7 +394,7 @@ for ticket_path in "${TICKETS[@]}"; do
   git checkout -b "$branch"
 
   # Compose strict prompt
-  # NOTE: Codex only needs to push; PR creation is handled by this script via GitHub MCP afterwards.
+  # NOTE: Codex only needs to push; PR creation is attempted via GitHub MCP afterwards (falls back to manual instructions on failure).
   prompt="$(cat <<'PROMPT'
 You are Codex CLI running locally in a git repository. You MUST follow AGENTS.md and the ticket Scope line.
 
@@ -422,7 +432,9 @@ $(cat "$ticket_path")"
 
   git push --set-upstream "$REMOTE_NAME" "$branch"
 
-  create_pr_via_github_mcp "$pr_title" "$branch" "$ticket_path" "$ticket_id"
+  if ! create_pr_via_github_mcp "$pr_title" "$branch" "$ticket_path" "$ticket_id"; then
+    echo "NOTE: GitHub MCP PR creation failed or was skipped; please open the PR manually (e.g., via 'gh pr create --base $MAIN_BRANCH --head $branch --title \"$pr_title\"')."
+  fi
 
   echo "OK: $ticket_id completed, branch pushed: $branch"
   echo "Next: merge the PR created via GitHub MCP before continuing, if tickets depend on each other."
