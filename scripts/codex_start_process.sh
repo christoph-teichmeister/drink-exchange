@@ -23,6 +23,7 @@ MAIN_BRANCH="${MAIN_BRANCH:-develop}"
 REMOTE_NAME="${REMOTE_NAME:-origin}"
 GITHUB_MCP_URL="${GITHUB_MCP_URL:-https://api.githubcopilot.com/mcp/}"
 GITHUB_MCP_TOKEN="${GITHUB_COPILOT_MCP_TOKEN:-}"
+GITHUB_MCP_MESSAGE_VERSION="${GITHUB_MCP_MESSAGE_VERSION:-2.0}"
 
 if [[ -n "$START_TICKET_RAW" ]]; then
   START_TICKET_ID="$(basename "${START_TICKET_RAW%.md}")"
@@ -249,6 +250,7 @@ PY
   http_status="$(curl -sS -o "$response_file" -w "%{http_code}" \
     -H "Authorization: Bearer $GITHUB_MCP_TOKEN" \
     -H "Content-Type: application/json" \
+    -H "X-GitHub-Copilot-Message-Version: $GITHUB_MCP_MESSAGE_VERSION" \
     -X POST \
     -d "$payload" \
     "$GITHUB_MCP_URL")"
