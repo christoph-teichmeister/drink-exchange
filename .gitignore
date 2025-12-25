@@ -33,6 +33,7 @@ pip-log.txt
 #### Node / Frontend
 node_modules/
 frontend/node_modules/
+/frontend/node_modules.orig/
 /frontend/.pnpm-store/
 pnpm-lock.yaml
 .turbo/

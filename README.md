@@ -12,16 +12,24 @@ and the tooling needed to keep both environments aligned locally and in CI.
 
 ## Quickstart
 
-```bash
-cp .env.example .env
-docker compose up --build
-# in a new shell:
-cd backend
-uv run python manage.py migrate
-uv run python manage.py createsuperuser
-```
+1. **Prerequisites**
+   - Docker & Docker Compose (v2+) for the shared dev services.
+   - Python 3.13 with `uv` available at the command line.
+   - Node 22 with pnpm for the SvelteKit frontend assets.
+2. **Environment**
+   ```bash
+   cp .env.example .env
+   ```
+3. **Start the platform**
+   - `make up` (runs `docker compose up --build` under the hood).
+4. **Initialize the backend**
+   ```bash
+   cd backend
+   uv run python manage.py migrate
+   uv run python manage.py createsuperuser
+   ```
 
-`make up` / `make down` and the other helpers defined in `05-commands.md` mirror these steps for convenience.
+Use the remaining helpers in `Makefile` whenever you want to stop the stack, tail logs, run the frontend dev server, or probe the WebSocket endpoint; they mirror the CI commands so your local setup stays aligned.
 
 ## Project Layout
 

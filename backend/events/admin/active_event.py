@@ -1,6 +1,7 @@
 from ambient_toolbox.admin.model_admins.mixins import CommonInfoAdminMixin
-from events.models import ActiveEvent
 from django.contrib import admin
+
+from events.models import ActiveEvent
 
 
 @admin.register(ActiveEvent)
