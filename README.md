@@ -35,6 +35,10 @@ uv run python manage.py createsuperuser
 - Frontend: `pnpm lint`, `pnpm build`.
 - CI workflows live under `.github/workflows` (see `07-ci-backend.md`, `08-ci-frontend.md`, `09-pre-commit-workflow.md` for descriptions).
 
+## Coding Guidelines
+
+- Prefer absolute imports everywhere; do not rely on relative imports so cross-module references stay explicit and consistent.
+
 ## Next Steps
 
 Once dependencies are in place, follow `docs/tickets/setup/ORDER.md` to tackle the remaining setup tickets in sequence. Make sure `pre-commit` and CI workflows run after the local helper commands are working.

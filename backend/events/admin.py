@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import ActiveEvent, EventDefinition
+from backend.events.models import ActiveEvent, EventDefinition
 
 
 @admin.register(EventDefinition)

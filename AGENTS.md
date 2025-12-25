@@ -6,6 +6,7 @@
 - One ticket = one branch = one PR.
 - Always commit lockfiles: uv.lock, pnpm-lock.yaml.
 - Update .env.example whenever adding env vars.
+- Never use relative imports; always reference modules with their full package paths.
 
 ## Definition of Done (run what’s relevant)
 

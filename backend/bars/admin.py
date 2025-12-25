@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Bar
+from backend.bars.models import Bar
 
 
 @admin.register(Bar)

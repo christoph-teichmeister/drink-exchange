@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Drink, Trade
+from backend.market.models import Drink, Trade
 
 
 @admin.register(Drink)
