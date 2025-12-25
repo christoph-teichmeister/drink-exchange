@@ -1,4 +1,4 @@
-from backend.market.admin.drink import DrinkAdmin
-from backend.market.admin.trade import TradeAdmin
+from market.admin.drink import DrinkAdmin
+from market.admin.trade import TradeAdmin
 
 __all__ = ["DrinkAdmin", "TradeAdmin"]

@@ -1,5 +1,5 @@
 from ambient_toolbox.models import CommonInfo
-from backend.bars.models import Bar
+from bars.models import Bar
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 

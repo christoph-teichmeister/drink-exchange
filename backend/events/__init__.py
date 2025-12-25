@@ -1,3 +1,3 @@
-from backend.events.apps import EventsConfig
+from events.apps import EventsConfig
 
 __all__ = ["EventsConfig"]

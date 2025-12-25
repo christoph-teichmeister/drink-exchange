@@ -18,10 +18,10 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "channels",
-    "backend.bars",
-    "backend.market",
-    "backend.events",
-    "backend.api",
+    "bars",
+    "market",
+    "events",
+    "api",
 ]
 
 MIDDLEWARE = [

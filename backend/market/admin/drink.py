@@ -1,5 +1,5 @@
 from ambient_toolbox.admin.model_admins.mixins import CommonInfoAdminMixin
-from backend.market.models import Drink
+from market.models import Drink
 from django.contrib import admin
 
 

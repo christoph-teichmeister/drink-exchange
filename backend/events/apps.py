@@ -5,4 +5,4 @@ class EventsConfig(AppConfig):
     """Configuration for the events domain and its channels."""
 
     default_auto_field = "django.db.models.BigAutoField"
-    name = "backend.events"
+    name = "events"
