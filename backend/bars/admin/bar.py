@@ -1,7 +1,6 @@
 from ambient_toolbox.admin.model_admins.mixins import CommonInfoAdminMixin
-from django.contrib import admin
-
 from backend.bars.models import Bar
+from django.contrib import admin
 
 
 @admin.register(Bar)

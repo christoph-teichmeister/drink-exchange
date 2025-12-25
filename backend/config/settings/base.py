@@ -30,7 +30,8 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
-    "ambient_toolbox.middleware.current_user.CurrentRequestMiddleware",  # Keeps CommonInfo ownership data and thread-local stack updated.
+    # Keeps CommonInfo ownership data and thread-local stack updated.
+    "ambient_toolbox.middleware.current_user.CurrentRequestMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
