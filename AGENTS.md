@@ -1,20 +1,13 @@
-# Agent Contract
+# Agent Contract (Codex)
 
-## Scope Rules
+## Hard Rules
 
-- 1 Issue/Ticket = 1 Branch = 1 PR
-- No refactors, no tool swaps, no extra features outside acceptance criteria
-- Lockfiles are mandatory: uv.lock, pnpm-lock.yaml
-- Always update .env.example if new env vars are introduced
+- Only implement what the current ticket requires (no refactors, no tool swaps).
+- One ticket = one branch = one PR.
+- Always commit lockfiles: uv.lock, pnpm-lock.yaml.
+- Update .env.example whenever adding env vars.
 
-## Tech Choices (fixed)
-
-- Backend: Django (ASGI) + uv + Postgres + Redis + Celery
-- Frontend: SvelteKit + pnpm + Skeleton UI + Tailwind
-- Lint/format: ruff + ruff-format; frontend eslint+prettier if present
-- CI: GitHub Actions
-
-## Commands to run before DONE
+## Definition of Done (run what’s relevant)
 
 ### Backend
 
@@ -27,7 +20,6 @@
 ### Frontend
 
 - cd frontend && pnpm install --frozen-lockfile
-- cd frontend && pnpm lint (if configured)
 - cd frontend && pnpm build
 
 ### Docker
@@ -35,9 +27,3 @@
 - docker compose build
 - docker compose up -d
 - docker compose ps
-
-## PR Requirements
-
-- Describe changed files
-- Provide verification steps
-- Keep diffs minimal
