@@ -6,5 +6,6 @@ from django.contrib import admin
 @admin.register(Bar)
 class BarAdmin(CommonInfoAdminMixin, admin.ModelAdmin):
     """Controls admin list rendering for bars."""
+
     list_display = ("name", "slug")
     search_fields = ("name", "slug")
