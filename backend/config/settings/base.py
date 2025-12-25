@@ -18,10 +18,10 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "channels",
-    "backend.bars",
-    "backend.market",
-    "backend.events",
-    "backend.api",
+    "bars",
+    "market",
+    "events",
+    "api",
 ]
 
 MIDDLEWARE = [
@@ -65,6 +65,13 @@ CHANNEL_LAYERS = {
 MARKET_CHANNEL_GROUP = "market.{bar_id}"
 # Market flows push updates to the channel layer groups named with the `market.<bar_id>` pattern so
 # websocket consumers can subscribe to the relevant room when bridging real-time events.
+
+CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", REDIS_URL)
+CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", REDIS_URL)
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_TIMEZONE = TIME_ZONE
 
 TEMPLATES = [
     {

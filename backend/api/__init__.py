@@ -1,3 +1,3 @@
-from backend.api.apps import ApiConfig
+from api.apps import ApiConfig
 
 __all__ = ["ApiConfig"]

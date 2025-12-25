@@ -1,5 +1,5 @@
 from ambient_toolbox.admin.model_admins.mixins import CommonInfoAdminMixin
-from backend.bars.models import Bar
+from bars.models import Bar
 from django.contrib import admin
 
 

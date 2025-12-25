@@ -1,0 +1,107 @@
+x-backend-env: &backend-env
+  DJANGO_DEBUG: "${DJANGO_DEBUG:-true}"
+  DJANGO_ALLOWED_HOSTS: "${DJANGO_ALLOWED_HOSTS:-localhost,127.0.0.1}"
+  DJANGO_SECRET_KEY: "${DJANGO_SECRET_KEY:-django-insecure-change-me}"
+  DJANGO_SETTINGS_MODULE: "config.settings.dev"
+  DATABASE_URL: "postgres://drink_exchange:drink_exchange@postgres:5432/drink_exchange"
+  REDIS_URL: "redis://redis:6379/0"
+  CELERY_BROKER_URL: "redis://redis:6379/0"
+  CELERY_RESULT_BACKEND: "redis://redis:6379/0"
+
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: drink_exchange
+      POSTGRES_USER: drink_exchange
+      POSTGRES_PASSWORD: drink_exchange
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U drink_exchange -d drink_exchange"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  redis:
+    image: redis:7
+    command: ["redis-server", "--save", "", "--appendonly", "yes"]
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  backend:
+    build:
+      context: ./backend
+      target: dev
+    ports:
+      - "8000:8000"
+    environment:
+      <<: *backend-env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  celery-worker:
+    build:
+      context: ./backend
+      target: dev
+    entrypoint: ["celery", "-A", "config", "worker", "--loglevel=info"]
+    environment:
+      <<: *backend-env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  celery-beat:
+    build:
+      context: ./backend
+      target: dev
+    entrypoint: ["celery", "-A", "config", "beat", "--loglevel=info"]
+    environment:
+      <<: *backend-env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  frontend:
+    image: node:22-bullseye
+    working_dir: /app
+    ports:
+      - "5173:5173"
+    depends_on:
+      backend:
+        condition: service_started
+    environment:
+      CHOKIDAR_USEPOLLING: "true"
+      CI: "true"
+    volumes:
+      - ./frontend:/app:cached
+    command: >
+      sh -c '
+        corepack enable &&
+        corepack prepare pnpm@10.26.2 --activate &&
+        pnpm install --frozen-lockfile &&
+        pnpm dev --host 0.0.0.0 --port 5173
+      '
+
+volumes:
+  postgres-data:
+    driver: local
+  redis-data:
+    driver: local

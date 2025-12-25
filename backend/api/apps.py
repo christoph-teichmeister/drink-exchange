@@ -5,4 +5,4 @@ class ApiConfig(AppConfig):
     """Configuration for the API surface exposed to clients."""
 
     default_auto_field = "django.db.models.BigAutoField"
-    name = "backend.api"
+    name = "api"
