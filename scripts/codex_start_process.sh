@@ -113,25 +113,45 @@ EOF
 resolve_github_owner_repo() {
   local remote_url owner_repo owner repo
   remote_url="$(git remote get-url "$REMOTE_NAME")"
-  owner_repo="$(printf '%s\n' "$remote_url" | sed -E 's#^.*github\\.com[:/]+([^/]+)/([^/]+).*#\\1/\\2#')"
-  if [[ "$owner_repo" == "$remote_url" || "$owner_repo" != */* ]]; then
+
+  if ! owner_repo="$(python3 - "$remote_url" <<'PY'
+import sys
+from urllib.parse import urlparse
+
+url = sys.argv[1]
+
+def normalize_path(value: str) -> str:
+    trimmed = value.rstrip("/")
+    if trimmed.endswith(".git"):
+        trimmed = trimmed[: -4]
+    return trimmed.lstrip("/")
+
+if url.startswith("git@"):
+    _, path = url.split(":", 1)
+else:
+    path = urlparse(url).path
+
+path = normalize_path(path)
+parts = path.split("/", 2)
+
+if len(parts) < 2 or not parts[0] or not parts[1]:
+    sys.exit(1)
+
+print(parts[0])
+print(parts[1])
+PY
+)"; then
     die "Unable to parse GitHub owner/repo from remote URL: $remote_url"
   fi
-  owner="${owner_repo%%/*}"
-  repo="${owner_repo#*/}"
-  repo="${repo%.git}"
-  repo="${repo%%/*}"
 
-  if [[ -z "$owner" || -z "$repo" ]]; then
-    die "Unable to resolve GitHub owner/repo from remote URL: $remote_url"
-  fi
+  read -r owner repo <<<"$owner_repo"
 
   printf "%s %s" "$owner" "$repo"
 }
 
 extract_pr_url() {
   local response_file="$1"
-  python - <<'PY' "$response_file"
+  python3 - <<'PY' "$response_file"
 import json
 import sys
 from pathlib import Path
@@ -199,7 +219,7 @@ create_pr_via_github_mcp() {
     GITHUB_MCP_HEAD="$branch" \
     GITHUB_MCP_BASE="$MAIN_BRANCH" \
     PR_BODY_FILE="$body_file" \
-    python - <<'PY'
+    python3 - <<'PY'
 import json
 import os
 from pathlib import Path
@@ -270,7 +290,7 @@ require_cmd sed
 require_cmd find
 require_cmd sort
 require_cmd curl
-require_cmd python
+require_cmd python3
 
 [[ -d "$TICKETS_DIR" ]] || die "Tickets dir not found: $TICKETS_DIR"
 [[ -f "AGENTS.md" ]] || die "AGENTS.md not found in repo root. Create it first."
