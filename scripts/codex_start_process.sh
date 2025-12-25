@@ -165,7 +165,7 @@ PROMPT
 $(cat "$ticket_path")"
 
   # Run Codex with prompt via stdin
-  printf "%s\n" "$prompt" | codex
+  printf "%s\n" "$prompt" | codex exec -
 
   echo
   echo "Codex finished for $ticket_id."
