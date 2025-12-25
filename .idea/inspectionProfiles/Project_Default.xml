@@ -1,0 +1,81 @@
+<component name="InspectionProjectProfileManager">
+  <profile version="1.0">
+    <option name="myName" value="Project Default" />
+    <inspection_tool class="Eslint" enabled="true" level="WARNING" enabled_by_default="true" />
+    <inspection_tool class="HtmlUnknownAttribute" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="myValues">
+        <value>
+          <list size="37">
+            <item index="0" class="java.lang.String" itemvalue="hx-trigger" />
+            <item index="1" class="java.lang.String" itemvalue="hx-get" />
+            <item index="2" class="java.lang.String" itemvalue="hx-target" />
+            <item index="3" class="java.lang.String" itemvalue="hx-swap" />
+            <item index="4" class="java.lang.String" itemvalue="hx-push-url" />
+            <item index="5" class="java.lang.String" itemvalue="hx-indicator" />
+            <item index="6" class="java.lang.String" itemvalue="hx-post" />
+            <item index="7" class="java.lang.String" itemvalue="hx-put" />
+            <item index="8" class="java.lang.String" itemvalue="hx-include" />
+            <item index="9" class="java.lang.String" itemvalue="hx-confirm" />
+            <item index="10" class="java.lang.String" itemvalue="hx-ext" />
+            <item index="11" class="java.lang.String" itemvalue="hx-" />
+            <item index="12" class="java.lang.String" itemvalue="@click" />
+            <item index="13" class="java.lang.String" itemvalue=":type" />
+            <item index="14" class="java.lang.String" itemvalue="x-data" />
+            <item index="15" class="java.lang.String" itemvalue="selected" />
+            <item index="16" class="java.lang.String" itemvalue="x-transition:enter" />
+            <item index="17" class="java.lang.String" itemvalue="x-transition:leave-end" />
+            <item index="18" class="java.lang.String" itemvalue="x-transition:leave-start" />
+            <item index="19" class="java.lang.String" itemvalue="x-transition:leave" />
+            <item index="20" class="java.lang.String" itemvalue="x-transition:enter-end" />
+            <item index="21" class="java.lang.String" itemvalue="x-transition:enter-start" />
+            <item index="22" class="java.lang.String" itemvalue="x-show" />
+            <item index="23" class="java.lang.String" itemvalue="x-cloak" />
+            <item index="24" class="java.lang.String" itemvalue="x-collapse" />
+            <item index="25" class="java.lang.String" itemvalue=":class" />
+            <item index="26" class="java.lang.String" itemvalue="x-text" />
+            <item index="27" class="java.lang.String" itemvalue="@click.outside" />
+            <item index="28" class="java.lang.String" itemvalue="x-init" />
+            <item index="29" class="java.lang.String" itemvalue="card-id" />
+            <item index="30" class="java.lang.String" itemvalue="value" />
+            <item index="31" class="java.lang.String" itemvalue="expected-number-of-candidates" />
+            <item index="32" class="java.lang.String" itemvalue="x-if" />
+            <item index="33" class="java.lang.String" itemvalue="assignment-id" />
+            <item index="34" class="java.lang.String" itemvalue="@mouseenter" />
+            <item index="35" class="java.lang.String" itemvalue="@mouseleave" />
+            <item index="36" class="java.lang.String" itemvalue="hx-modal-url" />
+          </list>
+        </value>
+      </option>
+      <option name="myCustomValuesEnabled" value="true" />
+    </inspection_tool>
+    <inspection_tool class="HtmlUnknownTag" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="myValues">
+        <value>
+          <list size="13">
+            <item index="0" class="java.lang.String" itemvalue="nobr" />
+            <item index="1" class="java.lang.String" itemvalue="noembed" />
+            <item index="2" class="java.lang.String" itemvalue="comment" />
+            <item index="3" class="java.lang.String" itemvalue="noscript" />
+            <item index="4" class="java.lang.String" itemvalue="embed" />
+            <item index="5" class="java.lang.String" itemvalue="script" />
+            <item index="6" class="java.lang.String" itemvalue="news_card.title" />
+            <item index="7" class="java.lang.String" itemvalue="news_card.title_top_left" />
+            <item index="8" class="java.lang.String" itemvalue="news_card.body" />
+            <item index="9" class="java.lang.String" itemvalue="PaginatedLazyTable" />
+            <item index="10" class="java.lang.String" itemvalue="NewsList" />
+            <item index="11" class="java.lang.String" itemvalue="FeedList" />
+            <item index="12" class="java.lang.String" itemvalue="Field" />
+          </list>
+        </value>
+      </option>
+      <option name="myCustomValuesEnabled" value="true" />
+    </inspection_tool>
+    <inspection_tool class="PyStubPackagesAdvertiser" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ignoredPackages">
+        <list>
+          <option value="celery-stubs==0.1.3" />
+        </list>
+      </option>
+    </inspection_tool>
+  </profile>
+</component>
