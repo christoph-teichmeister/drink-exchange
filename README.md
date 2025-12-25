@@ -45,6 +45,7 @@ uv run python manage.py createsuperuser
   explicit typing imports.
 - Wrap user-facing strings with translation helpers (`gettext_lazy`) to keep the UI ready for localization.
 - Keep at most one Python class per file; structure domains so each module defines a single class.
+- Treat admin modules the same way: each `ModelAdmin` lives in its own file, and the app-level `admin.py` uses `import_module` calls so Django still discovers the registrations without defining multiple classes in one module.
 - Avoid module docstrings or explanatory comments at the top of files; rely on class docstrings and inline
   notes within each class so new contributors can understand the intent immediately.
 - Do not add docstrings to `Meta` inner classes; their configuration should be documented using inline comments if needed.
