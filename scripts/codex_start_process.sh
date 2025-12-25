@@ -173,9 +173,7 @@ $(cat "$ticket_path")"
   # Post-checks: ensure clean tree and branch pushed
   ensure_clean_tree || die "Working tree not clean after Codex. Aborting."
 
-  if ! git ls-remote --exit-code --heads "$REMOTE_NAME" "$branch" >/dev/null 2>&1; then
-    die "Remote branch not found on ${REMOTE_NAME}: $branch (Codex did not push?)"
-  fi
+  git push --set-upstream "$REMOTE_NAME" "$branch"
 
   echo "OK: $ticket_id completed, branch pushed: $branch"
   echo "Next: merge PR (created by Codex via GitHub MCP) before continuing, if tickets depend on each other."
