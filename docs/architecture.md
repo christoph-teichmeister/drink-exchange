@@ -64,11 +64,12 @@ Eine PWA für Bars, die einen „Aktienmarkt“ für Getränkepreise simuliert:
 
 ### Flow B: Periodischer Market Tick
 
-1. Celery Beat triggert `market_tick(bar_id)` alle X Sekunden
+1. Celery Beat triggert `market_tick_all_bars` (beispielsweise alle 5 Sekunden), das nur Bars auswählt, deren per-`Bar.tick_interval_seconds` definierte Intervalle abgelaufen sind, und `market_tick(bar_id)` aufruft.
 2. Tick führt aus:
-    - Decay/Mean-Reversion (Rückkehr zum Basispreis)
-    - Event-Decay (Eventwirkung nimmt ab)
-    - Grenzen clampen (min/max)
+    - Mean-Reversion: `price = price + (base_price - price) * reversion_rate`
+    - Clamp auf `Drink.min_price`/`Drink.max_price` und optionales `rounding_step`
+    - Persistiere `Drink.current_price`, schreibe PricePoints nach regulärer Downsampling-Rate (`Bar.price_point_retention_ticks`)
+    - Updates: `Bar.last_tick_at`, `Bar.tick_counter` + WebSocket-Broadcast
 3. Persist + Broadcast
 
 ### Flow C: Event Engine
@@ -87,7 +88,7 @@ Eine PWA für Bars, die einen „Aktienmarkt“ für Getränkepreise simuliert:
 ### Core
 
 - `Bar`
-    - name, timezone, settings (tick_rate, event_rate, currency, …)
+    - name, timezone, settings (tick_rate, event_rate, currency, …), plus `tick_interval_seconds`, `reversion_rate`, `price_point_retention_ticks`, `last_tick_at`/`tick_counter` zur Steuerung des Market-Ticks
 - `Drink`
     - bar FK
     - name, base_price, current_price
@@ -156,6 +157,7 @@ Payload-Standard:
 ### Ansatz
 
 - Preisupdates pro Bar seriell ausführen (per Redis lock oder DB advisory lock)
+- Celery tasks (`market_tick`/`market_tick_all_bars`) nutzen `bar_lock`, das bevorzugt Redis, sonst Postgres Advisory Locks und als Fallback pro-Prozess Locks, damit Tick und Trades nicht gleichzeitig schreiben.
 - Trade-Eingang:
     - Persist Trade
     - Queue „recompute prices“ für bar_id (coalescing möglich)

@@ -1,4 +1,5 @@
 import os
+from datetime import timedelta
 from pathlib import Path
 
 import dj_database_url
@@ -76,6 +77,12 @@ CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = TIME_ZONE
+CELERY_BEAT_SCHEDULE = {
+    "market-tick-all-bars": {
+        "task": "market.tasks.market_tick_all_bars",
+        "schedule": timedelta(seconds=5),
+    }
+}
 
 TEMPLATES = [
     {
