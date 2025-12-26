@@ -47,6 +47,10 @@ DATABASES = {
     )
 }
 
+DATABASES["default"]["TEST"] = {
+    "TEMPLATE": "template0",
+}
+
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 STATIC_URL = "static/"
 LANGUAGE_CODE = "en-us"
