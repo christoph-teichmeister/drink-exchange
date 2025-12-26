@@ -67,8 +67,12 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Probe the market WebSocket endpoint.")
     parser.add_argument("--host", default="localhost", help="WebSocket host")
     parser.add_argument("--port", type=int, default=8000, help="WebSocket port")
-    parser.add_argument("--bar", default="demo", help="Bar id used in the market channel")
-    parser.add_argument("--timeout", type=float, default=5.0, help="Socket timeout in seconds")
+    parser.add_argument(
+        "--bar", default="demo", help="Bar id used in the market channel"
+    )
+    parser.add_argument(
+        "--timeout", type=float, default=5.0, help="Socket timeout in seconds"
+    )
     args = parser.parse_args()
     probe(args.host, args.port, args.bar, args.timeout)
 
