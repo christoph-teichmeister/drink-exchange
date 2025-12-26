@@ -144,6 +144,40 @@ Payload-Standard:
 - Immer: `bar_id`, `timestamp`, `type`
 - Bei Preisen: Liste von `{drink_id, price, delta, trend}`
 
+#### JSON Schema (MVP)
+
+```json
+{
+  "type": "prices.update",
+  "bar_id": "string",
+  "timestamp": "2025-12-31T23:59:59Z",
+  "payload": {
+    "prices": [
+      {
+        "drink_id": 42,
+        "drink_name": "IPA",
+        "price": "3.50",
+        "base_price": "3.00",
+        "delta": "0.50",
+        "trend": "up"
+      }
+    ],
+    "active_events": [
+      {
+        "event_id": 1,
+        "definition_id": 5,
+        "definition_name": "Happy Hour",
+        "starts_at": "2025-12-31T23:00:00Z",
+        "ends_at": "2026-01-01T01:00:00Z",
+        "is_active": true
+      }
+    ]
+  }
+}
+```
+
+Für `event.started` / `event.ended` werden die gleichen Event-Felder im `payload` zurückgegeben; `market.status` liefert `payload.status` (z. B. `running`, `idle`) plus optionale `metadata`.
+
 ---
 
 ## Konsistenz & Concurrency
