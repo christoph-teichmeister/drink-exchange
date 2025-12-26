@@ -39,6 +39,7 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
 
       - name: Enable pnpm 10
         run: corepack enable pnpm@10.26.2
