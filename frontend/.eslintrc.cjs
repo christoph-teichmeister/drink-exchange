@@ -49,5 +49,5 @@ module.exports = {
       }
     ]
   },
-  ignorePatterns: ['.svelte-kit', 'node_modules', 'node_modules.orig', 'svelte.config.js']
+  ignorePatterns: ['.svelte-kit', 'node_modules', 'node_modules.orig']
 };

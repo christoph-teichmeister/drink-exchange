@@ -1,0 +1,47 @@
+name: pre-commit
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  run-pre-commit:
+    name: Run shared pre-commit hooks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python environment with uv
+        uses: ./.github/actions/setup-python-uv
+        with:
+          python-version: 3.13
+          cache-paths: |
+            backend/uv.lock
+            backend/pyproject.toml
+
+      - name: Setup Node.js and pnpm
+        uses: ./.github/actions/setup-node-pnpm
+        with:
+          node-version: 22
+          lockfile: frontend/pnpm-lock.yaml
+
+      - name: Activate pinned pnpm version
+        run: corepack prepare pnpm@10.26.2 --activate
+
+      - name: Install pre-commit
+        run: |
+          python -m pip install --upgrade pip
+          pip install pre-commit
+
+      - name: Explain coverage
+        run: |
+          echo "This workflow runs pre-commit --all-files so every push or PR sees the same hooks defined in docs/tickets/setup/06-pre-commit-hooks.md."
+          echo "Backend (docs/tickets/setup/07-ci-backend.md) and frontend (docs/tickets/setup/08-ci-frontend.md) CI continue to run their dedicated lint/build/test commands, so they do not repeat this shared pre-commit step."
+
+      - name: Run pre-commit hooks
+        run: pre-commit run --all-files --show-diff-on-failure

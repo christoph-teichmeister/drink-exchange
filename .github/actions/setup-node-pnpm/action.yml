@@ -1,0 +1,21 @@
+name: Setup Node & pnpm
+description: Provides Node.js with pnpm enabled and cached assets.
+inputs:
+  node-version:
+    description: Node.js version to install.
+    required: false
+    default: '22'
+  lockfile:
+    description: Lockfile used to prime the pnpm cache.
+    required: true
+    default: frontend/pnpm-lock.yaml
+runs:
+  using: composite
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+    - name: Enable pnpm via Corepack
+      run: corepack enable pnpm
+      shell: bash
