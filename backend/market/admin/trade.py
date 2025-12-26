@@ -8,6 +8,6 @@ from market.models import Trade
 class TradeAdmin(CommonInfoAdminMixin, admin.ModelAdmin):
     """Surfaces completed trades for quick inspection."""
 
-    list_display = ("drink", "bar", "price", "quantity", "executed_at")
+    list_display = ("drink", "bar", "price", "qty", "occurred_at")
     list_filter = ("bar",)
-    ordering = ("-executed_at",)
+    ordering = ("-occurred_at",)
