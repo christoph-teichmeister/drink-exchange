@@ -10,19 +10,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Install pnpm globally
-        run: npm install -g pnpm
-
-      - uses: actions/setup-node@v4
+      - name: Setup Node.js and pnpm
+        uses: ./.github/actions/setup-node-pnpm
         with:
           node-version: 22
-          cache: 'pnpm'
-          cache-dependency-path: frontend/pnpm-lock.yaml
+          lockfile: frontend/pnpm-lock.yaml
 
-      - name: Enable pnpm
-        run: corepack enable pnpm
+      - name: Activate pinned pnpm version
+        run: corepack prepare pnpm@10.26.2 --activate
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile

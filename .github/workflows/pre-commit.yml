@@ -16,32 +16,21 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Cache pre-commit and pip artifacts
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache/pre-commit
-            ~/.cache/pip
-          key: pre-commit-${{ runner.os }}-${{ hashFiles('backend/pyproject.toml', 'frontend/pnpm-lock.yaml') }}
-          restore-keys: |
-            pre-commit-${{ runner.os }}-
-
-      - name: Set up Python 3.13
-        uses: actions/setup-python@v5
+      - name: Setup Python environment with uv
+        uses: ./.github/actions/setup-python-uv
         with:
           python-version: 3.13
+          cache-paths: |
+            backend/uv.lock
+            backend/pyproject.toml
 
-      - name: Install pnpm globally
-        run: npm install -g pnpm
-
-      - name: Set up Node 22 and pnpm cache
-        uses: actions/setup-node@v4
+      - name: Setup Node.js and pnpm
+        uses: ./.github/actions/setup-node-pnpm
         with:
           node-version: 22
-          cache: pnpm
-          cache-dependency-path: frontend/pnpm-lock.yaml
+          lockfile: frontend/pnpm-lock.yaml
 
-      - name: Enable pnpm 10
+      - name: Activate pinned pnpm version
         run: corepack prepare pnpm@10.26.2 --activate
 
       - name: Install pre-commit
