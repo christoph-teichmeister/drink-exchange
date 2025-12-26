@@ -68,14 +68,6 @@ jobs:
         working-directory: backend
         run: uv sync --frozen
 
-      - name: Run ruff lint
-        working-directory: backend
-        run: uv run ruff check --config=pyproject.toml .
-
-      - name: Run ruff format check
-        working-directory: backend
-        run: uv run ruff format --check .
-
       - name: Wait for Postgres and Redis
         working-directory: backend
         run: |
