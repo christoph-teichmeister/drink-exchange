@@ -20,3 +20,4 @@ runs:
         cache-dependency-path: ${{ inputs.lockfile }}
     - name: Enable pnpm via Corepack
       run: corepack enable pnpm
+      shell: bash

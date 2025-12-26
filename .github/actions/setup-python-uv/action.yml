@@ -37,7 +37,9 @@ runs:
       run: |
         python -m pip install --upgrade pip
         python -m pip install uv
+      shell: bash
     - name: Synchronize dependencies
       if: inputs.sync-dir != ''
       run: uv sync --frozen
       working-directory: ${{ inputs.sync-dir }}
+      shell: bash
