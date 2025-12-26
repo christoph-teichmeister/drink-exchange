@@ -1,6 +1,6 @@
-import { defineConfig } from 'vite';
-import { sveltekit } from '@sveltejs/kit/vite';
-import { VitePWA } from 'vite-plugin-pwa';
+import { defineConfig } from 'vite'
+import { sveltekit } from '@sveltejs/kit/vite'
+import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
   plugins: [
@@ -38,4 +38,4 @@ export default defineConfig({
     host: '0.0.0.0',
     port: 5173
   }
-});
+})
