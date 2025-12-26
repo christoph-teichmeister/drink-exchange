@@ -1,4 +1,5 @@
 from django.urls import re_path
+
 from market.consumers import MarketConsumer
 
 websocket_urlpatterns = [
