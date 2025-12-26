@@ -7,7 +7,8 @@ const wsBase = (
 
 export const apiConfig = {
   baseUrl: apiBase,
-  marketEndpoint: () => `${apiBase}/market/`
+  marketEndpoint: () => `${apiBase}/market/`,
+  barMarketEndpoint: (barId: string) => `${apiBase}/bars/${barId}/market/`
 }
 
 export const wsConfig = {

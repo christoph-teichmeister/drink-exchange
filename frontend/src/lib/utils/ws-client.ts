@@ -1,6 +1,18 @@
+import { wsConfig } from '$lib/config'
+
+export type MarketDrink = {
+  id: string
+  name?: string
+  price: number | string
+  delta?: number
+  trend?: 'up' | 'down' | 'flat'
+  history?: { timestamp?: string; price: number | string }[]
+}
+
 export type MarketPayload = {
+  drinks?: MarketDrink[]
   rates?: { id: string; price: string }[]
-  event?: { title: string; description: string }
+  event?: { title?: string; description?: string }
   [key: string]: unknown
 }
 
@@ -8,31 +20,53 @@ type MarketEventHandler = (_payload: MarketPayload) => void
 
 type MarketSocket = ReturnType<typeof createMarketWebSocket>
 
-const defaultPrices = [
-  { id: 'barrel', price: '€23.12' },
-  { id: 'lager', price: '€18.41' },
-  { id: 'mixology', price: '€31.67' }
+const baseDrinks = [
+  { id: 'barrel', name: 'Barrel ETF', price: 23.15 },
+  { id: 'lager', name: 'Lager Index', price: 18.41 },
+  { id: 'mixology', name: 'Mixology Blend', price: 31.67 },
+  { id: 'spritz', name: 'Spritz Circuit', price: 12.04 }
 ]
 
-const defaultEvents = [
-  { title: 'Event: Rush Hour', description: 'Incoming surge from district 3' },
-  {
-    title: 'Event: Calm Markets',
-    description: 'Liquidity stabilized at 21:14'
-  },
-  { title: 'Event: High Demand', description: 'VIP board queued for orders' }
+const mockEvents = [
+  { type: 'event.started', event: { title: 'Rush Hour', description: 'Incoming surge from district 3' } },
+  { type: 'event.ended', event: { title: 'Rush Hour', description: 'MPA flush completed' } },
+  { type: 'event.started', event: { title: 'Calm Markets', description: 'Liquidity stabilized across drinks' } },
+  { type: 'event.ended', event: { title: 'Calm Markets', description: 'Standing down' } }
 ]
+
+const buildHistory = (price: number) => {
+  const points = []
+  const start = Date.now() - 7 * 60 * 1000
+  for (let index = 0; index < 8; index += 1) {
+    points.push({
+      timestamp: new Date(start + index * 60 * 1000).toISOString(),
+      price: Number((price + (index - 4) * 0.15).toFixed(2))
+    })
+  }
+  return points
+}
 
 export function createMarketWebSocket(barId: string) {
   const listeners = new Map<string, Set<MarketEventHandler>>()
   const wildcard = new Map<string, Set<MarketEventHandler>>()
-  const wsUrl = `${(
-    import.meta.env.VITE_WS_BASE_URL ?? 'ws://localhost:8000'
-  ).replace(/\/+$/, '')}/ws/market/${barId}/`
+  const wsUrl = wsConfig.marketWebSocketUrl(barId)
   const reconnectDelay = 2000
   let socket: WebSocket | null = null
   let mockTimer: ReturnType<typeof setInterval> | null = null
   let reconnectAttempts = 0
+  let mockEventIndex = 0
+  let mockDrinks: MarketDrink[] = []
+
+  const resetMockDrinks = () => {
+    mockDrinks = baseDrinks.map((drink) => ({
+      ...drink,
+      history: buildHistory(Number(drink.price)),
+      delta: 0,
+      trend: 'flat'
+    }))
+  }
+  resetMockDrinks()
+  let mockActive = false
 
   const dispatchPayload = (type: string, data: MarketPayload) => {
     listeners.get(type)?.forEach((handler) => handler(data))
@@ -48,7 +82,8 @@ export function createMarketWebSocket(barId: string) {
 
   const connect = () => {
     if (typeof window === 'undefined') {
-      return startMockFeed()
+      startMockFeed()
+      return
     }
 
     disconnect()
@@ -72,13 +107,15 @@ export function createMarketWebSocket(barId: string) {
         }
       })
 
-      socket.addEventListener('close', () => {
+      socket.addEventListener('close', (event) => {
+        dispatchPayload('ws.close', { code: event.code, reason: event.reason })
         attemptReconnect()
       })
 
       socket.addEventListener('open', () => {
         reconnectAttempts = 0
         stopMockFeed()
+        dispatchPayload('ws.open', { mock: false })
       })
     } catch (error) {
       startMockFeed()
@@ -95,26 +132,64 @@ export function createMarketWebSocket(barId: string) {
     setTimeout(connect, reconnectDelay)
   }
 
+  const emitMockPrices = () => {
+    mockDrinks = mockDrinks.map((drink) => {
+      const delta = Number(((Math.random() - 0.5) * 0.6).toFixed(2))
+      const nextPrice = Number(Math.max(6, Number(drink.price) + delta).toFixed(2))
+      const trend = delta > 0 ? 'up' : delta < 0 ? 'down' : 'flat'
+      const history = [...(drink.history ?? [])]
+      history.push({ timestamp: new Date().toISOString(), price: nextPrice })
+      if (history.length > 24) {
+        history.shift()
+      }
+
+      return {
+        ...drink,
+        price: nextPrice,
+        delta,
+        trend,
+        history
+      }
+    })
+
+    const snapshot = mockDrinks.map((drink) => ({
+      id: drink.id,
+      name: drink.name,
+      price: drink.price,
+      delta: drink.delta,
+      trend: drink.trend,
+      history: drink.history?.slice() ?? []
+    }))
+
+    dispatchPayload('prices.update', { drinks: snapshot })
+  }
+
+  const emitMockEvent = () => {
+    const signal = mockEvents[mockEventIndex % mockEvents.length]
+    dispatchPayload(signal.type, { event: signal.event })
+    mockEventIndex += 1
+  }
+
   const startMockFeed = () => {
     stopMockFeed()
-    let index = 0
+    mockEventIndex = 0
+    resetMockDrinks()
     mockTimer = setInterval(() => {
-      dispatchPayload('prices.update', {
-        rates: defaultPrices.map((rate) => ({
-          ...rate,
-          price: `${rate.price} +${(index % 5) + 1}%`
-        }))
-      })
-      const nextEvent = defaultEvents[index % defaultEvents.length]
-      dispatchPayload(`event.${index}`, { event: nextEvent })
-      index += 1
+      emitMockPrices()
+      emitMockEvent()
     }, 4000)
+    mockActive = true
+    dispatchPayload('ws.open', { mock: true })
   }
 
   const stopMockFeed = () => {
     if (mockTimer) {
       clearInterval(mockTimer)
       mockTimer = null
+    }
+    if (mockActive) {
+      dispatchPayload('ws.close', { mock: true })
+      mockActive = false
     }
   }
 
