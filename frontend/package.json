@@ -7,7 +7,9 @@
     "dev": "vite dev --host 0.0.0.0 --port 5173",
     "build": "svelte-kit sync && vite build",
     "preview": "vite preview",
-    "sync": "svelte-kit sync"
+    "sync": "svelte-kit sync",
+    "lint": "eslint . --ext .ts,.js,.svelte",
+    "test": "echo \"TODO: add tests\""
   },
   "dependencies": {
     "@skeletonlabs/skeleton": "^0.99.5"
@@ -16,6 +18,7 @@
     "@sveltejs/adapter-auto": "2.1.0",
     "@sveltejs/kit": "2.4.0",
     "@sveltejs/vite-plugin-svelte": "3.1.2",
+    "@typescript-eslint/eslint-plugin": "^8.50.1",
     "@typescript-eslint/parser": "^8.50.1",
     "autoprefixer": "10.4.20",
     "eslint": "8.52.0",

@@ -4,7 +4,7 @@ export type MarketPayload = {
   [key: string]: unknown
 }
 
-type MarketEventHandler = (payload: MarketPayload) => void
+type MarketEventHandler = (_payload: MarketPayload) => void
 
 type MarketSocket = ReturnType<typeof createMarketWebSocket>
 
