@@ -31,14 +31,14 @@ jobs:
         with:
           python-version: 3.13
 
+      - name: Install pnpm globally
+        run: npm install -g pnpm
+
       - name: Set up Node 22 and pnpm cache
         uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: pnpm
-
-      - name: Install pnpm
-        run: npm install -g pnpm
 
       - name: Enable pnpm 10
         run: corepack enable pnpm@10.26.2
