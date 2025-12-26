@@ -29,20 +29,15 @@ repos:
           - prettier@3.0.0
           - prettier-plugin-svelte@3.0.0
 
+  - repo: https://github.com/charliermarsh/ruff-pre-commit
+    rev: v0.14.9
+    hooks:
+      - id: ruff-format
+      - id: ruff
+        args: [ --fix, --exit-non-zero-on-fix ]
+
   - repo: local
     hooks:
-      - id: ruff
-        name: ruff (backend)
-        entry: uv run ruff
-        language: system
-        args: ["check", "--config=backend/pyproject.toml", "--fix"]
-        files: "^backend/.*\\.py$"
-      - id: ruff-format
-        name: ruff-format (backend)
-        entry: uv run ruff
-        language: system
-        args: ["format", "--config=backend/pyproject.toml"]
-        files: "^backend/.*\\.py$"
       - id: markdownlint
         name: markdownlint (docs)
         entry: markdownlint
