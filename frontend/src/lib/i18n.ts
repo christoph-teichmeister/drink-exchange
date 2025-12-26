@@ -1,4 +1,4 @@
-import { derived, writable } from 'svelte/store';
+import { derived, writable } from 'svelte/store'
 
 const de = {
   layout: {
@@ -15,14 +15,16 @@ const de = {
   },
   home: {
     pageTitle: 'Drink Exchange Frontend',
-    description: 'Modernes Frontend-Setup für Live Views und PWA-Unterstützung.',
+    description:
+      'Modernes Frontend-Setup für Live Views und PWA-Unterstützung.',
     quickStart: {
       title: 'Schnellstarter',
       description: 'Live Views & PWA',
       body: 'Dieses Setup kombiniert einen Dark-Mode-fokussierten Shell-Frame, Marktdaten und klare Komponenten für PWA/Big Screen Experiences.',
       badge: 'Bereit'
     },
-    alert: 'Nutze die Navigation links, um zwischen user-, admin- und board-spezifischen Perspektiven zu wechseln.'
+    alert:
+      'Nutze die Navigation links, um zwischen user-, admin- und board-spezifischen Perspektiven zu wechseln.'
   },
   user: {
     pageTitle: 'User Experience',
@@ -31,7 +33,8 @@ const de = {
     tableHeaders: { signal: 'Signal', status: 'Status' },
     alert: {
       badge: 'Hinweis',
-      message: 'Die Preise werden live über das Big Screen-Konzept aktualisiert.'
+      message:
+        'Die Preise werden live über das Big Screen-Konzept aktualisiert.'
     },
     portfolio: [
       { label: 'Barrel ETF', progress: '42%' },
@@ -68,7 +71,11 @@ const de = {
   board: {
     pageTitle: 'Board View',
     header: { kicker: 'High Contrast Board', title: 'Ticker & Event Command' },
-    badges: { live: 'live', connecting: 'verbindet...', connected: 'verbunden' },
+    badges: {
+      live: 'live',
+      connecting: 'verbindet...',
+      connected: 'verbunden'
+    },
     chart: {
       sectionTitle: 'Preise',
       button: 'Neustart',
@@ -84,7 +91,7 @@ const de = {
     },
     connectionStatus: { connecting: 'verbindet...', connected: 'verbunden' }
   }
-} as const;
+} as const
 
 const en = {
   layout: {
@@ -108,7 +115,8 @@ const en = {
       body: 'This setup pairs a dark-mode-focused shell frame with market data and clear components for PWA/big-screen experiences.',
       badge: 'Ready'
     },
-    alert: 'Use the navigation on the left to jump between the user, admin, and board perspectives.'
+    alert:
+      'Use the navigation on the left to jump between the user, admin, and board perspectives.'
   },
   user: {
     pageTitle: 'User Experience',
@@ -154,7 +162,11 @@ const en = {
   board: {
     pageTitle: 'Board View',
     header: { kicker: 'High Contrast Board', title: 'Ticker & Event Command' },
-    badges: { live: 'live', connecting: 'connecting...', connected: 'connected' },
+    badges: {
+      live: 'live',
+      connecting: 'connecting...',
+      connected: 'connected'
+    },
     chart: {
       sectionTitle: 'Prices',
       button: 'Restart',
@@ -170,17 +182,21 @@ const en = {
     },
     connectionStatus: { connecting: 'connecting...', connected: 'connected' }
   }
-} as const;
+} as const
 
-const catalog = { de, en } as const;
+const catalog = { de, en } as const
 
-type Catalog = typeof catalog;
+type Catalog = typeof catalog
 
-export type Locale = keyof Catalog;
-export type Translation = Catalog[Locale];
-export type BoardConnectionStatusKey = keyof Translation['board']['connectionStatus'];
+export type Locale = keyof Catalog
+export type Translation = Catalog[Locale]
+export type BoardConnectionStatusKey =
+  keyof Translation['board']['connectionStatus']
 
-export const defaultLocale: Locale = 'de';
+export const defaultLocale: Locale = 'de'
 
-export const locale = writable<Locale>(defaultLocale);
-export const translations = derived(locale, ($locale) => catalog[$locale] ?? catalog[defaultLocale]);
+export const locale = writable<Locale>(defaultLocale)
+export const translations = derived(
+  locale,
+  ($locale) => catalog[$locale] ?? catalog[defaultLocale]
+)

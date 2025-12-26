@@ -1,4 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.13" project-jdk-type="Python SDK" />
+  <component name="Black">
+    <option name="sdkName" value="DE | Remote 3.13 Docker Compose (backend)" />
+  </component>
+  <component name="ProjectRootManager" version="2" project-jdk-name="DE | Remote 3.13 Docker Compose (backend)" project-jdk-type="Python SDK" />
+  <component name="RuffConfiguration">
+    <option name="enabled" value="true" />
+    <option name="executableDiscoveryMode" value="PATH" />
+  </component>
 </project>

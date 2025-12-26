@@ -1,0 +1,67 @@
+name: CI Frontend
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install pnpm globally
+        run: npm install -g pnpm
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+          cache-dependency-path: frontend/pnpm-lock.yaml
+
+      - name: Enable pnpm
+        run: corepack enable pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        working-directory: frontend
+
+      - name: Run SvelteKit sync
+        run: pnpm sync
+        working-directory: frontend
+
+      - name: Run lint
+        run: pnpm lint
+        working-directory: frontend
+
+      - name: Run tests
+        run: pnpm test
+        working-directory: frontend
+
+      - name: Build frontend
+        run: pnpm build
+        working-directory: frontend
+
+      - name: Validate PWA output
+        run: |
+          cd frontend
+          test -f .svelte-kit/output/client/manifest.webmanifest
+          pwafiles=(
+            .svelte-kit/output/client/sw.js
+            .svelte-kit/output/client/service-worker.js
+            .svelte-kit/output/client/service-worker.mjs
+          )
+          found=false
+          for file in "${pwafiles[@]}"; do
+            if [ -f "$file" ]; then
+              found=true
+              break
+            fi
+          done
+
+          if [ "$found" != true ]; then
+            echo "Service worker file missing from build output"
+            exit 1
+          fi

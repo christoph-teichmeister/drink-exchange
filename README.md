@@ -45,6 +45,10 @@ Use the remaining helpers in `Makefile` whenever you want to stop the stack, tai
 - CI workflows live under `.github/workflows` (see `07-ci-backend.md`, `08-ci-frontend.md`, `09-pre-commit-workflow.md`
   for descriptions).
 
+## Pre-commit hooks
+
+Run `pre-commit install` from the repo root after installing deps so the hooks run automatically before each commit. They wire Ruff (backend via `backend/pyproject.toml`), ESLint/Prettier (frontend via the PNPM tools), and markdownlint plus whitespace/key fixers so documentation and architecture rules stay aligned.
+
 ## Coding Guidelines
 
 - Prefer absolute imports everywhere; do not rely on relative imports so cross-module references stay explicit and

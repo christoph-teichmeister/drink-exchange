@@ -19,6 +19,7 @@ dependencies = [
     "psycopg[binary]>=3,<4",
     "redis>=5.0,<6",
     "uvicorn>=0.23,<0.24",
+    "websockets>=11,<12",
     "ruff>=0.14,<0.15",
     "pytest>=7.0,<8",
     "pytest-django>=4.0,<5",
