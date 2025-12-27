@@ -59,6 +59,7 @@ def _try_redis_lock(bar_id: int) -> RedisLock | None:
     try:
         if lock.acquire(blocking=False):
             return lock
+        raise RuntimeError("bar lock busy")
     except redis.exceptions.RedisError as exc:
         logger.debug("Redis lock unavailable: %s", exc)
     return None
