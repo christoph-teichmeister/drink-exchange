@@ -1,9 +1,15 @@
-const apiBase = (
+const trimTrailingSlash = (value: string) => value.replace(/\/+$/, '')
+
+const publicApiBase = trimTrailingSlash(
   import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000/api'
-).replace(/\/+$/, '')
-const wsBase = (
+)
+const internalApiBase = trimTrailingSlash(
+  import.meta.env.VITE_API_INTERNAL_BASE_URL ?? publicApiBase
+)
+const apiBase = import.meta.env.SSR ? internalApiBase : publicApiBase
+const wsBase = trimTrailingSlash(
   import.meta.env.VITE_WS_BASE_URL ?? 'ws://localhost:8000'
-).replace(/\/+$/, '')
+)
 
 export const apiConfig = {
   baseUrl: apiBase,
