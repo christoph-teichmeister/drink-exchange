@@ -28,10 +28,25 @@ const baseDrinks = [
 ]
 
 const mockEvents = [
-  { type: 'event.started', event: { title: 'Rush Hour', description: 'Incoming surge from district 3' } },
-  { type: 'event.ended', event: { title: 'Rush Hour', description: 'MPA flush completed' } },
-  { type: 'event.started', event: { title: 'Calm Markets', description: 'Liquidity stabilized across drinks' } },
-  { type: 'event.ended', event: { title: 'Calm Markets', description: 'Standing down' } }
+  {
+    type: 'event.started',
+    event: { title: 'Rush Hour', description: 'Incoming surge from district 3' }
+  },
+  {
+    type: 'event.ended',
+    event: { title: 'Rush Hour', description: 'MPA flush completed' }
+  },
+  {
+    type: 'event.started',
+    event: {
+      title: 'Calm Markets',
+      description: 'Liquidity stabilized across drinks'
+    }
+  },
+  {
+    type: 'event.ended',
+    event: { title: 'Calm Markets', description: 'Standing down' }
+  }
 ]
 
 const buildHistory = (price: number) => {
@@ -135,7 +150,9 @@ export function createMarketWebSocket(barId: string) {
   const emitMockPrices = () => {
     mockDrinks = mockDrinks.map((drink) => {
       const delta = Number(((Math.random() - 0.5) * 0.6).toFixed(2))
-      const nextPrice = Number(Math.max(6, Number(drink.price) + delta).toFixed(2))
+      const nextPrice = Number(
+        Math.max(6, Number(drink.price) + delta).toFixed(2)
+      )
       const trend = delta > 0 ? 'up' : delta < 0 ? 'down' : 'flat'
       const history = [...(drink.history ?? [])]
       history.push({ timestamp: new Date().toISOString(), price: nextPrice })

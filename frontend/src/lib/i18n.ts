@@ -10,7 +10,11 @@ const de = {
     navItems: [
       { title: 'User', description: 'Individuelle Dashboards', path: '/user' },
       { title: 'Admin', description: 'Operations-Cockpit', path: '/admin' },
-      { title: 'Board', description: 'Big Screen & Events', path: '/board/main-stage' }
+      {
+        title: 'Board',
+        description: 'Big Screen & Events',
+        path: '/board/main-stage'
+      }
     ]
   },
   home: {
@@ -138,7 +142,11 @@ const en = {
     navItems: [
       { title: 'User', description: 'Individual dashboards', path: '/user' },
       { title: 'Admin', description: 'Operations cockpit', path: '/admin' },
-      { title: 'Board', description: 'Big screen & events', path: '/board/main-stage' }
+      {
+        title: 'Board',
+        description: 'Big screen & events',
+        path: '/board/main-stage'
+      }
     ]
   },
   home: {

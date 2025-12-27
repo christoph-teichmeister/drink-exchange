@@ -1,7 +1,11 @@
 import { writable } from 'svelte/store'
 import type { MarketPayload } from '$lib/utils/ws-client'
 
-export type ConnectionStatus = 'connecting' | 'connected' | 'reconnecting' | 'disconnected'
+export type ConnectionStatus =
+  | 'connecting'
+  | 'connected'
+  | 'reconnecting'
+  | 'disconnected'
 export type TrendValue = 'up' | 'down' | 'flat'
 
 export type DrinkHistoryPoint = {
@@ -96,12 +100,16 @@ const sanitizeHistory = (history: DrinkHistoryPoint[]): DrinkHistoryPoint[] =>
     }))
     .filter((point) => !Number.isNaN(point.price))
 
-const normalizeDrinkSnapshot = (drink: Partial<DrinkSnapshot>): DrinkSnapshot => {
+const normalizeDrinkSnapshot = (
+  drink: Partial<DrinkSnapshot>
+): DrinkSnapshot => {
   const price = safeNumber(drink.price)
   const delta = safeNumber(drink.delta, 0)
   const history = sanitizeHistory(drink.history ?? [])
   const record: DrinkSnapshot = {
-    id: drink.id ?? `${drink.name ?? 'drink'}-${Math.random().toString(36).slice(2, 6)}`,
+    id:
+      drink.id ??
+      `${drink.name ?? 'drink'}-${Math.random().toString(36).slice(2, 6)}`,
     name: drink.name ?? drink.id ?? 'Drink',
     price,
     delta,
@@ -118,7 +126,10 @@ const parsePriceString = (value?: string) => {
   return Number.isFinite(numeric) ? numeric : 0
 }
 
-const normalizeRateUpdate = (rate: { id: string; price?: string }): DrinkSnapshot => {
+const normalizeRateUpdate = (rate: {
+  id: string
+  price?: string
+}): DrinkSnapshot => {
   const price = parsePriceString(rate.price)
   return {
     id: rate.id,
@@ -140,7 +151,10 @@ const normalizeMarketPayload = (payload: MarketPayload): DrinkSnapshot[] => {
   return []
 }
 
-const buildBoardEvent = (type: string, payload: MarketPayload): BoardEvent | null => {
+const buildBoardEvent = (
+  type: string,
+  payload: MarketPayload
+): BoardEvent | null => {
   if (!payload.event) {
     return null
   }
@@ -148,8 +162,8 @@ const buildBoardEvent = (type: string, payload: MarketPayload): BoardEvent | nul
   const status: BoardEventStatus = type.endsWith('ended')
     ? 'ended'
     : type.endsWith('started')
-      ? 'started'
-      : 'running'
+    ? 'started'
+    : 'running'
 
   return {
     id: `${type}:${timestamp}`,
@@ -179,7 +193,8 @@ const createBoardStore = (initialSnapshot?: BoardSnapshot) => {
     bar: initialSnapshot?.bar ?? null,
     drinks: initialDrinks,
     connection: 'connecting',
-    activeEvent: initialEvents.find((event) => event.status === 'started') ?? null,
+    activeEvent:
+      initialEvents.find((event) => event.status === 'started') ?? null,
     eventFeed: initialEvents,
     lastUpdated: initialSnapshot?.updated_at ?? new Date().toISOString()
   }
@@ -201,7 +216,10 @@ const createBoardStore = (initialSnapshot?: BoardSnapshot) => {
     }, delay)
   }
 
-  const mergeDrink = (existing: DrinkSnapshot | undefined, update: DrinkSnapshot): DrinkSnapshot => {
+  const mergeDrink = (
+    existing: DrinkSnapshot | undefined,
+    update: DrinkSnapshot
+  ): DrinkSnapshot => {
     const history = update.history.length
       ? clampHistory(update.history.slice())
       : clampHistory([
@@ -209,7 +227,10 @@ const createBoardStore = (initialSnapshot?: BoardSnapshot) => {
           { timestamp: new Date().toISOString(), price: update.price }
         ])
     const previousPrice = existing?.price ?? update.price
-    const delta = typeof update.delta === 'number' ? update.delta : update.price - previousPrice
+    const delta =
+      typeof update.delta === 'number'
+        ? update.delta
+        : update.price - previousPrice
     const trend = update.trend ?? getTrendFromDelta(delta)
 
     return {
@@ -253,7 +274,9 @@ const createBoardStore = (initialSnapshot?: BoardSnapshot) => {
       const nextDrinks = [
         ...state.drinks.map((drink) => drinkMap.get(drink.id) ?? drink),
         ...updates
-          .filter((entry) => !state.drinks.some((drink) => drink.id === entry.id))
+          .filter(
+            (entry) => !state.drinks.some((drink) => drink.id === entry.id)
+          )
           .map((entry) => drinkMap.get(entry.id) ?? entry)
       ]
 
