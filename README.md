@@ -31,6 +31,16 @@ and the tooling needed to keep both environments aligned locally and in CI.
 
 Use the remaining helpers in `Makefile` whenever you want to stop the stack, tail logs, run the frontend dev server, or probe the WebSocket endpoint; they mirror the CI commands so your local setup stays aligned.
 
+## Big Screen Board (Trading Floor)
+
+1. Start the frontend dev server:
+   ```bash
+   cd frontend
+   pnpm dev
+   ```
+2. Open `http://localhost:5173/board/main-stage` in a browser to view the board.
+3. The board initializes itself with `GET /api/bars/<bar_id>/market/` and upgrades via `/ws/market/<bar_id>/`.
+
 ## Project Layout
 
 - `backend/`: Django 6 with Channels, ASGI, pytest, uv-managed dependencies, and Celery worker/beat.

@@ -10,7 +10,11 @@ const de = {
     navItems: [
       { title: 'User', description: 'Individuelle Dashboards', path: '/user' },
       { title: 'Admin', description: 'Operations-Cockpit', path: '/admin' },
-      { title: 'Board', description: 'Big Screen & Events', path: '/board' }
+      {
+        title: 'Board',
+        description: 'Big Screen & Events',
+        path: '/board/main-stage'
+      }
     ]
   },
   home: {
@@ -76,12 +80,42 @@ const de = {
       connecting: 'verbindet...',
       connected: 'verbunden'
     },
+    ticker: {
+      label: 'Live-Ticker',
+      subTitle: 'Trading Floor Live-Board'
+    },
+    card: {
+      priceLabel: 'Aktueller Preis',
+      deltaLabel: 'Delta',
+      trendLabel: 'Trend',
+      empty: 'Warten auf Drinks...'
+    },
+    trendLabels: {
+      up: 'Steigend',
+      down: 'Fallend',
+      flat: 'Stabil'
+    },
+    actions: {
+      reconnect: 'Verbindung neu starten'
+    },
     chart: {
       sectionTitle: 'Preise',
       button: 'Neustart',
-      tableHeaders: { metric: 'Metrik', value: 'Wert' }
+      tableHeaders: { metric: 'Metrik', value: 'Wert' },
+      lastUpdated: 'Letztes Update',
+      noTimestamp: '—'
     },
-    noEvents: 'Warten auf das nächste Event...',
+    eventOverlay: {
+      label: 'Live Event',
+      started: 'Event gestartet',
+      ended: 'Event beendet',
+      idle: 'Warten auf Events...',
+      live: 'Live Event'
+    },
+    eventFeed: {
+      title: 'Event Feed',
+      empty: 'Noch keine Events verfügbar.'
+    },
     alert: {
       prefix: 'Events und Preise werden über ',
       eventChannel: 'event.*',
@@ -89,7 +123,12 @@ const de = {
       priceChannel: 'prices.update',
       suffix: ' gesteuert.'
     },
-    connectionStatus: { connecting: 'verbindet...', connected: 'verbunden' }
+    connectionStatus: {
+      connecting: 'verbindet...',
+      connected: 'verbunden',
+      reconnecting: 'verbindet neu...',
+      disconnected: 'offline'
+    }
   }
 } as const
 
@@ -103,7 +142,11 @@ const en = {
     navItems: [
       { title: 'User', description: 'Individual dashboards', path: '/user' },
       { title: 'Admin', description: 'Operations cockpit', path: '/admin' },
-      { title: 'Board', description: 'Big screen & events', path: '/board' }
+      {
+        title: 'Board',
+        description: 'Big screen & events',
+        path: '/board/main-stage'
+      }
     ]
   },
   home: {
@@ -167,12 +210,42 @@ const en = {
       connecting: 'connecting...',
       connected: 'connected'
     },
+    ticker: {
+      label: 'Live Ticker',
+      subTitle: 'Trading floor live board'
+    },
+    card: {
+      priceLabel: 'Current price',
+      deltaLabel: 'Delta',
+      trendLabel: 'Trend',
+      empty: 'Waiting for drinks...'
+    },
+    trendLabels: {
+      up: 'Rising',
+      down: 'Falling',
+      flat: 'Stable'
+    },
+    actions: {
+      reconnect: 'Reconnect board'
+    },
     chart: {
       sectionTitle: 'Prices',
       button: 'Restart',
-      tableHeaders: { metric: 'Metric', value: 'Value' }
+      tableHeaders: { metric: 'Metric', value: 'Value' },
+      lastUpdated: 'Last updated',
+      noTimestamp: '—'
     },
-    noEvents: 'Waiting for the next event...',
+    eventOverlay: {
+      label: 'Live Event',
+      started: 'Event started',
+      ended: 'Event ended',
+      idle: 'Waiting for events...',
+      live: 'Live Event'
+    },
+    eventFeed: {
+      title: 'Event Feed',
+      empty: 'Waiting for events...'
+    },
     alert: {
       prefix: 'Events and prices are driven by ',
       eventChannel: 'event.*',
@@ -180,7 +253,12 @@ const en = {
       priceChannel: 'prices.update',
       suffix: '.'
     },
-    connectionStatus: { connecting: 'connecting...', connected: 'connected' }
+    connectionStatus: {
+      connecting: 'connecting...',
+      connected: 'connected',
+      reconnecting: 'reconnecting...',
+      disconnected: 'offline'
+    }
   }
 } as const
 
