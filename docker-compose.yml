@@ -15,6 +15,8 @@ services:
       POSTGRES_DB: drink_exchange
       POSTGRES_USER: drink_exchange
       POSTGRES_PASSWORD: drink_exchange
+    ports:
+      - "5432:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
@@ -50,6 +52,9 @@ services:
       redis:
         condition: service_healthy
     restart: unless-stopped
+    volumes:
+      - ./backend:/app:cached
+      - backend-venv:/app/.venv
 
   celery-worker:
     build:
@@ -104,4 +109,6 @@ volumes:
   postgres-data:
     driver: local
   redis-data:
+    driver: local
+  backend-venv:
     driver: local
