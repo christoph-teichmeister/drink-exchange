@@ -8,5 +8,12 @@ from market.models import Drink
 class DrinkAdmin(CommonInfoAdminMixin, admin.ModelAdmin):
     """Configures admin listing behavior for drinks."""
 
-    list_display = ("name", "bar", "base_price")
+    list_display = (
+        "name",
+        "bar",
+        "current_price",
+        "base_price",
+        "min_price",
+        "max_price",
+    )
     list_filter = ("bar",)

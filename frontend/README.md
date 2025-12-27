@@ -30,3 +30,8 @@ The UI is built with Svelte 4, Skeleton UI components, and Tailwind CSS, and it 
 
 - Linting and formatting leverage ESLint/Prettier for Svelte and TypeScript.
 - Tailwind configuration lives in `tailwind.config.cjs`, and PostCSS is configured via `postcss.config.cjs`.
+
+## Big Screen Board
+
+- Start the dev server (`pnpm dev`) and open `http://localhost:5173/board/main-stage` to view the trading-floor board.
+- The board uses `GET /api/bars/<bar_id>/market/` for the initial snapshot and `/ws/market/<bar_id>/` for live data.
