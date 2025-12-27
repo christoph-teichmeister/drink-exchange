@@ -8,5 +8,5 @@ from events.models import EventDefinition
 class EventDefinitionAdmin(CommonInfoAdminMixin, admin.ModelAdmin):
     """Manages event definitions within the Django admin."""
 
-    list_display = ("name",)
+    list_display = ("name", "bar", "type", "probability_weight")
     search_fields = ("name",)
