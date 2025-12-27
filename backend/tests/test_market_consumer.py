@@ -28,8 +28,20 @@ def _create_drink(bar: Bar, name: str, base_price: Decimal) -> Drink:
 
 
 @database_sync_to_async
-def _create_event_definition(name: str, description: str) -> EventDefinition:
-    return EventDefinition.objects.create(name=name, description=description)
+def _create_event_definition(
+    bar: Bar,
+    name: str,
+    description: str,
+    type: str = EventDefinition.EventType.NORMALIZE,
+    duration_seconds: int = 60,
+) -> EventDefinition:
+    return EventDefinition.objects.create(
+        bar=bar,
+        name=name,
+        description=description,
+        type=type,
+        duration_seconds=duration_seconds,
+    )
 
 
 @database_sync_to_async
@@ -61,7 +73,7 @@ async def _drain_until_status(comm: WebsocketCommunicator):
 async def test_market_consumer_delivers_initial_snapshot():
     bar = await _create_bar(slug="river-bar", name="River Bar")
     drink = await _create_drink(bar, name="Lager", base_price=Decimal("3.50"))
-    definition = await _create_event_definition(name="Happy Hour", description="Discounts on lagers.")
+    definition = await _create_event_definition(bar, name="Happy Hour", description="Discounts on lagers.")
     now = timezone.now()
     await _create_active_event(
         bar,
