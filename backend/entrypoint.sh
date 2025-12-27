@@ -1,8 +1,11 @@
 #!/usr/bin/env sh
 set -euo pipefail
 
-if [ "${DJANGO_SETTINGS_MODULE:-}" = "config.settings.dev" ] && [ "${DEV_FIXTURES_ENABLED:-1}" != "0" ]; then
-  python manage.py ensure_dev_data
+if [ "${DJANGO_SETTINGS_MODULE:-}" = "config.settings.dev" ]; then
+  python manage.py migrate --noinput
+  if [ "${DEV_FIXTURES_ENABLED:-1}" != "0" ]; then
+    python manage.py ensure_dev_data
+  fi
 fi
 
 if [ "$#" -gt 0 ]; then
