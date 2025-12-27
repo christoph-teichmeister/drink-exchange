@@ -22,6 +22,7 @@ _LOCAL_LOCKS: dict[int, threading.Lock] = {}
 
 
 def _round_to_step(value: Decimal, step: Decimal) -> Decimal:
+    """Snap a price value to the configured rounding step with half-up rounding."""
     if not step or step <= 0:
         return value
     ratio = (value / step).quantize(Decimal("1"), rounding=ROUND_HALF_UP)
@@ -29,11 +30,14 @@ def _round_to_step(value: Decimal, step: Decimal) -> Decimal:
 
 
 def _clamp_price(value: Decimal, minimum: Decimal, maximum: Decimal) -> Decimal:
+    """Ensure calculated prices always stay within the bar's min/max bounds."""
     return max(minimum, min(value, maximum))
 
 
 def _calculate_next_price(drink: Drink, reversion_rate: Decimal) -> Decimal:
+    """Apply the bar's reversion curve to derive the next tick price for a drink."""
     current = drink.current_price or drink.base_price
+    # Moves the price partway back towards the base price based on reversion_rate.
     delta = (drink.base_price - current) * reversion_rate
     next_price = current + delta
     next_price = _clamp_price(next_price, drink.min_price, drink.max_price)
@@ -42,6 +46,7 @@ def _calculate_next_price(drink: Drink, reversion_rate: Decimal) -> Decimal:
 
 
 def _is_tick_due(bar: Bar, now: datetime) -> bool:
+    """Decide whether enough time has passed since the last tick to update prices."""
     if bar.tick_interval_seconds <= 0:
         return False
     last_tick = bar.last_tick_at
@@ -51,6 +56,7 @@ def _is_tick_due(bar: Bar, now: datetime) -> bool:
 
 
 def _try_redis_lock(bar_id: int) -> RedisLock | None:
+    """Try to obtain a distributed Redis lock so ticks don't overlap across workers."""
     redis_url = getattr(settings, "REDIS_URL", None)
     if not redis_url:
         return None
@@ -67,6 +73,7 @@ def _try_redis_lock(bar_id: int) -> RedisLock | None:
 
 @contextmanager
 def bar_lock(bar_id: int):
+    """Provide a multi-strategy lock to prevent concurrent ticks for the same bar."""
     bar_id_int = int(bar_id)
     redis_lock = _try_redis_lock(bar_id_int)
     if redis_lock is not None:
@@ -102,6 +109,7 @@ def bar_lock(bar_id: int):
 
 
 def _execute_tick(bar: Bar) -> bool:
+    """Run a single market tick that recalculates drink prices and optionally records them."""
     now = timezone.now()
     bar.refresh_from_db()
     if not _is_tick_due(bar, now):
@@ -141,6 +149,7 @@ def _execute_tick(bar: Bar) -> bool:
 
 @shared_task
 def market_tick(bar_id: int) -> bool:
+    """Task that runs a single tick for the specified bar, honoring locking."""
     bar = Bar.objects.filter(pk=bar_id).first()
     if not bar:
         logger.debug("Bar %s not found for market tick", bar_id)
@@ -155,6 +164,7 @@ def market_tick(bar_id: int) -> bool:
 
 @shared_task
 def market_tick_all_bars() -> None:
+    """Enqueue ticks for every eligible bar without duplicating timing logic."""
     now = timezone.now()
     for bar in Bar.objects.all():
         if not _is_tick_due(bar, now):

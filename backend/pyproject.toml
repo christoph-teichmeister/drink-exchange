@@ -13,6 +13,7 @@ authors = [ { name = "Drink Exchange" } ]
 dependencies = [
     "Django>=6.0,<7",
     "channels>=4.0,<5",
+    "daphne>=4.0,<5",
     "channels-redis>=4.0,<5",
     "celery>=5.3,<5.4",
     "dj-database-url>=1.0,<2",
