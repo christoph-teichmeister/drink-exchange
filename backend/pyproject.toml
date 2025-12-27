@@ -17,6 +17,7 @@ dependencies = [
     "channels-redis>=4.0,<5",
     "celery>=5.3,<5.4",
     "dj-database-url>=1.0,<2",
+    "django-cors-headers>=4.0,<5",
     "psycopg[binary]>=3,<4",
     "redis>=5.0,<6",
     "whitenoise>=6.5,<7",
