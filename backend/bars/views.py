@@ -11,7 +11,7 @@ from market.models import Drink, Trade
 def bar_market_snapshot(request, bar_id: str):
     bar = get_object_or_404(Bar, slug=bar_id)
 
-    trades_prefetch = Prefetch("trades", queryset=Trade.objects.order_by("-executed_at"), to_attr="recent_trades")
+    trades_prefetch = Prefetch("trades", queryset=Trade.objects.order_by("-occurred_at"), to_attr="recent_trades")
 
     drinks = Drink.objects.filter(bar=bar).prefetch_related(trades_prefetch)
     now = timezone.now()
@@ -25,7 +25,7 @@ def bar_market_snapshot(request, bar_id: str):
         if trades:
             latest_price = trades[0].price
             previous_price = trades[1].price if len(trades) > 1 else drink.base_price
-            last_updated = max(last_updated, trades[0].executed_at)
+            last_updated = max(last_updated, trades[0].occurred_at)
 
         delta = float(latest_price - previous_price)
         trend = "flat"
@@ -35,7 +35,7 @@ def bar_market_snapshot(request, bar_id: str):
             trend = "down"
 
         history = [
-            {"timestamp": trade.executed_at.isoformat(), "price": float(trade.price)} for trade in reversed(trades)
+            {"timestamp": trade.occurred_at.isoformat(), "price": float(trade.price)} for trade in reversed(trades)
         ]
 
         if not history:
