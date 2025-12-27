@@ -28,9 +28,7 @@ class ActiveEvent(CommonInfo):
 
     class Meta:
         ordering = ["starts_at"]  # Keep active events ordered by their start time.
-        indexes = [
-            models.Index(fields=["bar", "starts_at"], name="events_active_bar_start_idx")
-        ]
+        indexes = [models.Index(fields=["bar", "starts_at"], name="events_active_bar_start_idx")]
         verbose_name = _("active event")
         verbose_name_plural = _("active events")
 
@@ -40,6 +38,4 @@ class ActiveEvent(CommonInfo):
     def clean(self) -> None:
         super().clean()
         if self.ends_at <= self.starts_at:
-            raise ValidationError(
-                {"ends_at": _("Event end must be after the start time.")}
-            )
+            raise ValidationError({"ends_at": _("Event end must be after the start time.")})

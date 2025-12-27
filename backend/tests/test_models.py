@@ -9,7 +9,6 @@ from bars.models import Bar
 from events.models import ActiveEvent, EventDefinition
 from market.models import Drink, MarketSession, PricePoint, Trade
 
-
 pytestmark = pytest.mark.django_db
 
 
@@ -79,9 +78,7 @@ def test_event_definition_requires_positive_duration(bar: Bar) -> None:
         definition.full_clean()
 
 
-def test_active_event_requires_end_after_start(
-    bar: Bar, event_definition: EventDefinition
-) -> None:
+def test_active_event_requires_end_after_start(bar: Bar, event_definition: EventDefinition) -> None:
     start = timezone.now()
     active_event = ActiveEvent(
         bar=bar,

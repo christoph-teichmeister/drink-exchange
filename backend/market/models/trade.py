@@ -27,9 +27,7 @@ class Trade(CommonInfo):
 
     class Meta:
         ordering = ["-occurred_at"]  # Keep recent trades at the top of summaries.
-        indexes = [
-            models.Index(fields=["bar", "occurred_at"], name="market_trade_bar_occurred_idx")
-        ]
+        indexes = [models.Index(fields=["bar", "occurred_at"], name="market_trade_bar_occurred_idx")]
         verbose_name = _("trade")
         verbose_name_plural = _("trades")
 

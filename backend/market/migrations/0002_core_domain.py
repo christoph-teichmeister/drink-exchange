@@ -246,22 +246,22 @@ class Migration(migrations.Migration):
         migrations.AddConstraint(
             model_name="drink",
             constraint=models.CheckConstraint(
-                check=models.Q(min_price__lte=models.F("max_price")),
+                condition=models.Q(min_price__lte=models.F("max_price")),
                 name="market_drink_min_lte_max",
             ),
         ),
         migrations.AddConstraint(
             model_name="drink",
             constraint=models.CheckConstraint(
-                check=models.Q(min_price__lte=models.F("base_price"))
-                & models.Q(models.F("base_price")__lte=models.F("max_price")),
+                condition=models.Q(min_price__lte=models.F("base_price"))
+                & models.Q(base_price__lte=models.F("max_price")),
                 name="market_drink_base_within",
             ),
         ),
         migrations.AddConstraint(
             model_name="drink",
             constraint=models.CheckConstraint(
-                check=models.Q(current_price__gte=models.F("min_price"))
+                condition=models.Q(current_price__gte=models.F("min_price"))
                 & models.Q(current_price__lte=models.F("max_price")),
                 name="market_drink_current_within_bounds",
             ),

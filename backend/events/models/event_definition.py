@@ -41,9 +41,7 @@ class EventDefinition(CommonInfo):
         ordering = ["bar", "name"]  # Keep definitions grouped per bar and sorted.
         verbose_name = _("event definition")
         verbose_name_plural = _("event definitions")
-        constraints = [
-            models.UniqueConstraint(fields=["bar", "name"], name="events_def_bar_name_idx")
-        ]
+        constraints = [models.UniqueConstraint(fields=["bar", "name"], name="events_def_bar_name_idx")]
 
     def __str__(self) -> str:
         return self.name

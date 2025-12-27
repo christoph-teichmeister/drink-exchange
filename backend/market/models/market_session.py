@@ -22,9 +22,7 @@ class MarketSession(CommonInfo):
 
     class Meta:
         ordering = ["-started_at"]  # Show the latest session first.
-        indexes = [
-            models.Index(fields=["bar", "started_at"], name="market_session_bar_started_idx")
-        ]
+        indexes = [models.Index(fields=["bar", "started_at"], name="market_session_bar_started_idx")]
 
     def __str__(self) -> str:
         return f"{self.bar.slug} session ({self.status})"

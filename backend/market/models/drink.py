@@ -55,16 +55,16 @@ class Drink(CommonInfo):
         verbose_name_plural = _("drinks")
         constraints = [
             models.CheckConstraint(
-                check=models.Q(min_price__lte=models.F("max_price")),
+                condition=models.Q(min_price__lte=models.F("max_price")),
                 name="market_drink_min_lte_max",
             ),
             models.CheckConstraint(
-                check=models.Q(min_price__lte=models.F("base_price"))
-                & models.Q(models.F("base_price")__lte=models.F("max_price")),
+                condition=models.Q(min_price__lte=models.F("base_price"))
+                & models.Q(base_price__lte=models.F("max_price")),
                 name="market_drink_base_within",
             ),
             models.CheckConstraint(
-                check=models.Q(current_price__gte=models.F("min_price"))
+                condition=models.Q(current_price__gte=models.F("min_price"))
                 & models.Q(current_price__lte=models.F("max_price")),
                 name="market_drink_current_within_bounds",
             ),
@@ -80,17 +80,11 @@ class Drink(CommonInfo):
     def clean(self) -> None:
         super().clean()
         if self.min_price > self.max_price:
-            raise ValidationError(
-                {"min_price": _("Minimum price cannot exceed the maximum price.")}
-            )
+            raise ValidationError({"min_price": _("Minimum price cannot exceed the maximum price.")})
         if not (self.min_price <= self.base_price <= self.max_price):
-            raise ValidationError(
-                {"base_price": _("Base price must sit between min and max price.")}
-            )
+            raise ValidationError({"base_price": _("Base price must sit between min and max price.")})
         if not (self.min_price <= self.current_price <= self.max_price):
-            raise ValidationError(
-                {"current_price": _("Current price must remain between the configured bounds.")}
-            )
+            raise ValidationError({"current_price": _("Current price must remain between the configured bounds.")})
 
     def _ensure_current_price(self) -> None:
         if self.current_price is None and self.base_price is not None:
