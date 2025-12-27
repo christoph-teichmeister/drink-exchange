@@ -19,6 +19,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "channels",
+    "corsheaders",
     "bars",
     "market",
     "events",
@@ -26,6 +27,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -85,6 +87,34 @@ CELERY_BEAT_SCHEDULE = {
         "task": "market.tasks.market_tick_all_bars",
         "schedule": timedelta(seconds=5),
     }
+}
+
+CORS_ALLOW_ALL_ORIGINS = True
+
+LOG_LEVEL = os.environ.get("DJANGO_LOG_LEVEL", "INFO").upper()
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "default": {
+            "format": "[%(asctime)s] %(levelname)s %(name)s %(message)s",
+            "datefmt": "%Y-%m-%d %H:%M:%S",
+        }
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "default",
+            "stream": "ext://sys.stdout",
+        }
+    },
+    "root": {"level": LOG_LEVEL, "handlers": ["console"]},
+    "loggers": {
+        "django": {"level": LOG_LEVEL, "handlers": ["console"], "propagate": False},
+        "django.request": {"level": "ERROR", "handlers": ["console"], "propagate": False},
+        "django.db.backends": {"level": "WARNING", "handlers": ["console"], "propagate": False},
+    },
 }
 
 TEMPLATES = [
