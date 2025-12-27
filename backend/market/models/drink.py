@@ -22,18 +22,19 @@ class Drink(CommonInfo):
     current_price = models.DecimalField(
         max_digits=10,
         decimal_places=2,
-        blank=True,
-        null=False,
+        default=Decimal("0.00"),
         validators=[MinValueValidator(Decimal("0.01"))],
     )
     min_price = models.DecimalField(
         max_digits=10,
         decimal_places=2,
+        default=Decimal("0.00"),
         validators=[MinValueValidator(Decimal("0.01"))],
     )
     max_price = models.DecimalField(
         max_digits=10,
         decimal_places=2,
+        default=Decimal("9999.99"),
         validators=[MinValueValidator(Decimal("0.01"))],
     )
     volatility = models.DecimalField(
@@ -47,6 +48,13 @@ class Drink(CommonInfo):
         decimal_places=4,
         default=Decimal("1.00"),
         validators=[MinValueValidator(Decimal("0"))],
+    )
+    rounding_step = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(Decimal("0.00"))],
     )
 
     class Meta:
@@ -87,7 +95,8 @@ class Drink(CommonInfo):
             raise ValidationError({"current_price": _("Current price must remain between the configured bounds.")})
 
     def _ensure_current_price(self) -> None:
-        if self.current_price is None and self.base_price is not None:
+        sentinel = Decimal("0.00")
+        if (self.current_price is None or self.current_price == sentinel) and self.base_price is not None:
             self.current_price = self.base_price
 
     def save(self, *args, **kwargs) -> None:
