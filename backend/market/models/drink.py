@@ -95,7 +95,8 @@ class Drink(CommonInfo):
             raise ValidationError({"current_price": _("Current price must remain between the configured bounds.")})
 
     def _ensure_current_price(self) -> None:
-        if self.current_price is None and self.base_price is not None:
+        sentinel = Decimal("0.00")
+        if (self.current_price is None or self.current_price == sentinel) and self.base_price is not None:
             self.current_price = self.base_price
 
     def save(self, *args, **kwargs) -> None:
