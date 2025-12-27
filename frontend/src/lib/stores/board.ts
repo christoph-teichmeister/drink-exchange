@@ -1,5 +1,5 @@
 import { writable } from 'svelte/store'
-import type { MarketPayload } from '$lib/utils/ws-client'
+import type { MarketDrink, MarketPayload } from '$lib/utils/ws-client'
 
 export type ConnectionStatus =
   | 'connecting'
@@ -92,7 +92,9 @@ const safeNumber = (value: unknown, fallback = 0) => {
   return Number.isFinite(numeric) ? numeric : fallback
 }
 
-const sanitizeHistory = (history: DrinkHistoryPoint[]): DrinkHistoryPoint[] =>
+type MarketHistoryPoint = NonNullable<MarketDrink['history']>[number]
+
+const sanitizeHistory = (history: MarketHistoryPoint[]): DrinkHistoryPoint[] =>
   history
     .map((point) => ({
       timestamp: point.timestamp ?? new Date().toISOString(),
@@ -100,9 +102,7 @@ const sanitizeHistory = (history: DrinkHistoryPoint[]): DrinkHistoryPoint[] =>
     }))
     .filter((point) => !Number.isNaN(point.price))
 
-const normalizeDrinkSnapshot = (
-  drink: Partial<DrinkSnapshot>
-): DrinkSnapshot => {
+const normalizeDrinkSnapshot = (drink: MarketDrink): DrinkSnapshot => {
   const price = safeNumber(drink.price)
   const delta = safeNumber(drink.delta, 0)
   const history = sanitizeHistory(drink.history ?? [])
@@ -176,13 +176,24 @@ const buildBoardEvent = (
 
 const mapSnapshotEvents = (events?: EventSnapshot[]): BoardEvent[] => {
   return (events ?? [])
-    .map((event) => ({
-      id: `${event.title}:${event.starts_at ?? event.ends_at ?? event.status}`,
-      title: event.title,
-      description: event.description,
-      status: event.status === 'ended' ? 'ended' : 'started',
-      timestamp: event.starts_at ?? event.ends_at ?? new Date().toISOString()
-    }))
+    .map((event) => {
+      const status: BoardEventStatus =
+        event.status === 'ended'
+          ? 'ended'
+          : event.status === 'running'
+          ? 'running'
+          : 'started'
+
+      return {
+        id: `${event.title}:${
+          event.starts_at ?? event.ends_at ?? event.status
+        }`,
+        title: event.title,
+        description: event.description,
+        status,
+        timestamp: event.starts_at ?? event.ends_at ?? new Date().toISOString()
+      }
+    })
     .slice(0, EVENT_FEED_LIMIT)
 }
 
