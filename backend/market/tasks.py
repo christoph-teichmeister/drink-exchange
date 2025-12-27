@@ -1,14 +1,15 @@
-from contextlib import contextmanager
-from datetime import datetime
-from decimal import Decimal, ROUND_HALF_UP
 import logging
 import threading
+from contextlib import contextmanager
+from datetime import datetime
+from decimal import ROUND_HALF_UP, Decimal
 
 import redis
 from celery import shared_task
 from django.conf import settings
 from django.db import connections, transaction
 from django.utils import timezone
+from redis.lock import Lock as RedisLock
 
 from bars.models import Bar
 from market.models import Drink, PricePoint
@@ -49,7 +50,7 @@ def _is_tick_due(bar: Bar, now: datetime) -> bool:
     return (now - last_tick).total_seconds() >= bar.tick_interval_seconds
 
 
-def _try_redis_lock(bar_id: int) -> redis.Lock | None:
+def _try_redis_lock(bar_id: int) -> RedisLock | None:
     redis_url = getattr(settings, "REDIS_URL", None)
     if not redis_url:
         return None
@@ -110,10 +111,7 @@ def _execute_tick(bar: Bar) -> bool:
         drink.current_price = _calculate_next_price(drink, bar.reversion_rate)
         updated_prices.append(drink)
     tick_counter = (bar.tick_counter or 0) + 1
-    should_record = (
-        bar.price_point_retention_ticks > 0
-        and tick_counter % bar.price_point_retention_ticks == 0
-    )
+    should_record = bar.price_point_retention_ticks > 0 and tick_counter % bar.price_point_retention_ticks == 0
     with transaction.atomic():
         if updated_prices:
             Drink.objects.bulk_update(updated_prices, ["current_price"])

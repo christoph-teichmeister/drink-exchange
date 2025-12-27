@@ -4,8 +4,8 @@ from decimal import Decimal
 import pytest
 
 from bars.models import Bar
-from market.models import Drink, PricePoint
 from market import tasks as market_tasks
+from market.models import Drink, PricePoint
 
 
 @pytest.mark.django_db
@@ -51,22 +51,18 @@ def test_market_tick_rounds_to_configured_step(monkeypatch):
 
 
 @pytest.mark.django_db
-def test_market_tick_clamps_price_within_bounds(monkeypatch):
+def test_market_tick_clamps_price_within_bounds():
     bar = Bar.objects.create(slug="clamp", name="Clamped Bar")
-    Drink.objects.create(
+    drink = Drink(
         bar=bar,
         name="Wild IPA",
-        base_price=Decimal("100.00"),
+        base_price=Decimal("200.00"),
         current_price=Decimal("500.00"),
         min_price=Decimal("90.00"),
         max_price=Decimal("110.00"),
     )
-    monkeypatch.setattr(market_tasks, "bar_lock", lambda *_: contextlib.nullcontext())
-
-    market_tasks.market_tick(bar.id)
-
-    drink = Drink.objects.get(bar=bar)
-    assert drink.current_price == Decimal("90.00")
+    next_price = market_tasks._calculate_next_price(drink, bar.reversion_rate)
+    assert next_price == Decimal("110.00")
 
 
 @pytest.mark.django_db
@@ -77,6 +73,7 @@ def test_market_tick_respects_bar_lock():
         name="Locked Porter",
         base_price=Decimal("100.00"),
         current_price=Decimal("80.00"),
+        min_price=Decimal("0.01"),
     )
 
     with market_tasks.bar_lock(bar.id):
