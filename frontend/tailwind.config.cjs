@@ -1,4 +1,5 @@
 const defaultTheme = require('tailwindcss/defaultTheme');
+const skeletonTailwind = require('@skeletonlabs/skeleton/tailwind/skeleton.cjs');
 
 module.exports = {
   darkMode: 'class',
@@ -19,5 +20,5 @@ module.exports = {
       }
     }
   },
-  plugins: []
+  plugins: [...skeletonTailwind()]
 };
