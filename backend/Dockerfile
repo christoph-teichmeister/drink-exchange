@@ -11,6 +11,7 @@ RUN python -m pip install --upgrade pip uv
 # Copy the lock metadata first so uv sync can leverage layer caching.
 COPY pyproject.toml uv.lock ./
 RUN uv sync --frozen
+RUN sha256sum uv.lock | cut -d ' ' -f1 > uv.lock.sha256
 
 FROM python:3.13-slim AS runtime-base
 
@@ -22,6 +23,9 @@ WORKDIR /app
 
 # Reuse the dependency snapshot from the deps stage to keep installs cached.
 COPY --from=deps /app/.venv ./.venv
+COPY --from=deps /app/uv.lock.sha256 ./uv.lock.sha256
+RUN cp -a .venv /.venv-base
+RUN cp uv.lock.sha256 /.venv-base/uv.lock.sha256
 COPY entrypoint.sh ./entrypoint.sh
 RUN chmod +x entrypoint.sh
 
