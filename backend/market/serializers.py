@@ -3,6 +3,31 @@ from typing import Iterable, Mapping, Optional
 
 from django.utils import timezone
 
+HISTORY_LIMIT = 24
+
+
+def _build_history(drink, fallback_price: str) -> list[dict]:
+    entries: list[dict] = []
+    override = getattr(drink, "history_override", None)
+    if isinstance(override, list) and override:
+        entries.extend(
+            [
+                {"timestamp": item.get("timestamp"), "price": str(item.get("price"))}
+                for item in override
+                if item.get("timestamp") and item.get("price") is not None
+            ]
+        )
+    points = getattr(drink, "recent_points", [])
+    if points:
+        entries.extend(
+            {"timestamp": point.recorded_at.isoformat(), "price": str(point.price)}
+            for point in reversed(points[:HISTORY_LIMIT])
+        )
+    entries = [entry for entry in entries if entry.get("timestamp") and entry.get("price") is not None]
+    if entries:
+        return entries[-HISTORY_LIMIT:]
+    return [{"timestamp": _now_iso(), "price": fallback_price}]
+
 
 def _serialize_price_row(drink) -> dict:
     """Turn a drink model into the price data the websocket clients expect."""
@@ -16,6 +41,7 @@ def _serialize_price_row(drink) -> dict:
         "base_price": str(drink.base_price),
         "delta": str(Decimal(price_value) - drink.base_price),
         "trend": "flat",
+        "history": _build_history(drink, str(price_value)),
     }
 
 

@@ -31,6 +31,7 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -59,6 +60,10 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "static"]
+LANGUAGES = [
+    ("en", "English"),
+    ("de", "Deutsch"),
+]
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = "UTC"
 USE_I18N = True
@@ -86,10 +91,24 @@ CELERY_BEAT_SCHEDULE = {
     "market-tick-all-bars": {
         "task": "market.tasks.market_tick_all_bars",
         "schedule": timedelta(seconds=5),
-    }
+    },
+    "event-roll-all-bars": {
+        "task": "events.tasks.event_roll_all_bars",
+        "schedule": timedelta(seconds=5),
+    },
+    "event-cleanup-expired": {
+        "task": "events.tasks.cleanup_expired_events",
+        "schedule": timedelta(seconds=5),
+    },
 }
 
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOWED_ORIGINS = [
+    origin.strip()
+    for origin in os.environ.get("CORS_ALLOWED_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173").split(",")
+    if origin.strip()
+]
+CORS_ALLOW_CREDENTIALS = True
 
 LOG_LEVEL = os.environ.get("DJANGO_LOG_LEVEL", "INFO").upper()
 

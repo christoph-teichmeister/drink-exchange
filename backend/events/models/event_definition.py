@@ -30,12 +30,22 @@ class EventDefinition(CommonInfo):
         decimal_places=2,
         default=Decimal("1.00"),
         validators=[MinValueValidator(Decimal("0"))],
+        help_text=_("Higher weight increases the chances this definition is selected."),
     )
     duration_seconds = models.PositiveIntegerField(
         validators=[MinValueValidator(1)],
         help_text=_("Duration in seconds the event should run before expiring."),
     )
-    params = models.JSONField(default=dict, blank=True)
+    cooldown_seconds = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        help_text=_("Optional wait time after an event ends before it can start again."),
+    )
+    params = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text=_("Arbitrary configuration such as start_multiplier or target_drink_ids."),
+    )
 
     class Meta:
         ordering = ["bar", "name"]  # Keep definitions grouped per bar and sorted.
