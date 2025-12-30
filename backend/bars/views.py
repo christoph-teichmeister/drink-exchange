@@ -2,6 +2,7 @@ from django.db.models import Prefetch
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from django.views.decorators.http import require_safe
 
 from bars.models import Bar
 from events.models import ActiveEvent
@@ -73,3 +74,9 @@ def bar_market_snapshot(request, bar_id: str):
     }
 
     return JsonResponse(snapshot)
+
+
+@require_safe
+def bar_list(request):
+    bars = list(Bar.objects.order_by("name").values("slug", "name", "description"))
+    return JsonResponse({"bars": bars})
