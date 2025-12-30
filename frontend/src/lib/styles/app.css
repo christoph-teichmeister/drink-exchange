@@ -4,11 +4,53 @@
 @import 'tailwindcss/utilities';
 
 :root {
-  --market-primary: #28c07f;
-  --market-accent: #ffbf69;
-  --market-surface: #04050b;
-  --market-muted: #3f4b66;
-  --market-highlight: #f65c78;
+  --market-primary: #2563eb;
+  --market-accent: #f97316;
+  --market-surface: #f8fafc;
+  --market-muted: #475569;
+  --market-highlight: #dc2626;
+
+  --surface-base: var(--market-surface);
+  --surface-soft: #ffffff;
+  --surface-strong: #e2e8f0;
+  --border-base: rgba(15, 23, 42, 0.35);
+  --border-muted: rgba(15, 23, 42, 0.2);
+  --text-primary: #0f172a;
+  --text-muted: #475569;
+  --overlay: rgba(15, 23, 42, 0.65);
+  --modal-backdrop: rgba(15, 23, 42, 0.75);
+  --board-gradient-top: rgba(248, 250, 252, 0.98);
+  --board-gradient-bottom: rgba(226, 232, 240, 0.95);
+  --chart-highlight: rgba(37, 99, 235, 0.35);
+  --chart-border: rgba(37, 99, 235, 0.55);
+  --shadow-elevated: 0 30px 60px rgba(15, 23, 42, 0.08);
+
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  --market-primary: #34c997;
+  --market-accent: #f8c478;
+  --market-surface: #0c1221;
+  --market-muted: #6c748b;
+  --market-highlight: #ff8aa1;
+
+  --surface-base: var(--market-surface);
+  --surface-soft: #131a2c;
+  --surface-strong: #1f2937;
+  --border-base: rgba(248, 244, 255, 0.25);
+  --border-muted: rgba(255, 255, 255, 0.1);
+  --text-primary: #f8fafc;
+  --text-muted: #d6e1ff;
+  --overlay: rgba(4, 5, 11, 0.85);
+  --modal-backdrop: rgba(4, 5, 11, 0.9);
+  --board-gradient-top: rgba(18, 25, 42, 0.98);
+  --board-gradient-bottom: rgba(10, 14, 25, 0.96);
+  --chart-highlight: rgba(255, 255, 255, 0.15);
+  --chart-border: rgba(255, 255, 255, 0.25);
+  --shadow-elevated: 0 30px 60px rgba(0, 0, 0, 0.35);
+
+  color-scheme: dark;
 }
 
 body {
@@ -17,36 +59,34 @@ body {
     system-ui,
     -apple-system,
     sans-serif;
-  background-color: var(--market-surface);
-  color: #f8fafc;
-}
-
-:root {
-  color-scheme: dark;
+  background-color: var(--surface-base);
+  color: var(--text-primary);
 }
 
 .board-shell {
   background: linear-gradient(
     180deg,
-    rgba(5, 6, 11, 0.97) 0%,
-    rgba(3, 5, 14, 0.95) 100%
+    var(--board-gradient-top) 0%,
+    var(--board-gradient-bottom) 100%
   );
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border-base);
+  box-shadow: var(--shadow-elevated);
 }
 
 .ticker-line {
   font-weight: 600;
   letter-spacing: 0.15em;
+  color: var(--text-muted);
 }
 
 .chart-skeleton {
   background: radial-gradient(
     circle at top,
-    rgba(255, 255, 255, 0.35),
+    var(--chart-highlight),
     transparent 60%
   );
   border-radius: 1.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border: 1px solid var(--chart-border);
   min-height: 200px;
 }
 
@@ -55,16 +95,66 @@ body {
   padding: 0.35rem 0.85rem;
   font-size: 0.75rem;
   font-weight: 600;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--surface-soft);
+  color: var(--text-primary);
 }
 
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(4, 5, 11, 0.75);
+  background: var(--modal-backdrop);
   backdrop-filter: blur(12px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 50;
+}
+
+.side-panel {
+  background-color: var(--surface-soft);
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.97) 0%,
+    rgba(255, 255, 255, 0.95) 100%
+  );
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.15);
+  border-right: 1px solid var(--border-base);
+}
+
+:root[data-theme='dark'] .side-panel {
+  background-color: var(--surface-soft);
+  background: linear-gradient(
+    180deg,
+    rgba(19, 26, 44, 0.98) 0%,
+    rgba(19, 26, 44, 0.95) 100%
+  );
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
+}
+
+:root.light .text-white {
+  color: var(--text-primary) !important;
+}
+
+:root.light .text-white\/40 {
+  color: rgba(15, 23, 42, 0.4) !important;
+}
+
+:root.light .text-white\/50 {
+  color: rgba(15, 23, 42, 0.5) !important;
+}
+
+:root.light .text-white\/60 {
+  color: rgba(15, 23, 42, 0.6) !important;
+}
+
+:root.light .text-white\/70 {
+  color: rgba(15, 23, 42, 0.7) !important;
+}
+
+:root.light .text-white\/80 {
+  color: rgba(15, 23, 42, 0.8) !important;
+}
+
+:root.light .text-white\/90 {
+  color: rgba(15, 23, 42, 0.9) !important;
 }

@@ -14,7 +14,9 @@ const wsBase = trimTrailingSlash(
 export const apiConfig = {
   baseUrl: apiBase,
   marketEndpoint: () => `${apiBase}/market/`,
-  barMarketEndpoint: (barId: string) => `${apiBase}/bars/${barId}/market/`
+  barsEndpoint: () => `${apiBase}/bars/`,
+  barMarketEndpoint: (barId: string) => `${apiBase}/bars/${barId}/market/`,
+  localeEndpoint: () => `${apiBase}/locale/`
 }
 
 export const wsConfig = {
