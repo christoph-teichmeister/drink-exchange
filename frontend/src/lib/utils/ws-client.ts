@@ -13,6 +13,13 @@ export type MarketPayload = {
   drinks?: MarketDrink[]
   rates?: { id: string; price: string }[]
   event?: { title?: string; description?: string }
+  prices?: {
+    drink_id?: string | number
+    drink_name?: string
+    price?: number | string
+    delta?: number | string
+    trend?: 'up' | 'down' | 'flat'
+  }[]
   [key: string]: unknown
 }
 
@@ -113,10 +120,17 @@ export function createMarketWebSocket(barId: string) {
 
       socket.addEventListener('message', (event) => {
         try {
-          const payload = JSON.parse(event.data)
-          if (payload.type && payload.data) {
-            dispatchPayload(payload.type, payload.data)
+          const frame = JSON.parse(event.data)
+          const body = frame.data ?? frame.payload ?? frame
+          const eventType = body?.type ?? frame.type
+          const payloadBody = body?.payload ?? body
+          if (!eventType || !payloadBody) {
+            return
           }
+          const marketPayload = eventType.startsWith('event.')
+            ? { event: payloadBody }
+            : payloadBody
+          dispatchPayload(eventType, marketPayload)
         } catch (error) {
           console.error('MarketWS message handler failed', error)
         }

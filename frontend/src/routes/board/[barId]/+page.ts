@@ -4,7 +4,9 @@ import { apiConfig } from '$lib/config'
 import type { BoardSnapshot } from '$lib/stores/board'
 
 export const load: PageLoad = async ({ params, fetch }) => {
-  const response = await fetch(apiConfig.barMarketEndpoint(params.barId))
+  const response = await fetch(apiConfig.barMarketEndpoint(params.barId), {
+    credentials: 'include'
+  })
   if (!response.ok) {
     throw error(response.status, 'Unable to load market snapshot')
   }

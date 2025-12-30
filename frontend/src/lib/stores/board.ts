@@ -92,6 +92,61 @@ const safeNumber = (value: unknown, fallback = 0) => {
   return Number.isFinite(numeric) ? numeric : fallback
 }
 
+const normalizeHistoryRow = (historyRow: {
+  timestamp?: string
+  price?: number | string
+}): DrinkHistoryPoint | null => {
+  const price = safeNumber(historyRow.price)
+  if (!historyRow.timestamp || Number.isNaN(price)) {
+    return null
+  }
+  return { timestamp: historyRow.timestamp, price }
+}
+
+const normalizeHistoryRows = (rows: unknown): DrinkHistoryPoint[] => {
+  if (!Array.isArray(rows)) {
+    return []
+  }
+  return rows
+    .map((entry) =>
+      normalizeHistoryRow(
+        entry as { timestamp?: string; price?: number | string }
+      )
+    )
+    .filter((point): point is DrinkHistoryPoint => point !== null)
+}
+
+const normalizePriceRow = (row: {
+  drink_id?: string | number
+  drink_name?: string
+  price?: number | string
+  delta?: number | string
+  trend?: TrendValue
+  history?: unknown
+}): DrinkSnapshot => {
+  const price = safeNumber(row.price)
+  const delta = safeNumber(row.delta, 0)
+  const trend = row.trend ?? getTrendFromDelta(delta)
+  const id =
+    row.drink_id !== undefined && row.drink_id !== null
+      ? String(row.drink_id)
+      : `${row.drink_name ?? 'drink'}-${Math.random().toString(36).slice(2, 6)}`
+  const name = row.drink_name ?? id
+  const historyPoints = normalizeHistoryRows(row.history)
+  return {
+    id,
+    name,
+    price,
+    delta,
+    trend,
+    history: clampHistory(
+      historyPoints.length
+        ? historyPoints
+        : [{ timestamp: new Date().toISOString(), price }]
+    )
+  }
+}
+
 type MarketHistoryPoint = NonNullable<MarketDrink['history']>[number]
 
 const sanitizeHistory = (history: MarketHistoryPoint[]): DrinkHistoryPoint[] =>
@@ -147,6 +202,9 @@ const normalizeMarketPayload = (payload: MarketPayload): DrinkSnapshot[] => {
   }
   if (Array.isArray(payload.rates) && payload.rates.length) {
     return payload.rates.map((rate) => normalizeRateUpdate(rate))
+  }
+  if (Array.isArray(payload.prices) && payload.prices.length) {
+    return payload.prices.map((price) => normalizePriceRow(price))
   }
   return []
 }
@@ -231,12 +289,18 @@ const createBoardStore = (initialSnapshot?: BoardSnapshot) => {
     existing: DrinkSnapshot | undefined,
     update: DrinkSnapshot
   ): DrinkSnapshot => {
-    const history = update.history.length
-      ? clampHistory(update.history.slice())
-      : clampHistory([
-          ...(existing?.history ?? []),
-          { timestamp: new Date().toISOString(), price: update.price }
-        ])
+    const newPoint = {
+      timestamp: new Date().toISOString(),
+      price: update.price
+    }
+    const incomingHistory = update.history.length
+      ? update.history.slice()
+      : [newPoint]
+
+    const history =
+      existing && existing.history.length
+        ? clampHistory([...existing.history, ...incomingHistory])
+        : clampHistory(incomingHistory)
     const previousPrice = existing?.price ?? update.price
     const delta =
       typeof update.delta === 'number'
