@@ -91,7 +91,15 @@ CELERY_BEAT_SCHEDULE = {
     "market-tick-all-bars": {
         "task": "market.tasks.market_tick_all_bars",
         "schedule": timedelta(seconds=5),
-    }
+    },
+    "event-roll-all-bars": {
+        "task": "events.tasks.event_roll_all_bars",
+        "schedule": timedelta(seconds=5),
+    },
+    "event-cleanup-expired": {
+        "task": "events.tasks.cleanup_expired_events",
+        "schedule": timedelta(seconds=5),
+    },
 }
 
 CORS_ALLOW_ALL_ORIGINS = False

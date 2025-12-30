@@ -1,8 +1,12 @@
+import os
+
 from django.db import migrations
 
 
 def _create_ci_demo_bar(apps, schema_editor):
     Bar = apps.get_model("bars", "Bar")
+    if not os.environ.get("CI"):
+        return
     Bar.objects.get_or_create(
         slug="ci-demo",
         defaults={
@@ -14,6 +18,8 @@ def _create_ci_demo_bar(apps, schema_editor):
 
 def _remove_ci_demo_bar(apps, schema_editor):
     Bar = apps.get_model("bars", "Bar")
+    if not os.environ.get("CI"):
+        return
     Bar.objects.filter(slug="ci-demo").delete()
 
 

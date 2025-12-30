@@ -2,15 +2,23 @@ from django.db.models import Prefetch
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 from django.views.decorators.http import require_safe
 
+from api.decorators import json_login_required
+from bars.bar_assignment import BarAssignment
 from bars.models import Bar
 from events.models import ActiveEvent
 from market.models import Drink, Trade
 
+_BAR_ACCESS_DENIED = _("You are not assigned to this bar.")
 
+
+@json_login_required
 def bar_market_snapshot(request, bar_id: str):
     bar = get_object_or_404(Bar, slug=bar_id)
+    if not BarAssignment.objects.filter(user=request.user, bar=bar).exists():
+        return JsonResponse({"detail": _BAR_ACCESS_DENIED}, status=403)
 
     trades_prefetch = Prefetch("trades", queryset=Trade.objects.order_by("-occurred_at"), to_attr="recent_trades")
 
@@ -76,7 +84,12 @@ def bar_market_snapshot(request, bar_id: str):
     return JsonResponse(snapshot)
 
 
+@json_login_required
 @require_safe
 def bar_list(request):
-    bars = list(Bar.objects.order_by("name").values("slug", "name", "description"))
+    assignments = BarAssignment.objects.filter(user=request.user).select_related("bar").order_by("bar__name")
+    bars = [
+        {"slug": assignment.bar.slug, "name": assignment.bar.name, "description": assignment.bar.description}
+        for assignment in assignments
+    ]
     return JsonResponse({"bars": bars})
