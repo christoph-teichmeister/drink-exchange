@@ -9,11 +9,11 @@
   }
 
   export const DEFAULT_SERIES_COLORS = [
-    '#14b8a6',
-    '#f97316',
-    '#3b82f6',
+    '#3056ff',
+    '#ff6d5f',
+    '#7dd3fc',
     '#a855f7',
-    '#f43f5e',
+    '#fb7185',
     '#38bdf8',
     '#22c55e',
     '#facc15'
@@ -88,12 +88,12 @@
       />
     {/each}
   {:else}
-    <polyline
-      points={`0,${height / 2} ${width},${height / 2}`}
-      fill="none"
-      stroke="#94a3b8"
-      stroke-width="2"
-      stroke-linecap="round"
-    />
+      <polyline
+        points={`0,${height / 2} ${width},${height / 2}`}
+        fill="none"
+        stroke="#9fb6cd"
+        stroke-width="2"
+        stroke-linecap="round"
+      />
   {/if}
 </svg>

@@ -16,7 +16,12 @@ export const apiConfig = {
   marketEndpoint: () => `${apiBase}/market/`,
   barsEndpoint: () => `${apiBase}/bars/`,
   barMarketEndpoint: (barId: string) => `${apiBase}/bars/${barId}/market/`,
-  localeEndpoint: () => `${apiBase}/locale/`
+  localeEndpoint: () => `${apiBase}/locale/`,
+  auth: {
+    login: () => `${apiBase}/auth/login/`,
+    logout: () => `${apiBase}/auth/logout/`,
+    me: () => `${apiBase}/auth/me/`
+  }
 }
 
 export const wsConfig = {

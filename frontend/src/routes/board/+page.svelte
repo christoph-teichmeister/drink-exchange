@@ -4,7 +4,7 @@
 
   export let data: PageData
 
-  const boardUrl = (slug: string) => `/board/${slug}`
+  const boardUrl = (slug: string) => `/dashboard/${slug}`
 </script>
 
 <svelte:head>
@@ -35,7 +35,7 @@
             class="mt-6 inline-flex items-center justify-center rounded-full border border-market-accent/70 px-4 py-2 text-xs font-semibold uppercase tracking-[0.4em] text-market-accent transition hover:border-market-accent/90 hover:text-white"
             href={boardUrl(bar.slug)}
           >
-            {$translations.board.lobby.openBoard}
+            {$translations.board.lobby.openDashboard}
           </a>
         </article>
       {/each}

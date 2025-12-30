@@ -4,51 +4,51 @@
 @import 'tailwindcss/utilities';
 
 :root {
-  --market-primary: #2563eb;
-  --market-accent: #f97316;
-  --market-surface: #f8fafc;
-  --market-muted: #475569;
-  --market-highlight: #dc2626;
+  --market-primary: #3056ff;
+  --market-accent: #ff6d5f;
+  --market-surface: #f8f9ff;
+  --market-muted: #5d6678;
+  --market-highlight: #fb7185;
 
   --surface-base: var(--market-surface);
   --surface-soft: #ffffff;
-  --surface-strong: #e2e8f0;
-  --border-base: rgba(15, 23, 42, 0.35);
-  --border-muted: rgba(15, 23, 42, 0.2);
+  --surface-strong: #e4e8ff;
+  --border-base: rgba(15, 23, 42, 0.28);
+  --border-muted: rgba(15, 23, 42, 0.14);
   --text-primary: #0f172a;
-  --text-muted: #475569;
-  --overlay: rgba(15, 23, 42, 0.65);
+  --text-muted: #4b5563;
+  --overlay: rgba(15, 23, 42, 0.55);
   --modal-backdrop: rgba(15, 23, 42, 0.75);
-  --board-gradient-top: rgba(248, 250, 252, 0.98);
-  --board-gradient-bottom: rgba(226, 232, 240, 0.95);
-  --chart-highlight: rgba(37, 99, 235, 0.35);
-  --chart-border: rgba(37, 99, 235, 0.55);
-  --shadow-elevated: 0 30px 60px rgba(15, 23, 42, 0.08);
+  --board-gradient-top: rgba(248, 250, 255, 0.98);
+  --board-gradient-bottom: rgba(229, 233, 255, 0.95);
+  --chart-highlight: rgba(48, 86, 255, 0.35);
+  --chart-border: rgba(48, 86, 255, 0.55);
+  --shadow-elevated: 0 30px 80px rgba(15, 23, 42, 0.12);
 
   color-scheme: light;
 }
 
 :root[data-theme='dark'] {
-  --market-primary: #34c997;
-  --market-accent: #f8c478;
-  --market-surface: #0c1221;
-  --market-muted: #6c748b;
-  --market-highlight: #ff8aa1;
+  --market-primary: #7dd3fc;
+  --market-accent: #a855f7;
+  --market-surface: #030712;
+  --market-muted: #9fb6cd;
+  --market-highlight: #fb7185;
 
   --surface-base: var(--market-surface);
-  --surface-soft: #131a2c;
-  --surface-strong: #1f2937;
-  --border-base: rgba(248, 244, 255, 0.25);
-  --border-muted: rgba(255, 255, 255, 0.1);
+  --surface-soft: #080f23;
+  --surface-strong: #111a33;
+  --border-base: rgba(255, 255, 255, 0.16);
+  --border-muted: rgba(255, 255, 255, 0.08);
   --text-primary: #f8fafc;
-  --text-muted: #d6e1ff;
-  --overlay: rgba(4, 5, 11, 0.85);
-  --modal-backdrop: rgba(4, 5, 11, 0.9);
-  --board-gradient-top: rgba(18, 25, 42, 0.98);
-  --board-gradient-bottom: rgba(10, 14, 25, 0.96);
-  --chart-highlight: rgba(255, 255, 255, 0.15);
-  --chart-border: rgba(255, 255, 255, 0.25);
-  --shadow-elevated: 0 30px 60px rgba(0, 0, 0, 0.35);
+  --text-muted: #cbd5f5;
+  --overlay: rgba(2, 3, 11, 0.85);
+  --modal-backdrop: rgba(2, 3, 11, 0.9);
+  --board-gradient-top: rgba(12, 16, 36, 0.98);
+  --board-gradient-bottom: rgba(5, 8, 20, 0.96);
+  --chart-highlight: rgba(125, 211, 252, 0.28);
+  --chart-border: rgba(125, 211, 252, 0.45);
+  --shadow-elevated: 0 30px 80px rgba(0, 0, 0, 0.45);
 
   color-scheme: dark;
 }
@@ -114,8 +114,8 @@ body {
   background-color: var(--surface-soft);
   background: linear-gradient(
     180deg,
-    rgba(255, 255, 255, 0.97) 0%,
-    rgba(255, 255, 255, 0.95) 100%
+    rgba(247, 249, 255, 0.96) 0%,
+    rgba(241, 243, 255, 0.92) 100%
   );
   box-shadow: 0 20px 40px rgba(15, 23, 42, 0.15);
   border-right: 1px solid var(--border-base);
@@ -125,8 +125,8 @@ body {
   background-color: var(--surface-soft);
   background: linear-gradient(
     180deg,
-    rgba(19, 26, 44, 0.98) 0%,
-    rgba(19, 26, 44, 0.95) 100%
+    rgba(12, 15, 32, 0.95) 0%,
+    rgba(10, 12, 25, 0.92) 100%
   );
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
 }

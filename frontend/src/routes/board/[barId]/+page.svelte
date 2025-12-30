@@ -1,9 +1,11 @@
 <script lang="ts">
+  import { goto } from '$app/navigation'
   import { onMount } from 'svelte'
   import { get } from 'svelte/store'
   import Alert from '$lib/components/Alert.svelte'
   import Badge from '$lib/components/Badge.svelte'
   import Card from '$lib/components/Card.svelte'
+  import DrinkCard from '$lib/components/DrinkCard.svelte'
   import BoardMultiLineChart from '$lib/components/BoardMultiLineChart.svelte'
   import { translations } from '$lib/i18n'
   import { createMarketWebSocket, type MarketPayload } from '$lib/utils/ws-client'
@@ -32,6 +34,15 @@
   const reconnect = () => {
     boardStore.setConnectionStatus('connecting')
     marketWs.reconnect()
+  }
+
+  const goBackToDashboard = () => {
+    const slug = boardState.bar?.slug
+    if (slug) {
+      goto(`/dashboard/${slug}`)
+      return
+    }
+    goto('/board')
   }
 
   let chartContainer: HTMLDivElement | null = null
@@ -117,11 +128,11 @@
   }
 
   const SERIES_COLORS = [
-    '#14b8a6',
-    '#f97316',
+    '#3056ff',
+    '#ff6d5f',
     '#3b82f6',
     '#a855f7',
-    '#f43f5e',
+    '#fb7185',
     '#38bdf8',
     '#22c55e',
     '#facc15'
@@ -133,6 +144,8 @@
       ? $translations.board.eventOverlay.ended
       : $translations.board.eventOverlay.started
     : $translations.board.eventOverlay.idle
+  type EventBadgeVariant = 'muted' | 'success'
+  let eventBadgeVariant: EventBadgeVariant = 'success'
   $: eventBadgeVariant = boardState.activeEvent?.status === 'ended' ? 'muted' : 'success'
   $: chartSeries = boardState.drinks.map((drink, index) => ({
     id: drink.id,
@@ -155,6 +168,17 @@
 </svelte:head>
 
 <div class="space-y-6">
+  <div class="flex">
+    <button
+      type="button"
+      class="flex items-center gap-2 rounded-2xl border border-white/20 px-3 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-white/70 transition hover:border-market-accent/70 disabled:cursor-not-allowed disabled:opacity-40"
+      on:click={goBackToDashboard}
+      disabled={!boardState.bar?.slug}
+    >
+      <span aria-hidden="true">←</span>
+      <span>{$translations.board.backButton}</span>
+    </button>
+  </div>
   {#if boardState.activeEvent}
     <section class="rounded-2xl border-l-4 border-market-primary/70 bg-white/5 px-6 py-4">
       <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -209,13 +233,13 @@
             </div>
             <div class="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {#each boardState.drinks as drink}
-                <div class="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm">
-                  <p class="text-xs uppercase tracking-[0.3em] text-white/40">{drink.name}</p>
-                  <p class="text-2xl font-semibold text-white">{formatCurrency(drink.price)}</p>
-                  <p class={`text-sm font-semibold ${deltaTone(drink.delta)}`}>
-                    {formatDelta(drink.delta)} · {getTrendLabel(drink.trend)}
-                  </p>
-                </div>
+                <DrinkCard
+                  name={drink.name}
+                  priceLabel={formatCurrency(drink.price)}
+                  deltaLabel={formatDelta(drink.delta)}
+                  trendLabel={getTrendLabel(drink.trend)}
+                  deltaTone={deltaTone(drink.delta)}
+                />
               {/each}
             </div>
           {:else}
@@ -223,54 +247,56 @@
           {/if}
         </div>
       </div>
-      <Card class="flex flex-col gap-6">
-        <header class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-          <div>
-            <p class="text-xs uppercase tracking-[0.4em] text-white/50">{$translations.board.chart.sectionTitle}</p>
-            <p class="text-2xl font-semibold text-white">{$translations.board.chart.subTitle}</p>
-          </div>
-          <Badge variant="muted">{$translations.board.chart.chartBadge}</Badge>
-        </header>
-        <div
-          class="min-h-[240px] overflow-hidden rounded-2xl border border-white/10 bg-market-surface/70 p-3"
-          bind:this={chartContainer}
-        >
-          {#if boardState.drinks.length}
-            <BoardMultiLineChart
-              series={chartSeries}
-              width={chartWidth}
-              height={chartHeight}
-            />
-          {:else}
-            <p class="text-sm text-white/60">{$translations.board.card.empty}</p>
-          {/if}
-        </div>
-        <div>
-          <p class="text-xs uppercase tracking-[0.4em] text-white/50">{$translations.board.chart.legendTitle}</p>
-          <div class="mt-3 grid gap-3 grid-cols-1 sm:grid-cols-2">
+      <Card>
+        <div class="flex flex-col gap-6">
+          <header class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+            <div>
+              <p class="text-xs uppercase tracking-[0.4em] text-white/50">{$translations.board.chart.sectionTitle}</p>
+              <p class="text-2xl font-semibold text-white">{$translations.board.chart.subTitle}</p>
+            </div>
+            <Badge variant="muted">{$translations.board.chart.chartBadge}</Badge>
+          </header>
+          <div
+            class="min-h-[240px] overflow-hidden rounded-2xl border border-white/10 bg-market-surface/70 p-3"
+            bind:this={chartContainer}
+          >
             {#if boardState.drinks.length}
-              {#each legendEntries as entry}
-                <div class="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm">
-                  <div class="flex items-center gap-3">
-                    <span
-                      class="inline-flex h-3 w-3 rounded-full"
-                      style={`background:${entry.color}`}
-                    />
-                    <div>
-                      <p class="text-white">{entry.name}</p>
-                      <p class="text-xs uppercase tracking-[0.3em] text-white/60">
-                        {formatCurrency(entry.price)} · {getTrendLabel(entry.trend)}
-                      </p>
-                    </div>
-                  </div>
-                  <p class={`text-xs font-semibold ${deltaTone(entry.delta)}`}>
-                    {formatDelta(entry.delta)}
-                  </p>
-                </div>
-              {/each}
+              <BoardMultiLineChart
+                series={chartSeries}
+                width={chartWidth}
+                height={chartHeight}
+              />
             {:else}
               <p class="text-sm text-white/60">{$translations.board.card.empty}</p>
             {/if}
+          </div>
+          <div>
+            <p class="text-xs uppercase tracking-[0.4em] text-white/50">{$translations.board.chart.legendTitle}</p>
+            <div class="mt-3 grid gap-3 grid-cols-1 sm:grid-cols-2">
+              {#if boardState.drinks.length}
+                {#each legendEntries as entry}
+                  <div class="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm">
+                    <div class="flex items-center gap-3">
+                      <span
+                        class="inline-flex h-3 w-3 rounded-full"
+                        style={`background:${entry.color}`}
+                      />
+                      <div>
+                        <p class="text-white">{entry.name}</p>
+                        <p class="text-xs uppercase tracking-[0.3em] text-white/60">
+                          {formatCurrency(entry.price)} · {getTrendLabel(entry.trend)}
+                        </p>
+                      </div>
+                    </div>
+                    <p class={`text-xs font-semibold ${deltaTone(entry.delta)}`}>
+                      {formatDelta(entry.delta)}
+                    </p>
+                  </div>
+                {/each}
+              {:else}
+                <p class="text-sm text-white/60">{$translations.board.card.empty}</p>
+              {/if}
+            </div>
           </div>
         </div>
       </Card>
