@@ -1,18 +1,21 @@
 import logging
 import threading
 from contextlib import contextmanager
-from datetime import datetime
+from datetime import datetime, timedelta
 from decimal import ROUND_HALF_UP, Decimal
 
 import redis
 from celery import shared_task
 from django.conf import settings
 from django.db import connections, transaction
+from django.db.models import Prefetch
 from django.utils import timezone
 from redis.lock import Lock as RedisLock
 
 from bars.models import Bar
 from market.models import Drink, PricePoint
+from market.serializers import build_price_update_payload
+from market.services import broadcast_prices
 
 logger = logging.getLogger(__name__)
 
@@ -71,6 +74,13 @@ def _try_redis_lock(bar_id: int) -> RedisLock | None:
     return None
 
 
+def _broadcast_snapshot(bar: Bar, drinks: list[Drink], now: datetime) -> None:
+    """Send the latest tick snapshot to every websocket listening for the bar."""
+    events = bar.active_events.filter(is_active=True).select_related("definition").order_by("starts_at")
+    payload = build_price_update_payload(bar.slug, drinks, events, timestamp=now.isoformat())
+    broadcast_prices(bar.slug, payload)
+
+
 @contextmanager
 def bar_lock(bar_id: int):
     """Provide a multi-strategy lock to prevent concurrent ticks for the same bar."""
@@ -114,10 +124,28 @@ def _execute_tick(bar: Bar) -> bool:
     bar.refresh_from_db()
     if not _is_tick_due(bar, now):
         return False
-    drinks = list(bar.drinks.all())
-    updated_prices: list[Drink] = []
+    price_points_prefetch = Prefetch(
+        "price_points",
+        queryset=PricePoint.objects.order_by("-recorded_at"),
+        to_attr="recent_points",
+    )
+    drinks = list(bar.drinks.prefetch_related(price_points_prefetch))
+    drink_map = {drink.id: drink for drink in drinks}
     for drink in drinks:
-        drink.current_price = _calculate_next_price(drink, bar.reversion_rate)
+        if not hasattr(drink, "recent_points"):
+            drink.recent_points = []
+    updated_prices: list[Drink] = []
+    interval_seconds = bar.tick_interval_seconds or 0
+    tick_interval_seconds = interval_seconds if interval_seconds > 0 else 1
+    previous_timestamp = (now - timedelta(seconds=tick_interval_seconds)).isoformat()
+    for drink in drinks:
+        old_price = drink.current_price if drink.current_price is not None else drink.base_price
+        next_price = _calculate_next_price(drink, bar.reversion_rate)
+        drink.history_override = [
+            {"timestamp": previous_timestamp, "price": str(old_price)},
+            {"timestamp": now.isoformat(), "price": str(next_price)},
+        ]
+        drink.current_price = next_price
         updated_prices.append(drink)
     tick_counter = (bar.tick_counter or 0) + 1
     should_record = bar.price_point_retention_ticks > 0 and tick_counter % bar.price_point_retention_ticks == 0
@@ -128,7 +156,7 @@ def _execute_tick(bar: Bar) -> bool:
         bar.tick_counter = tick_counter
         bar.save(update_fields=["last_tick_at", "tick_counter"])
         if should_record and drinks:
-            PricePoint.objects.bulk_create(
+            recorded_points = PricePoint.objects.bulk_create(
                 [
                     PricePoint(
                         bar=bar,
@@ -139,6 +167,14 @@ def _execute_tick(bar: Bar) -> bool:
                     for drink in drinks
                 ]
             )
+            for point in recorded_points:
+                drink_obj = drink_map.get(point.drink_id)
+                if drink_obj:
+                    drink_obj.recent_points.insert(0, point)
+    try:
+        _broadcast_snapshot(bar, drinks, now=now)
+    except Exception:
+        logger.exception("Failed to broadcast market snapshot for bar %s", bar.slug)
     logger.debug(
         "Market tick applied to bar %s (recorded price points=%s)",
         bar.pk,
