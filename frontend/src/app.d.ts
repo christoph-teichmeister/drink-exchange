@@ -1,15 +1,16 @@
-/// <reference types="svelte" />
-/// <reference types="vite/client" />
+import type { Locale } from '$lib/i18n'
 
 declare global {
-  interface ImportMetaEnv {
-    readonly VITE_API_BASE_URL: string
-    readonly VITE_API_INTERNAL_BASE_URL: string
-    readonly VITE_WS_BASE_URL: string
+  namespace App {
+    interface Locals {
+      locale: Locale
+    }
   }
 
-  interface ImportMeta {
-    readonly env: ImportMetaEnv
+  interface ImportMetaEnv {
+    readonly VITE_API_BASE_URL?: string
+    readonly VITE_API_INTERNAL_BASE_URL?: string
+    readonly VITE_WS_BASE_URL?: string
   }
 }
 

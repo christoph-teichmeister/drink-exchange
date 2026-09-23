@@ -1,38 +1,28 @@
-import { writable } from 'svelte/store'
 import { apiConfig } from '$lib/config'
+import type { AuthUser } from '$lib/types'
 
-export type AuthUser = {
-  username: string
-  email: string
-  first_name: string
-  last_name: string
-}
-
-export const currentUser = writable<AuthUser | null>(null)
+// The current user is not kept in a module-level store: it is loaded per
+// request in `routes/+layout.server.ts` and read via `page.data.currentUser`.
+// Callers re-run the loads (`invalidateAll`) after logging in or out.
 
 const jsonHeaders = {
   'Content-Type': 'application/json'
 }
 
-export const fetchCurrentUser = async (fetch: typeof window.fetch) => {
-  const response = await fetch(apiConfig.auth.me(), {
-    credentials: 'include'
-  })
+export class LoginError extends Error {
+  readonly status: number
 
-  if (!response.ok) {
-    currentUser.set(null)
-    throw response
+  constructor(status: number) {
+    super(`Login failed with status ${status}`)
+    this.name = 'LoginError'
+    this.status = status
   }
-
-  const payload: AuthUser = await response.json()
-  currentUser.set(payload)
-  return payload
 }
 
 export const loginUser = async (
   fetch: typeof window.fetch,
   credentials: { username: string; password: string }
-) => {
+): Promise<AuthUser> => {
   const response = await fetch(apiConfig.auth.login(), {
     method: 'POST',
     credentials: 'include',
@@ -41,19 +31,14 @@ export const loginUser = async (
   })
 
   if (!response.ok) {
-    throw response
+    throw new LoginError(response.status)
   }
 
-  const payload: AuthUser = await response.json()
-  currentUser.set(payload)
-  return payload
+  return (await response.json()) as AuthUser
 }
 
-export const logoutUser = async (fetch: typeof window.fetch) => {
-  const response = await fetch(apiConfig.auth.logout(), {
+export const logoutUser = (fetch: typeof window.fetch) =>
+  fetch(apiConfig.auth.logout(), {
     method: 'POST',
     credentials: 'include'
   })
-  currentUser.set(null)
-  return response
-}
