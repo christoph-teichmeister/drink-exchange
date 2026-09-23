@@ -136,6 +136,8 @@ def test_market_tick_applies_active_event_multiplier(monkeypatch):
 
 @pytest.mark.django_db
 def test_market_tick_all_bars_enqueues_one_task_per_due_bar():
+    # Bars seeded by data migrations (e.g. `ci-demo` when CI is set) must not count as due.
+    Bar.objects.update(last_tick_at=timezone.now())
     due = Bar.objects.create(slug="due", name="Due Bar")
     Bar.objects.create(slug="fresh", name="Fresh Bar", last_tick_at=timezone.now())
     with mock.patch.object(market_tasks.market_tick, "delay") as delay:
