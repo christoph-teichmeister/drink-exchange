@@ -259,24 +259,28 @@ export const createBoardStore = (snapshot: BoardSnapshot) => {
     const receivedAt = timestamp ?? new Date().toISOString()
 
     update((state) => {
-      const drinks = new Map(state.drinks.map((drink) => [drink.id, drink]))
+      const existing = new Map(state.drinks.map((drink) => [drink.id, drink]))
+      const merged = new Map<string, DrinkSnapshot>()
       for (const entry of updates) {
-        const existing = drinks.get(entry.id)
+        const previous = existing.get(entry.id)
         const incomingHistory = entry.history.length
           ? entry.history
           : [{ timestamp: receivedAt, price: entry.price }]
-        drinks.set(entry.id, {
+        merged.set(entry.id, {
           ...entry,
-          name: entry.name || existing?.name || entry.id,
-          base_price: entry.base_price ?? existing?.base_price ?? null,
-          history: mergeHistory(existing?.history ?? [], incomingHistory)
+          name: entry.name || previous?.name || entry.id,
+          base_price: entry.base_price ?? previous?.base_price ?? null,
+          history: mergeHistory(previous?.history ?? [], incomingHistory)
         })
       }
-      return {
-        ...state,
-        drinks: [...drinks.values()],
-        lastUpdated: receivedAt
-      }
+      // Every `prices.update` frame lists all drinks of the bar, so drinks
+      // missing from it were removed. Known drinks keep their position; new
+      // ones are appended.
+      const drinks = [
+        ...state.drinks.flatMap((drink) => merged.get(drink.id) ?? []),
+        ...[...merged.values()].filter((drink) => !existing.has(drink.id))
+      ]
+      return { ...state, drinks, lastUpdated: receivedAt }
     })
   }
 

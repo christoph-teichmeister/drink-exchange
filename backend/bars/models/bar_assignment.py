@@ -5,7 +5,14 @@ from django.utils.translation import gettext_lazy as _
 
 
 class BarAssignment(CommonInfo):
-    """Assigns a user to a bar so only allowed locations are visible."""
+    """Assigns a user to a bar so only allowed locations are visible.
+
+    Operators use the trading desk and the board; managers may also configure the bar's market.
+    """
+
+    class Role(models.TextChoices):
+        OPERATOR = "operator", _("operator")
+        MANAGER = "manager", _("manager")
 
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -18,6 +25,7 @@ class BarAssignment(CommonInfo):
         related_name="assignments",
         related_query_name="assignment",
     )
+    role = models.CharField(max_length=16, choices=Role.choices, default=Role.OPERATOR)
 
     class Meta:
         unique_together = ("user", "bar")

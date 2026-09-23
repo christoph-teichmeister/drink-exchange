@@ -117,7 +117,12 @@ def bar_market_snapshot(request, bar_id: str):
 def bar_list(request):
     assignments = BarAssignment.objects.filter(user=request.user).select_related("bar").order_by("bar__name")
     bars = [
-        {"slug": assignment.bar.slug, "name": assignment.bar.name, "description": assignment.bar.description}
+        {
+            "slug": assignment.bar.slug,
+            "name": assignment.bar.name,
+            "description": assignment.bar.description,
+            "role": BarAssignment.Role.MANAGER if request.user.is_superuser else assignment.role,
+        }
         for assignment in assignments
     ]
     return JsonResponse({"bars": bars})

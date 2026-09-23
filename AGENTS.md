@@ -146,6 +146,15 @@ The board is a trading terminal for a TV in a bar. Keep it that way:
   impulse and normalization (`market/services/trading.py`), broadcasts `prices.update` and returns the trade plus the
   bar's new prices (201). 400 invalid drink/qty, 401, 403 not assigned, 415 non-JSON.
 
+- Bar configuration (manager role required, JSON only, rows always scoped to the bar in the URL; 400 returns
+  `{"detail", "errors": {field: [messages]}}`):
+  - `GET`/`PATCH /api/bars/<slug>/settings/`
+  - `GET`/`POST /api/bars/<slug>/drinks/`, `PATCH`/`DELETE /api/bars/<slug>/drinks/<id>/` (409 when the drink has
+    trades; bound changes clamp the live price and broadcast `prices.update`)
+  - `GET`/`POST /api/bars/<slug>/events/`, `PATCH`/`DELETE /api/bars/<slug>/events/<id>/`
+- `GET /api/bars/` includes each bar's `role` (`operator` or `manager`; superusers count as managers). Only managers
+  see and may open `/admin/<slug>`.
+
 ## Things not to do
 
 - Do not commit secrets, `.env` files, IDE folders (`.idea/`, `.vscode/`) or local databases.

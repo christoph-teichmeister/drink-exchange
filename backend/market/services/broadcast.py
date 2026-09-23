@@ -7,6 +7,7 @@ from django.conf import settings
 from market.serializers import (
     build_event_payload,
     build_market_status_payload,
+    build_price_update_payload,
 )
 
 
@@ -64,3 +65,14 @@ def broadcast_market_status(
     payload = build_market_status_payload(bar_id, status, metadata=metadata)
     # Use broadcast helper so the channel name resolution stays centralized.
     _send_to_group(bar_id, payload)
+
+
+def broadcast_bar_prices(bar) -> None:
+    """Broadcast the current prices of all drinks of a bar, e.g. after its configuration changed."""
+    # Imported here: market.models imports the bars app, which is loaded before this module is used.
+    from events.models import ActiveEvent
+    from market.models import Drink
+
+    drinks = list(Drink.objects.filter(bar=bar).order_by("name"))
+    events = ActiveEvent.objects.filter(bar=bar, is_active=True).select_related("definition").order_by("starts_at")
+    _send_to_group(bar.slug, build_price_update_payload(bar.slug, drinks, events))

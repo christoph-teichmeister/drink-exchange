@@ -7,6 +7,7 @@ from api.views import (
     logout_user,
     set_user_language,
 )
+from bars.config_views import bar_drink_detail, bar_drinks, bar_event_detail, bar_events, bar_settings
 from bars.views import bar_list, bar_market_snapshot, bar_record_trade
 
 urlpatterns = [
@@ -21,5 +22,10 @@ urlpatterns = [
         name="bar-market-snapshot",
     ),
     path("api/bars/<slug:bar_id>/trades/", bar_record_trade, name="bar-record-trade"),
+    path("api/bars/<slug:bar_id>/settings/", bar_settings, name="bar-settings"),
+    path("api/bars/<slug:bar_id>/drinks/", bar_drinks, name="bar-drinks"),
+    path("api/bars/<slug:bar_id>/drinks/<int:drink_id>/", bar_drink_detail, name="bar-drink-detail"),
+    path("api/bars/<slug:bar_id>/events/", bar_events, name="bar-events"),
+    path("api/bars/<slug:bar_id>/events/<int:event_id>/", bar_event_detail, name="bar-event-detail"),
     path("api/locale/", set_user_language, name="set-user-language"),
 ]
