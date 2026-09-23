@@ -60,7 +60,8 @@
     title={$translations.auth.login.pageTitle}
     description={$translations.auth.login.description}
   >
-    <form class="space-y-5" onsubmit={handleSubmit}>
+    <!-- method="post" keeps credentials out of the URL if the form is submitted before hydration. -->
+    <form class="space-y-5" method="post" onsubmit={handleSubmit}>
       {#if errorMessage}
         <div role="alert">
           <Alert level="danger">
