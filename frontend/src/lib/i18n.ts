@@ -53,8 +53,6 @@ const de = {
   board: {
     pageTitle: 'Board View',
     backButton: 'Zurück zum Dashboard',
-    backButton: 'Back to dashboard',
-    backButton: 'Zurück zum Dashboard',
     lobby: {
       pageTitle: 'Board-Lobby',
       subtitle: 'Wähle eine Bar, um ihr Live-Board aufzurufen.',
