@@ -1,22 +1,22 @@
 > Scope: implement ONLY what is required here. No refactors, no extra tooling.
-## User-Story
+## User Story
 
-Als Developer möchte ich einheitliche Commands, damit Setup und CI lokal identisch laufen.
+As a developer I want unified commands, so setup and CI run identically locally.
 
-## Akzeptanzkriterien
+## Acceptance Criteria
 
-- Root `README.md` enthält Quickstart:
+- Root `README.md` contains a quickstart:
     - prerequisites
     - copy .env.example -> .env
     - docker compose up
     - backend migrate/superuser
-- Root `Makefile` (oder justfile) mit Targets:
+- Root `Makefile` (or justfile) with targets:
     - up/down/logs/ps
     - backend-shell/backend-test/backend-lint
     - frontend-dev/frontend-test/frontend-lint
-- `Makefile` enthält auch targets zum Starten/Stoppen von `celery worker` und `celery beat` im Compose-Umfeld sowie eine
-  `ws-health`-Probe gegen den Markt-WebSocket-Endpoint.
-- `scripts/` optional für helper (db reset, seed)
+- `Makefile` also contains targets for starting/stopping `celery worker` and `celery beat` in the Compose
+  setup, as well as a `ws-health` probe against the market WebSocket endpoint.
+- `scripts/` optional for helpers (db reset, seed)
 
 ## Tech Notes
 

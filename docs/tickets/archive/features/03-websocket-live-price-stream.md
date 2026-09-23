@@ -1,28 +1,28 @@
-Implementiere WebSocket Live-Preisstream mit Django Channels.
+Implement a WebSocket live price stream with Django Channels.
 
-Ziel:
+Goal:
 
-- WS Endpoint: /ws/market/<bar_id>/
-- Group Broadcast: market.<bar_id>
-- Sende Events: prices.update, event.started, event.ended, market.status
-- JSON Payloads standardisieren
+- WS endpoint: /ws/market/<bar_id>/
+- Group broadcast: market.<bar_id>
+- Send events: prices.update, event.started, event.ended, market.status
+- Standardize JSON payloads
 
-Vorgaben:
+Constraints:
 
-- Channels/ASGI Setup (wenn nicht vorhanden)
-- Redis Channel Layer in docker-compose (wenn repo infra enthält) oder Settings vorbereiten
+- Channels/ASGI setup (if not present)
+- Redis channel layer in docker-compose (if the repo infra includes it) or prepare settings
 - Consumer:
     - on_connect: join group, send initial snapshot (current prices + active events)
-    - on_receive: ignore oder nur ping/pong (read-only initial)
+    - on_receive: ignore, or ping/pong only (read-only initially)
 - Broadcast:
-    - Bei Preisänderung (Tick oder Trade) triggert Service function `broadcast_prices(bar_id, payload)`
-    - Verwende `async_to_sync(channel_layer.group_send)`
+    - On price change (tick or trade), trigger the service function `broadcast_prices(bar_id, payload)`
+    - Use `async_to_sync(channel_layer.group_send)`
 
-Aufgaben:
+Tasks:
 
-1) Implementiere Consumer `MarketConsumer`
-2) Implementiere Serializer/Schema-Funktion (keine DRF Pflicht)
-3) In Tick Engine und später Trade-Handling hooken: broadcast after commit
+1) Implement consumer `MarketConsumer`
+2) Implement serializer/schema function (DRF not required)
+3) Hook into the tick engine and, later, trade handling: broadcast after commit
 4) Tests:
 
 - Consumer connect + receives snapshot (Channels testing utils)
@@ -31,4 +31,4 @@ Aufgaben:
 Deliverables:
 
 - channels config, routing, consumer, helper functions, tests
-- Minimaler JSON Schema Abschnitt in docs (architecture.md)
+- Minimal JSON schema section in the docs (architecture.md)

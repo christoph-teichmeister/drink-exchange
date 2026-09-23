@@ -1,20 +1,20 @@
 > Scope: implement ONLY what is required here. No refactors, no extra tooling.
-## User-Story
+## User Story
 
-Als Maintainer möchte ich die gleichen Checks wie lokal im CI erzwingen, damit nichts durchrutscht.
+As a maintainer I want the same checks enforced in CI as locally, so nothing slips through.
 
-## Akzeptanzkriterien
+## Acceptance Criteria
 
 - Workflow `.github/workflows/pre-commit.yml`
-- Runs: pre-commit on changed files (oder full)
-- Nutzt caching
-- Fail wenn hooks failen
-- Klärt, ob Workflow nur geänderte Dateien oder ein Full run pro push ausführt und wie sich das auf die
-  backend-/frontend-hooks (`06-pre-commit-hooks.md`) abstimmt, damit kein paraleller Check nötig ist.
+- Runs: pre-commit on changed files (or full)
+- Uses caching
+- Fails if hooks fail
+- Clarifies whether the workflow runs only on changed files or a full run per push, and how that aligns with
+  the backend/frontend hooks (`06-pre-commit-hooks.md`) so no parallel check is needed.
 
 ## Tech Notes
 
-- Alternative: In backend/frontend CI die gleichen Checks laufen lassen und pre-commit workflow weglassen
+- Alternative: run the same checks in backend/frontend CI and drop the pre-commit workflow
 
 ## Dependencies
 

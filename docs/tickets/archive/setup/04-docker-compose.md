@@ -1,33 +1,33 @@
 > Scope: implement ONLY what is required here. No refactors, no extra tooling.
 
-## User-Story
+## User Story
 
-Als Developer möchte ich das komplette System lokal per docker compose starten können, damit jeder reproduzierbar
-entwickeln kann.
+As a developer I want to start the whole system locally via docker compose, so everyone can develop
+reproducibly.
 
-## Akzeptanzkriterien
+## Acceptance Criteria
 
-- docker-compose.yml startet:
-    - postgres (persistentes volume)
-    - redis (persistentes volume optional)
+- docker-compose.yml starts:
+    - postgres (persistent volume)
+    - redis (persistent volume optional)
     - backend-web (Django ASGI)
     - backend-worker (Celery worker)
     - backend-beat (Celery beat)
-- Compose sorgt dafür, dass web/worker/beat erst starten, wenn Postgres + Redis healthy sind (depends_on +
-  Healthchecks / wait-for scripts).
-- Backend ist über http://localhost:8000 erreichbar
-- `make up` / `docker compose up` funktioniert ohne manuelle Schritte
-- Healthchecks für postgres/redis (und optional web)
-- .env.example vorhanden (DB creds, secret key, debug, allowed hosts)
+- Compose ensures web/worker/beat only start once Postgres + Redis are healthy (depends_on +
+  healthchecks / wait-for scripts).
+- Backend is reachable at http://localhost:8000
+- `make up` / `docker compose up` works without manual steps
+- Healthchecks for postgres/redis (and optionally web)
+- .env.example exists (DB creds, secret key, debug, allowed hosts)
 - Volumes: postgres-data, optional redis-data
 
 ## Tech Notes
 
-- web nutzt ASGI (daphne/uvicorn), kein WSGI
-- worker/beat teilen sich dasselbe image/build context
-- dependencies: web wartet auf postgres + redis
-- Redis dient als Channels Channel Layer → Compose sollte sicherstellen, dass WebSocket-traffic (market.<bar_id>) nach
-  Healthchecks funktioniert.
+- web uses ASGI (daphne/uvicorn), not WSGI
+- worker/beat share the same image/build context
+- dependencies: web waits for postgres + redis
+- Redis serves as the Channels channel layer → Compose should ensure that WebSocket traffic (market.<bar_id>)
+  works after healthchecks.
 
 ## Dependencies
 

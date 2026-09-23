@@ -1,52 +1,51 @@
 > Scope: implement ONLY what is required here. No refactors, no extra tooling.
-## User-Story
+## User Story
 
-Als Developer möchte ich ein modernes Frontend-Setup, damit PWA, Live Views und Big Screen sauber implementiert werden
-können.
+As a developer I want a modern frontend setup, so the PWA, live views, and Big Screen can be implemented cleanly.
 
-## Akzeptanzkriterien
+## Acceptance Criteria
 
-- `frontend/` ist ein SvelteKit Projekt
-- package manager: pnpm (lockfile committed)
-- Dev server läuft: http://localhost:5173
-- PWA basics integriert:
+- `frontend/` is a SvelteKit project
+- Package manager: pnpm (lockfile committed)
+- Dev server runs: http://localhost:5173
+- PWA basics integrated:
     - manifest
-    - service worker (vite-plugin-pwa oder SvelteKit adapter support)
+    - service worker (vite-plugin-pwa or SvelteKit adapter support)
 - Env config:
     - API base URL & WS URL per `.env.example`
-- 3 Routes als Skeleton:
+- 3 routes as skeleton:
     - /user
     - /admin
     - /board
 - WS client utility stub (connect/reconnect)
-- WS-Utility bindet an `/ws/market/{bar_id}/` und dispatcht `prices.update` / `event.*` Nachrichten für das
-  Big-Screen-Szenario.
+- WS utility binds to `/ws/market/{bar_id}/` and dispatches `prices.update` / `event.*` messages for the
+  Big Screen scenario.
 
 ### UI Library
 
-- Skeleton UI (Tailwind-basiert)
-- Dark Mode standardmäßig aktiv
-- Theme über CSS Variables (market-themed)
+- Skeleton UI (Tailwind-based)
+- Dark mode active by default
+- Theme via CSS variables (market-themed)
 
-### Anforderungen
+### Requirements
 
-- AppShell / Layout von Skeleton nutzen
+- Use AppShell / layout from Skeleton
 - Components:
     - Card
     - Table
     - Badge
     - Alert
     - Modal
-- Big Screen View:
+- Big Screen view:
     - High contrast
     - Large typography
-- /board zeigt einen ticker/chart-skeleton, um aktienmarktähnliche Preise sowie Event-Anzeigen aus dem Architektur-Doc
-  abzubilden.
+- /board shows a ticker/chart skeleton to represent stock-market-like prices and event displays from the
+  architecture doc.
 
 ## Tech Notes
 
-- Entscheide Adapter: `adapter-auto` (MVP ok)
-- Eslint/Prettier Setup initial oder via pre-commit/lint-staged
+- Decide on adapter: `adapter-auto` (MVP OK)
+- Eslint/Prettier setup initially or via pre-commit/lint-staged
 
 ## Dependencies
 

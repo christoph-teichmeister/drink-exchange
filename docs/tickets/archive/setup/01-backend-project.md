@@ -1,36 +1,36 @@
 > Scope: implement ONLY what is required here. No refactors, no extra tooling.
-## User-Story
+## User Story
 
-Als Developer möchte ich ein korrekt strukturiertes Django-Projekt, damit Features sauber wachsen können.
+As a developer I want a correctly structured Django project, so features can grow cleanly.
 
-## Akzeptanzkriterien
+## Acceptance Criteria
 
-- `backend/` enthält:
-    - Django Projekt `config/` (settings)
-    - Apps: z.B. `bars`, `market`, `events`, `api` (initial leer ok)
+- `backend/` contains:
+    - Django project `config/` (settings)
+    - Apps: e.g. `bars`, `market`, `events`, `api` (initially empty is OK)
 - Settings split:
-    - base.py, dev.py, prod.py (oder env-driven in einem File)
-- Django 6.* verwendet, ASGI aktiviert (`config/asgi.py`) und `channels` installiert
-- `config/asgi.py`+`config/settings` enthalten Channel Layer + Routing (Redis) und dokumentieren die `market.<bar_id>`
-  -Bridges.
+    - base.py, dev.py, prod.py (or env-driven in one file)
+- Django 6.* is used, ASGI is enabled (`config/asgi.py`) and `channels` is installed
+- `config/asgi.py` + `config/settings` include the channel layer + routing (Redis) and document the
+  `market.<bar_id>` bridges.
 - DB config via env vars
-- pytest Setup:
+- pytest setup:
     - pytest.ini
     - pytest-django
     - 1 smoke test (Django starts, DB reachable via migration)
-- `uv` Setup:
-    - pyproject.toml inkl. dependencies
-    - uv.lock erzeugt und im Repo
+- `uv` setup:
+    - pyproject.toml incl. dependencies
+    - uv.lock generated and committed to the repo
 - Management commands:
     - `uv run python manage.py migrate`
-    - `uv run python manage.py runserver` oder ASGI run
-- Initiale Apps enthalten Domain-Model-Scaffolding (Bar, Drink, Trade, EventDefinition/ActiveEvent) plus Admin
+    - `uv run python manage.py runserver` or ASGI run
+- Initial apps contain domain model scaffolding (Bar, Drink, Trade, EventDefinition/ActiveEvent) plus admin
   registrations so later flows can plug in.
 
 ## Tech Notes
 
-- Für ASGI: uvicorn oder daphne (entscheide und dokumentiere im README)
-- Lege `backend/README.md` mit dev commands an
+- For ASGI: uvicorn or daphne (decide and document in the README)
+- Add `backend/README.md` with dev commands
 
 ## Dependencies
 

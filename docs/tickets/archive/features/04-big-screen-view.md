@@ -1,31 +1,32 @@
-Implementiere die Big Screen View (Trading Floor) als separate Frontend-Route und stelle nötige Endpoints bereit.
+Implement the Big Screen view (trading floor) as a separate frontend route and provide the necessary endpoints.
 
-Ziel:
+Goal:
 
-- Fullscreen Board: Ticker + Live Chart pro Drink (line chart reicht MVP)
-- WebSocket verbindet sich zu /ws/market/<bar_id>/
-- Visualisiert price + delta + trend
-- Event overlays (banner) bei event.started/event.ended
+- Fullscreen board: ticker + live chart per drink (line chart is enough for MVP)
+- WebSocket connects to /ws/market/<bar_id>/
+- Visualizes price + delta + trend
+- Event overlays (banner) on event.started/event.ended
 
 Constraints:
 
-- Frontend frei wählbar (bevorzugt SvelteKit oder Vue3). Wenn Repo schon Frontend nutzt: bleib dabei.
-- Keine Farbvorgaben, aber lesbar und klar.
-- Minimaler Build/Dev Setup (Vite)
+- Frontend framework is free to choose (preferably SvelteKit or Vue3). If the repo already uses a frontend, stick
+  with it.
+- No color requirements, but readable and clear.
+- Minimal build/dev setup (Vite)
 
 Backend:
 
-- Wenn REST endpoint für initial snapshot noch nicht existiert, implementiere GET /api/bars/<bar_id>/market/
+- If a REST endpoint for the initial snapshot does not exist yet, implement GET /api/bars/<bar_id>/market/
 
-Aufgaben:
+Tasks:
 
-1) Frontend Route: /board/<bar_id>
-2) WS Client, reconnect strategy, state store
-3) Chart lib: Chart.js oder ECharts (MVP)
-4) UI: Top ticker bar + grid of drinks + charts
-5) Dokumentiere Start im README (dev commands)
+1) Frontend route: /board/<bar_id>
+2) WS client, reconnect strategy, state store
+3) Chart library: Chart.js or ECharts (MVP)
+4) UI: top ticker bar + grid of drinks + charts
+5) Document how to start it in the README (dev commands)
 
 Deliverables:
 
-- Frontend code + minimal backend endpoint falls nötig
-- Kurze README Ergänzung: wie Board starten und öffnen
+- Frontend code + minimal backend endpoint if necessary
+- Short README addition: how to start and open the board

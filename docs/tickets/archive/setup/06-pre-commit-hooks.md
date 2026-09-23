@@ -1,29 +1,29 @@
 > Scope: implement ONLY what is required here. No refactors, no extra tooling.
 
-## User-Story
+## User Story
 
-Als Team möchte ich automatische Checks vor jedem Commit, damit Codequalität stabil bleibt.
+As a team we want automatic checks before every commit, so code quality stays stable.
 
-## Akzeptanzkriterien
+## Acceptance Criteria
 
-- `.pre-commit-config.yaml` im Repo
+- `.pre-commit-config.yaml` in the repo
 - Python hooks:
     - ruff (lint)
     - ruff-format (format)
     - detect-private-key, end-of-file-fixer, trailing-whitespace
-- Optional (wenn machbar ohne Schmerz):
-    - mypy (nur wenn baseline config vorhanden)
+- Optional (if feasible without pain):
+    - mypy (only if a baseline config exists)
 - Frontend hooks:
-    - eslint (wenn eingerichtet)
-    - prettier (wenn eingerichtet)
-- Dokumentation im README: `pre-commit install`
-- Die Hooks decken sowohl `backend/` (via `backend/pyproject.toml`) als auch `frontend/` PNPM-Tools ab, damit dieselben
-  Regeln aus der Architektur (Python + PWA) gelten.
-- Markdown-Dateien werden mit `markdownlint` geprüft, damit die Dokumentation konsistent bleibt.
+    - eslint (if set up)
+    - prettier (if set up)
+- Documentation in the README: `pre-commit install`
+- The hooks cover both `backend/` (via `backend/pyproject.toml`) and `frontend/` PNPM tools, so the same
+  rules from the architecture (Python + PWA) apply.
+- Markdown files are checked with `markdownlint`, so the documentation stays consistent.
 
 ## Tech Notes
 
-- ruff als single source of truth (statt black/isort)
+- ruff as the single source of truth (instead of black/isort)
 - Config in `backend/pyproject.toml`
 
 ## Dependencies

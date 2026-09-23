@@ -1,9 +1,9 @@
 > Scope: implement ONLY what is required here. No refactors, no extra tooling.
-## User-Story
+## User Story
 
-Als Maintainer möchte ich CI für das Backend, damit PRs automatisch geprüft werden.
+As a maintainer I want CI for the backend, so PRs are checked automatically.
 
-## Akzeptanzkriterien
+## Acceptance Criteria
 
 - `.github/workflows/ci-backend.yml`
 - Triggers: pull_request, push to main
@@ -13,19 +13,19 @@ Als Maintainer möchte ich CI für das Backend, damit PRs automatisch geprüft w
     - uv sync --frozen (uses uv.lock)
     - ruff check + ruff format --check
     - pytest
-    - start & smoke Celery worker/beat (or run dedicated health task) so scheduling keeps market ticks/events consistent
-    - hit WebSocket health/market snapshot endpoint to confirm Channels/Reids exchange works
+    - start & smoke Celery worker/beat (or run a dedicated health task) so scheduling keeps market ticks/events consistent
+    - hit the WebSocket health/market snapshot endpoint to confirm Channels/Redis exchange works
 - Services:
     - postgres
     - redis
-- Environment vars for DB connection set in workflow
-- Caching für uv/pip/venv sinnvoll (wenn stabil)
+- Environment vars for the DB connection set in the workflow
+- Caching for uv/pip/venv where sensible (if stable)
 
 ## Tech Notes
 
-- pytest wartet auf DB readiness (retry) oder nutzt migrations
-- Celery tick/event readiness stellt sicher, dass Market-Flow/Realtime-Engine aus der Architektur (
-  `docs/architecture.md:24-83`) durchläuft.
+- pytest waits for DB readiness (retry) or uses migrations
+- Celery tick/event readiness ensures that the market flow/realtime engine from the architecture (
+  `docs/architecture.md:24-83`) runs through.
 
 ## Dependencies
 

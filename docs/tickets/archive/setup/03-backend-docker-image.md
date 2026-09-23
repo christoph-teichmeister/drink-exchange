@@ -1,33 +1,33 @@
 > Scope: implement ONLY what is required here. No refactors, no extra tooling.
-## User-Story
+## User Story
 
-Als Developer möchte ich ein schnelles, reproduzierbares Backend-Image bauen, damit lokale Nutzung und CI stabil sind.
+As a developer I want to build a fast, reproducible backend image, so local usage and CI are stable.
 
-## Akzeptanzkriterien
+## Acceptance Criteria
 
-- `backend/Dockerfile` vorhanden (multi-stage)
-- Nutzt `uv` für dependency install (lockfile wird respektiert)
-- Separate Targets: `dev` und `prod` (oder per ARG)
-- `dev` enthält:
+- `backend/Dockerfile` exists (multi-stage)
+- Uses `uv` for dependency install (lockfile is respected)
+- Separate targets: `dev` and `prod` (or via ARG)
+- `dev` includes:
     - reload (uvicorn --reload)
     - optional: debug tools
-- `prod` enthält:
-    - keine dev deps
+- `prod` includes:
+    - no dev deps
     - non-root user
-- Build funktioniert mit docker compose
-- Python 3.13-slim als Basis
-- `dev` und `prod` Entrypoints starten den ASGI-Server: `uvicorn --reload` vs `uvicorn` (non-root) und können per ARG
-  umschalten.
-- Dockerfile nutzt Zwischenschichten für `uv sync --frozen` (pyproject/uv.lock COPY) damit Dependencies gecached werden.
+- Build works with docker compose
+- Python 3.13-slim as base
+- `dev` and `prod` entrypoints start the ASGI server: `uvicorn --reload` vs `uvicorn` (non-root) and can switch
+  via ARG.
+- Dockerfile uses intermediate layers for `uv sync --frozen` (pyproject/uv.lock COPY) so dependencies get cached.
 
 ## Tech Notes
 
-- Install flow (Beispiel):
+- Install flow (example):
     - COPY pyproject.toml + uv.lock
     - uv sync --frozen
     - COPY source
-- Entrypoint-Stage dokumentiert, wie `uvicorn` in dev/prod gestartet und wie nicht-root Nutzer + volumes definiert
-  werden.
+- Entrypoint stage documents how `uvicorn` is started in dev/prod and how the non-root user + volumes are
+  defined.
 
 ## Dependencies
 

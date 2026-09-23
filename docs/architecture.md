@@ -1,100 +1,103 @@
 # Architecture
 
-## Ziel
+## Goal
 
-Eine PWA für Bars, die einen „Aktienmarkt“ für Getränkepreise simuliert:
+A PWA for bars that simulates a "stock market" for drink prices:
 
-- Käufe beeinflussen Preise (Nachfrage ↑ -> Preis ↑, andere sinken)
-- Random/konfigurierbare Events beeinflussen den Markt
-- 3 Views: Admin (Konfiguration), User (Preise + Alerts), Big Screen (Ticker + Charts)
-- Live-Updates via WebSockets
+- Purchases influence prices (demand ↑ -> price ↑, others drop)
+- Random/configurable events influence the market
+- 3 views: Admin (configuration), User (prices + alerts), Big Screen (ticker + charts)
+- Live updates via WebSockets
 
-## Nicht-Ziele (initial)
+## Non-goals (initial)
 
-- POS/Kassensystem-Integration (Käufe werden zunächst manuell/extern eingespeist)
-- Zahlungsabwicklung
-- Multi-tenant SaaS-Abrechnung/Subscriptions (später)
+- POS/cash register integration (purchases are initially fed in manually/externally)
+- Payment processing
+- Multi-tenant SaaS billing/subscriptions (later)
 
 ---
 
-## Systemüberblick
+## System overview
 
-### Komponenten
+### Components
 
 1. **Backend (Django)**
-    - Domain-Modelle (Bar, Drink, MarketSession, Trade/Kauf, Event, PricePoint)
-    - Preisengine (deterministische Regeln + Event-Impact)
-    - Eventengine (Wahrscheinlichkeiten, Trigger, Dauer, Cooldowns)
-    - API (read/write für Admin-UI & User-UI)
-    - WebSockets (Broadcast von Preisen, Events, Ticker-Daten)
+    - Domain models (Bar, Drink, MarketSession, Trade/Purchase, Event, PricePoint)
+    - Pricing engine (deterministic rules + event impact)
+    - Event engine (probabilities, triggers, duration, cooldowns)
+    - API (read/write for Admin UI & User UI)
+    - WebSockets (broadcast of prices, events, ticker data)
 
-2. **Realtime Layer**
+2. **Realtime layer**
     - **Django Channels** (ASGI)
-    - **Redis** als Channel Layer
+    - **Redis** as channel layer
 
-3. **Worker / Scheduling**
-    - **Celery** für:
-        - Market Tick (periodisch, z. B. alle 5s)
-        - Event-Rolls (z. B. alle 30s)
-        - Cleanup/Retention Jobs
+3. **Worker / scheduling**
+    - **Celery** for:
+        - Market tick (periodic, e.g. every 5s)
+        - Event rolls (e.g. every 30s)
+        - Cleanup/retention jobs
 
-4. **Datenbank**
+4. **Database**
     - **PostgreSQL**
-    - Timeseries-ähnliche Speicherung via `PricePoint` (downsampling/retention später)
+    - Timeseries-like storage via `PricePoint` (downsampling/retention later)
 
 5. **Frontend (PWA)**
-    - Mobile-first User-UI + Alerts
-    - Admin-UI (optional Django Admin + thin UI)
-    - Big Screen Board (Fullscreen, Charts)
-    - WebSocket-Client für Live-Updates
+    - Mobile-first User UI + alerts
+    - Admin UI (optionally Django Admin + thin UI)
+    - Big Screen board (fullscreen, charts)
+    - WebSocket client for live updates
 
 ---
 
-## Laufzeit-Flows
+## Runtime flows
 
-### Flow A: Kauf/Trade beeinflusst Preis
+### Flow A: Purchase/trade influences price
 
-1. Kauf wird als `Trade` (oder `Purchase`) gespeichert: (bar_id, drink_id, qty, timestamp)
-2. Preisengine berechnet Preisänderung:
-    - Direktimpuls auf gekauftes Getränk (Price Up)
-    - Ausgleich auf andere Getränke (Price Down / normalization)
-3. Neue Preise werden persistiert (`Drink.current_price`) + optionaler `PricePoint`
-4. WebSocket-Broadcast an:
-    - `market.<bar_id>` group: aktuelle Preise + delta + timestamp
+1. A purchase is stored as a `Trade` (or `Purchase`): (bar_id, drink_id, qty, timestamp)
+2. Pricing engine computes the price change:
+    - Direct impulse on the purchased drink (price up)
+    - Offset on other drinks (price down / normalization)
+3. New prices are persisted (`Drink.current_price`) + optional `PricePoint`
+4. WebSocket broadcast to:
+    - `market.<bar_id>` group: current prices + delta + timestamp
 
-### Flow B: Periodischer Market Tick
+### Flow B: Periodic market tick
 
-1. Celery Beat triggert `market_tick_all_bars` (beispielsweise alle 5 Sekunden), das nur Bars auswählt, deren per-`Bar.tick_interval_seconds` definierte Intervalle abgelaufen sind, und `market_tick(bar_id)` aufruft.
-2. Tick führt aus:
-    - Mean-Reversion: `price = price + (base_price - price) * reversion_rate`
-    - Clamp auf `Drink.min_price`/`Drink.max_price` und optionales `rounding_step`
-    - Persistiere `Drink.current_price`, schreibe PricePoints nach regulärer Downsampling-Rate (`Bar.price_point_retention_ticks`)
-    - Updates: `Bar.last_tick_at`, `Bar.tick_counter` + WebSocket-Broadcast
-3. Persist + Broadcast
+1. Celery Beat triggers `market_tick_all_bars` (e.g. every 5 seconds), which selects only bars whose interval defined
+   per `Bar.tick_interval_seconds` has elapsed, and calls `market_tick(bar_id)`.
+2. Tick performs:
+    - Mean-reversion: `price = price + (base_price - price) * reversion_rate`
+    - Clamp to `Drink.min_price`/`Drink.max_price` and optional `rounding_step`
+    - Persist `Drink.current_price`, write PricePoints at the regular downsampling rate
+      (`Bar.price_point_retention_ticks`)
+    - Updates: `Bar.last_tick_at`, `Bar.tick_counter` + WebSocket broadcast
+3. Persist + broadcast
 
-### Flow C: Event Engine
+### Flow C: Event engine
 
-1. Celery Beat triggert `event_roll(bar_id)` alle Y Sekunden
-2. Engine bestimmt (pseudo-zufällig, gewichtet):
-    - ob ein Event startet
-    - welches Event (konfigurierbare Wahrscheinlichkeiten)
-3. Event wird als `ActiveEvent` persistiert (start, end, params)
-4. Broadcast: Event started/ended (Overlay + Charts-Annotierungen)
+1. Celery Beat triggers `event_roll(bar_id)` every Y seconds
+2. Engine determines (pseudo-random, weighted):
+    - whether an event starts
+    - which event (configurable probabilities)
+3. Event is persisted as `ActiveEvent` (start, end, params)
+4. Broadcast: event started/ended (overlay + chart annotations)
 
 ---
 
-## Datenmodell (high level)
+## Data model (high level)
 
 ### Core
 
 - `Bar`
-    - name, timezone, settings (tick_rate, event_rate, currency, …), plus `tick_interval_seconds`, `reversion_rate`, `price_point_retention_ticks`, `last_tick_at`/`tick_counter` zur Steuerung des Market-Ticks
+    - name, timezone, settings (tick_rate, event_rate, currency, …), plus `tick_interval_seconds`,
+      `reversion_rate`, `price_point_retention_ticks`, `last_tick_at`/`tick_counter` to control the market tick
 - `Drink`
     - bar FK
     - name, base_price, current_price
     - min_price, max_price
     - volatility (impulse strength)
-    - weight (für normalization)
+    - weight (for normalization)
 - `MarketSession`
     - bar FK
     - status (running/paused)
@@ -106,9 +109,9 @@ Eine PWA für Bars, die einen „Aktienmarkt“ für Getränkepreise simuliert:
 - `PricePoint`
     - bar FK, drink FK
     - price, recorded_at
-    - optional: open/high/low/close für Candles (später)
+    - optional: open/high/low/close for candles (later)
 - `EventDefinition`
-    - bar FK (oder global)
+    - bar FK (or global)
     - type (boom/crash/focus/…)
     - probability_weight
     - duration_seconds
@@ -124,26 +127,26 @@ Eine PWA für Bars, die einen „Aktienmarkt“ für Getränkepreise simuliert:
 
 ## APIs & WebSockets
 
-### REST (Beispiele)
+### REST (examples)
 
-- `GET /api/bars/{bar_id}/market/` -> aktuelle Preise + active events
-- `POST /api/bars/{bar_id}/trades/` -> Kauf einreichen
-- `GET /api/bars/{bar_id}/drinks/` -> Drinks + Config
-- `POST /api/bars/{bar_id}/alerts/` -> Preiswecker (User)
+- `GET /api/bars/{bar_id}/market/` -> current prices + active events
+- `POST /api/bars/{bar_id}/trades/` -> submit a purchase
+- `GET /api/bars/{bar_id}/drinks/` -> drinks + config
+- `POST /api/bars/{bar_id}/alerts/` -> price alert (user)
 
 ### WebSockets
 
 - `ws://.../ws/market/{bar_id}/`
     - Events:
-        - `prices.update` (vollständiger snapshot oder delta)
+        - `prices.update` (full snapshot or delta)
         - `event.started`
         - `event.ended`
         - `market.status`
 
-Payload-Standard:
+Payload standard:
 
-- Immer: `bar_id`, `timestamp`, `type`
-- Bei Preisen: Liste von `{drink_id, price, delta, trend}`
+- Always: `bar_id`, `timestamp`, `type`
+- For prices: list of `{drink_id, price, delta, trend}`
 
 #### JSON Schema (MVP)
 
@@ -177,43 +180,47 @@ Payload-Standard:
 }
 ```
 
-Für `event.started` / `event.ended` werden die gleichen Event-Felder im `payload` zurückgegeben; `market.status` liefert `payload.status` (z. B. `running`, `idle`) plus optionale `metadata`.
+For `event.started` / `event.ended` the same event fields are returned in the `payload`; `market.status` provides
+`payload.status` (e.g. `running`, `idle`) plus optional `metadata`.
 
 ---
 
-## Konsistenz & Concurrency
+## Consistency & concurrency
 
-### Anforderungen
+### Requirements
 
-- Mehrere Trades können zeitgleich eintreffen
-- Price Engine muss konsistent bleiben
+- Multiple trades can arrive at the same time
+- The price engine must remain consistent
 
-### Ansatz
+### Approach
 
-- Preisupdates pro Bar seriell ausführen (per Redis lock oder DB advisory lock)
-- Celery tasks (`market_tick`/`market_tick_all_bars`) nutzen `bar_lock`, das bevorzugt Redis, sonst Postgres Advisory Locks und als Fallback pro-Prozess Locks, damit Tick und Trades nicht gleichzeitig schreiben.
-- Trade-Eingang:
-    - Persist Trade
-    - Queue „recompute prices“ für bar_id (coalescing möglich)
-- Tick/Event/Trade-Updates nutzen denselben Lock-Mechanismus
+- Run price updates per bar serially (via Redis lock or DB advisory lock)
+- Celery tasks (`market_tick`/`market_tick_all_bars`) use `bar_lock`, which prefers Redis, falls back to Postgres
+  advisory locks, and as a last resort per-process locks, so ticks and trades don't write concurrently.
+- Trade ingestion:
+    - Persist trade
+    - Queue "recompute prices" for bar_id (coalescing possible)
+- Tick/event/trade updates use the same locking mechanism
 
 ---
 
 ## Observability
 
 - Structured logging (JSON)
-- Admin Audit Log: wer hat was konfiguriert (CommonInfo liefert `created_by`/`lastmodified_by`, CommonInfoAdminMixin + CurrentRequestMiddleware pflegen den Kontext, siehe [Ambient Toolbox CommonInfo docs](https://ambient-toolbox.readthedocs.io/en/latest/features/models.html#commoninfo) für mehr Kontext zu den Audit-Feldern).
-- Metrics später: tick duration, broadcast counts, active users
+- Admin audit log: who configured what (CommonInfo provides `created_by`/`lastmodified_by`, CommonInfoAdminMixin +
+  CurrentRequestMiddleware maintain the context, see [Ambient Toolbox CommonInfo docs](https://ambient-toolbox.readthedocs.io/en/latest/features/models.html#commoninfo) for more
+  context on the audit fields).
+- Metrics later: tick duration, broadcast counts, active users
 
 ---
 
 ## Security
 
-- Public read-only market endpoints möglich (per bar-token/QR)
+- Public read-only market endpoints possible (via bar token/QR)
 - Admin endpoints: Django auth + staff roles
 - Rate limiting:
     - Trades endpoint
-    - WebSocket connections pro bar/token
+    - WebSocket connections per bar/token
 
 ---
 
@@ -226,21 +233,21 @@ Für `event.started` / `event.ended` werden die gleichen Event-Felder im `payloa
     - redis
     - postgres
     - optional: nginx
-- PWA: statisch (oder über Django static) + WS endpoint auf gleicher Domain
+- PWA: static (or served via Django static) + WS endpoint on the same domain
 
 ---
 
-## Skalierung (später)
+## Scaling (later)
 
 - Multi-tenant SaaS
-- Per-Bar sharding in Redis/DB
-- Downsampling von PricePoints (Candles)
-- Read replica für analytics
+- Per-bar sharding in Redis/DB
+- Downsampling of PricePoints (candles)
+- Read replica for analytics
 
 ---
 
-## Entscheidungslog (ADRs)
+## Decision log (ADRs)
 
-- Preislogik: `docs/adr/0001-pricing-engine.md`
-- Realtime Stack: Channels + Redis
-- Tick/Event Scheduling: Celery Beat
+- Pricing logic: `docs/adr/0001-pricing-engine.md`
+- Realtime stack: Channels + Redis
+- Tick/event scheduling: Celery Beat

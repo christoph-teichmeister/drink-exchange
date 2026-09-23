@@ -1,25 +1,25 @@
 > Scope: implement ONLY what is required here. No refactors, no extra tooling.
-## User-Story
+## User Story
 
-Als Maintainer möchte ich CI für das Frontend, damit Builds nicht kaputtgehen.
+As a maintainer I want CI for the frontend, so builds don't break.
 
-## Akzeptanzkriterien
+## Acceptance Criteria
 
 - `.github/workflows/ci-frontend.yml`
 - Steps:
 -    - setup node (22)
     - enable pnpm + cache
     - pnpm install --frozen-lockfile
-    - pnpm lint (wenn vorhanden)
-    - pnpm test (optional, falls noch keine tests: skip mit TODO)
+    - pnpm lint (if present)
+    - pnpm test (optional, if there are no tests yet: skip with TODO)
     - pnpm build
-- pnpm build produziert auch PWA assets (manifest + service worker) damit die Architektur-Anforderungen (
-  `docs/architecture.md:5-50`) im CI verifiziert werden.
+- pnpm build also produces PWA assets (manifest + service worker) so the architecture requirements (
+  `docs/architecture.md:5-50`) are verified in CI.
 
 ## Tech Notes
 
-- Lint/Test Commands in package.json definieren, auch wenn initial stub
-- CI stellt sicher, dass manifest + service worker gebaut werden (PWA basics aus der Architektur).
+- Define lint/test commands in package.json, even if a stub initially
+- CI ensures manifest + service worker are built (PWA basics from the architecture).
 
 ## Dependencies
 

@@ -1,11 +1,11 @@
-## Empfohlene Reihenfolge
+## Recommended Order
 
-1. **`01-backend-project.md`** – Das Django-Projekt, pyproject + uv.lock stellen das Fundament dar; nichts anderes funktioniert ohne diese Struktur.
-2. **`02-frontend-setup.md`** – Das Frontend-Skelett muss existieren, damit später Docker Compose und CI Scripts realistische Ziele haben.
-3. **`03-backend-docker-image.md`** – Der Backend-Dockerfile baut direkt auf dem Django-Quellcode auf; erst nach Schritt 1 kann er fehlerfrei definiert werden.
-4. **`04-docker-compose.md`** – Docker Compose kann nur funktionieren, wenn Backend-Image (Schritt 3) und eventuell Frontend (Schritt 2) gebaut werden.
-5. **`05-commands.md`** – Die einheitlichen Commands (= Makefile/Quickstart) orchestrieren Compose, also müssen die Services vorher stehen.
-6. **`06-pre-commit-hooks.md`** – Pre-commit-Hooks zielen auf bestehende Backend-/Frontend-Quellen und nutzen die Befehle aus Schritt 5.
-7. **`07-ci-backend.md`** – Backend-CI prüft die zuvor definierten Hooks und Services; sollte nach der lokalen Hook- und Command-Schicht laufen.
-8. **`08-ci-frontend.md`** – Analoges Frontend-CI, das auf dem Svelte-Projekt und dessen Scripts basiert.
-9. **`09-pre-commit-workflow.md`** – Workflow für pre-commit kann erst sinnvoll orchestriert werden, wenn die Hooks und CI-Ströme existieren.
+1. **`01-backend-project.md`** – The Django project, pyproject + uv.lock form the foundation; nothing else works without this structure.
+2. **`02-frontend-setup.md`** – The frontend skeleton must exist so Docker Compose and CI scripts later have realistic targets.
+3. **`03-backend-docker-image.md`** – The backend Dockerfile builds directly on the Django source code; it can only be defined correctly after step 1.
+4. **`04-docker-compose.md`** – Docker Compose can only work once the backend image (step 3) and, potentially, the frontend (step 2) are buildable.
+5. **`05-commands.md`** – The unified commands (= Makefile/quickstart) orchestrate Compose, so the services must be in place beforehand.
+6. **`06-pre-commit-hooks.md`** – Pre-commit hooks target the existing backend/frontend sources and use the commands from step 5.
+7. **`07-ci-backend.md`** – Backend CI checks the previously defined hooks and services; should run after the local hook and command layer.
+8. **`08-ci-frontend.md`** – Analogous frontend CI, based on the Svelte project and its scripts.
+9. **`09-pre-commit-workflow.md`** – The pre-commit workflow can only be sensibly orchestrated once the hooks and CI streams exist.

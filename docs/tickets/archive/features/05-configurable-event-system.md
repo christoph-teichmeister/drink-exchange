@@ -1,27 +1,27 @@
-Implementiere das konfigurierbare Event-System inkl. Random Rolls und Eventwirkung.
+Implement the configurable event system incl. random rolls and event impact.
 
-Ziel:
+Goal:
 
-- Admin kann EventDefinitions pflegen (type, probability_weight, duration_seconds, params)
-- Celery Beat rollt alle Y Sekunden pro Bar, ob ein Event startet
-- ActiveEvent wird erzeugt, endet automatisch
-- Event beeinflusst Preise (Multipliers) in der Preisengine (siehe ADR 0001)
+- Admin can maintain EventDefinitions (type, probability_weight, duration_seconds, params)
+- Celery Beat rolls every Y seconds per bar whether an event starts
+- ActiveEvent is persisted, ends automatically
+- Event influences prices (multipliers) in the pricing engine (see ADR 0001)
 
-Event Types (MVP):
+Event types (MVP):
 
 - BOOM (multiplier > 1.0 global)
 - CRASH (multiplier < 1.0 global)
-- FOCUS (multiplier nur für target_drink_ids)
+- FOCUS (multiplier only for target_drink_ids)
 
-Vorgaben:
+Constraints:
 
-- Wahrscheinlichkeit proportional zu probability_weight
-- Cooldown optional (wenn nicht vorhanden: simple „max 1 active event“ pro Bar)
-- Event-Multiplier kann linear abklingen von start_multiplier zu 1.0 über duration
+- Probability proportional to probability_weight
+- Cooldown optional (if not present: simple "max 1 active event" per bar)
+- Event multiplier can decay linearly from start_multiplier to 1.0 over duration
 
-Aufgaben:
+Tasks:
 
-1) Domain: EventDefinition, ActiveEvent (falls nicht existiert), plus Service layer:
+1) Domain: EventDefinition, ActiveEvent (if not existing), plus service layer:
     - select_event(bar_id)
     - start_event(bar_id, event_def)
     - end_expired_events(bar_id)
@@ -29,16 +29,16 @@ Aufgaben:
     - event_roll_all_bars
     - event_roll(bar_id)
     - cleanup_expired_events
-3) Integration Preisengine:
-    - `get_effective_multiplier(bar_id, drink_id, now)` aggregiert active events
+3) Pricing engine integration:
+    - `get_effective_multiplier(bar_id, drink_id, now)` aggregates active events
 4) WebSocket broadcasts:
-    - event.started / event.ended an market.<bar_id>
+    - event.started / event.ended to market.<bar_id>
 5) Tests:
-    - weight selection deterministisch via seed
+    - weight selection deterministic via seed
     - start/end behavior
     - multiplier decay function
 
 Deliverables:
 
 - Services + tasks + integration + tests
-- Update ADR/Docs nur wenn du abweichst; sonst nur referenzieren
+- Update ADR/docs only if you deviate; otherwise just reference them
