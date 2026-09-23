@@ -1,14 +1,31 @@
 <script lang="ts">
+  import { resolve } from '$app/paths'
   import { goto } from '$app/navigation'
   import Alert from '$lib/components/Alert.svelte'
   import Card from '$lib/components/Card.svelte'
-  import { loginUser } from '$lib/stores/auth'
-  import { translations } from '$lib/i18n'
+  import { getI18nContext } from '$lib/i18n'
+  import { LoginError, loginUser } from '$lib/stores/auth'
 
-  let username = ''
-  let password = ''
-  let isSubmitting = false
-  let errorMessage: string | null = null
+  const { translations } = getI18nContext()
+
+  let username = $state('')
+  let password = $state('')
+  let isSubmitting = $state(false)
+  let errorMessage: string | null = $state(null)
+
+  const messageForError = (error: unknown) => {
+    const messages = $translations.auth.login.errors
+    if (!(error instanceof LoginError)) {
+      return messages.general
+    }
+    if (error.status === 400 || error.status === 401) {
+      return messages.invalid
+    }
+    if (error.status === 403) {
+      return messages.disabled
+    }
+    return messages.general
+  }
 
   const handleSubmit = async (event: SubmitEvent) => {
     event.preventDefault()
@@ -22,14 +39,10 @@
 
     try {
       await loginUser(fetch, { username: username.trim(), password })
-      await goto('/board')
-    } catch (unhandled) {
-      let fallback = $translations.auth.login.errors.general
-      if (unhandled instanceof Response) {
-        const payload = (await unhandled.json().catch(() => null)) ?? {}
-        fallback = (payload.detail as string) ?? $translations.auth.login.errors.invalid
-      }
-      errorMessage = fallback
+      // Re-run the server loads so the layout picks up the new session.
+      await goto(resolve('/board'), { invalidateAll: true })
+    } catch (error) {
+      errorMessage = messageForError(error)
     } finally {
       isSubmitting = false
     }
@@ -40,21 +53,30 @@
   <title>{$translations.auth.login.pageTitle}</title>
 </svelte:head>
 
-<div class="flex min-h-[calc(100vh-96px)] items-center justify-center px-4 py-8">
+<div
+  class="flex min-h-[calc(100vh-96px)] items-center justify-center px-4 py-8"
+>
   <Card
     title={$translations.auth.login.pageTitle}
     description={$translations.auth.login.description}
   >
-    <form class="space-y-5" on:submit={handleSubmit}>
+    <form class="space-y-5" onsubmit={handleSubmit}>
       {#if errorMessage}
-        <Alert level="danger">
-          <p class="text-sm">{errorMessage}</p>
-        </Alert>
+        <div role="alert">
+          <Alert level="danger">
+            <p class="text-sm">{errorMessage}</p>
+          </Alert>
+        </div>
       {/if}
       <div class="space-y-2">
-        <label class="text-xs uppercase tracking-[0.35em] text-white/60">{$translations.auth.login.usernameLabel}</label>
+        <label
+          for="login-username"
+          class="text-xs tracking-[0.35em] text-white/60 uppercase"
+          >{$translations.auth.login.usernameLabel}</label
+        >
         <input
-          class="w-full rounded-2xl border border-white/10 bg-market-surface/20 px-4 py-3 text-sm text-white placeholder-white/40 focus:border-market-accent/60 focus:outline-none"
+          id="login-username"
+          class="w-full rounded-2xl border border-white/10 bg-market-surface/20 px-4 py-3 text-sm text-white placeholder:text-white/40 focus:border-market-accent/60 focus:outline-hidden"
           type="text"
           name="username"
           autocomplete="username"
@@ -63,9 +85,14 @@
         />
       </div>
       <div class="space-y-2">
-        <label class="text-xs uppercase tracking-[0.35em] text-white/60">{$translations.auth.login.passwordLabel}</label>
+        <label
+          for="login-password"
+          class="text-xs tracking-[0.35em] text-white/60 uppercase"
+          >{$translations.auth.login.passwordLabel}</label
+        >
         <input
-          class="w-full rounded-2xl border border-white/10 bg-market-surface/20 px-4 py-3 text-sm text-white placeholder-white/40 focus:border-market-accent/60 focus:outline-none"
+          id="login-password"
+          class="w-full rounded-2xl border border-white/10 bg-market-surface/20 px-4 py-3 text-sm text-white placeholder:text-white/40 focus:border-market-accent/60 focus:outline-hidden"
           type="password"
           name="password"
           autocomplete="current-password"
@@ -74,7 +101,7 @@
         />
       </div>
       <button
-        class="w-full rounded-2xl bg-market-primary px-4 py-3 text-xs font-semibold uppercase tracking-[0.4em] text-white transition hover:bg-market-primary/90 disabled:cursor-not-allowed disabled:opacity-70"
+        class="w-full rounded-2xl bg-market-primary px-4 py-3 text-xs font-semibold tracking-[0.4em] text-white uppercase transition hover:bg-market-primary/90 disabled:cursor-not-allowed disabled:opacity-70"
         type="submit"
         disabled={isSubmitting}
         aria-busy={isSubmitting}
