@@ -131,6 +131,59 @@ describe('createBoardStore', () => {
     expect(state.activeEvent).toBeNull()
   })
 
+  it('keeps the base price across live updates that omit it', () => {
+    const store = createBoardStore({
+      ...snapshot(),
+      drinks: [{ ...snapshot().drinks[0], base_price: 4 }]
+    })
+    expect(get(store).drinks[0].base_price).toBe(4)
+
+    store.applyPriceUpdate(
+      { prices: [{ drink_id: 1, drink_name: 'Lager', price: '4.80' }] },
+      '2026-09-23T10:00:05+00:00'
+    )
+    expect(get(store).drinks[0]).toMatchObject({ price: 4.8, base_price: 4 })
+
+    store.applyPriceUpdate(
+      { prices: [{ drink_id: 1, price: '4.90', base_price: '4.20' }] },
+      '2026-09-23T10:00:10+00:00'
+    )
+    expect(get(store).drinks[0].base_price).toBe(4.2)
+  })
+
+  it('maps event type and time window from frames and snapshots', () => {
+    const store = createBoardStore({
+      ...snapshot(),
+      events: [{ ...snapshot().events![0], event_type: 'crash' }]
+    })
+    expect(get(store).activeEvent).toMatchObject({
+      type: 'crash',
+      startsAt: '2026-09-23T09:55:00+00:00',
+      endsAt: '2026-09-23T10:25:00+00:00'
+    })
+
+    store.applyEvent('event.started', {
+      definition_name: 'Rush Hour',
+      event_type: 'boom',
+      description: 'Everyone wants lager',
+      starts_at: '2026-09-23T10:30:00+00:00',
+      ends_at: '2026-09-23T10:40:00+00:00'
+    })
+    expect(get(store).activeEvent).toMatchObject({
+      title: 'Rush Hour',
+      type: 'boom',
+      description: 'Everyone wants lager',
+      endsAt: '2026-09-23T10:40:00+00:00'
+    })
+
+    store.applyEvent('event.started', {
+      definition_name: 'Mystery',
+      event_type: 'unknown-kind',
+      starts_at: '2026-09-23T10:50:00+00:00'
+    })
+    expect(get(store).activeEvent?.type).toBeNull()
+  })
+
   it('keeps an unnamed event title null for a translated fallback', () => {
     const store = createBoardStore({ ...snapshot(), events: [] })
     store.applyEvent('event.started', { event_id: 9, starts_at: 'x' })

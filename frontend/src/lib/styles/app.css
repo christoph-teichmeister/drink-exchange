@@ -1,4 +1,6 @@
 @import 'tailwindcss';
+@import '@fontsource-variable/inter';
+@import '@fontsource-variable/jetbrains-mono';
 
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -10,8 +12,19 @@
  */
 @theme inline {
   --font-sans:
-    'Inter', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
-    'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    'Inter Variable', 'Inter', ui-sans-serif, system-ui, sans-serif,
+    'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  --font-mono:
+    'JetBrains Mono Variable', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --color-term-bg: var(--term-bg);
+  --color-term-panel: var(--term-panel);
+  --color-term-line: var(--term-line);
+  --color-term-text: var(--term-text);
+  --color-term-muted: var(--term-muted);
+  --color-term-dim: var(--term-dim);
+  --color-term-up: var(--term-up);
+  --color-term-down: var(--term-down);
+  --color-term-amber: var(--term-amber);
   --color-market-primary: var(--market-primary);
   --color-market-accent: var(--market-accent);
   --color-market-surface: var(--market-surface);
@@ -75,6 +88,7 @@
 
 body {
   font-family:
+    'Inter Variable',
     'Inter',
     system-ui,
     -apple-system,
@@ -130,4 +144,86 @@ body {
 
 :root.light .text-white\/90 {
   color: rgba(15, 23, 42, 0.9) !important;
+}
+
+/*
+ * Big-screen trading terminal. It always renders dark, independent of the app
+ * theme, because it runs on a TV in a (usually dim) bar.
+ */
+.terminal {
+  --term-bg: #06080b;
+  --term-panel: #0b0f14;
+  --term-line: #1b222c;
+  --term-text: #e8edf2;
+  --term-muted: #8a94a3;
+  --term-dim: #4c5563;
+  --term-up: #2fd67f;
+  --term-down: #ff5c5c;
+  --term-amber: #ffb020;
+
+  color-scheme: dark;
+  background-color: var(--term-bg);
+  color: var(--term-text);
+  font-feature-settings:
+    'tnum' 1,
+    'zero' 1;
+}
+
+/* Brief row highlight whenever a price ticks up or down. */
+@keyframes term-flash-up {
+  from {
+    background-color: color-mix(in srgb, var(--term-up) 22%, transparent);
+  }
+  to {
+    background-color: transparent;
+  }
+}
+
+@keyframes term-flash-down {
+  from {
+    background-color: color-mix(in srgb, var(--term-down) 22%, transparent);
+  }
+  to {
+    background-color: transparent;
+  }
+}
+
+.term-flash-up {
+  animation: term-flash-up 1.2s ease-out;
+}
+
+.term-flash-down {
+  animation: term-flash-down 1.2s ease-out;
+}
+
+@keyframes term-tape {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.term-tape {
+  animation: term-tape var(--tape-duration, 40s) linear infinite;
+}
+
+@keyframes term-blink {
+  50% {
+    opacity: 0.25;
+  }
+}
+
+.term-blink {
+  animation: term-blink 1.6s steps(1, end) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .term-flash-up,
+  .term-flash-down,
+  .term-tape,
+  .term-blink {
+    animation: none;
+  }
 }

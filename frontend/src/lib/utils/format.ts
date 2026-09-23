@@ -45,3 +45,28 @@ export const formatTime = (
     ...(withSeconds ? { second: '2-digit' } : {})
   })
 }
+
+export const formatPercent = (
+  value: number | null | undefined,
+  locale: Locale
+) => {
+  const percent = Number.isFinite(Number(value)) ? Number(value) : 0
+  return new Intl.NumberFormat(locale, {
+    style: 'percent',
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+    signDisplay: 'exceptZero'
+  }).format(percent / 100)
+}
+
+// Plain price without currency symbol for dense numeric columns.
+export const formatPrice = (
+  value: number | null | undefined,
+  locale: Locale
+) => {
+  const amount = Number.isFinite(Number(value)) ? Number(value) : 0
+  return new Intl.NumberFormat(locale, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(amount)
+}

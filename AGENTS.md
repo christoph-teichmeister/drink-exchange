@@ -106,12 +106,27 @@ Run what is relevant to the files you touched; all of it must pass before you op
 - Browser-only APIs (`window`, `localStorage`, `WebSocket`) only inside `onMount`/`$effect` or behind a
   `browser` check.
 
+### Big-screen board design (`frontend/src/lib/components/terminal/`)
+
+The board is a trading terminal for a TV in a bar. Keep it that way:
+
+- Always dark (`.terminal` palette in `app.css`), independent of the app theme; full viewport, no app shell, no page
+  scroll on desktop.
+- Structure comes from 1 px hairlines between panels. No rounded "cards", drop shadows, glows, gradients or colored
+  accent stripes on the side of boxes.
+- Numbers use the mono font with tabular figures. Green/red (`term-up` / `term-down`) mean price direction only;
+  amber marks market events. Chart series colors never use pure green or red.
+- Sizes scale with the viewport (`clamp(...)`) so prices stay readable from across the room.
+- Uppercase labels use modest tracking (`tracking-wider`), never wide letter-spacing.
+
 ## WebSocket contract
 
 - Endpoint: `/ws/market/<bar-slug>/`. Requires a logged-in session whose user has a `BarAssignment` for the bar, and
   an `Origin` whose host is in `DJANGO_ALLOWED_HOSTS`.
 - Close codes: `4401` not authenticated, `4403` not assigned to the bar. Clients must not auto-reconnect on these.
 - Frames: `prices.update`, `event.started`, `event.ended`, `market.status`, `pong` (see `market/serializers.py`).
+  Price rows carry `price` and `base_price`; event payloads carry `definition_name`, `description`, `event_type`,
+  `starts_at` and `ends_at`.
 
 ## Things not to do
 
