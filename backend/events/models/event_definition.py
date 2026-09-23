@@ -21,30 +21,45 @@ class EventDefinition(CommonInfo):
         Bar,
         on_delete=models.CASCADE,
         related_name="event_definitions",
+        verbose_name=_("bar"),
     )
-    name = models.CharField(max_length=128)
-    description = models.TextField(blank=True)
-    type = models.CharField(max_length=16, choices=EventType.choices)
+    name = models.CharField(
+        max_length=128,
+        verbose_name=_("name"),
+    )
+    description = models.TextField(
+        blank=True,
+        verbose_name=_("description"),
+    )
+    type = models.CharField(
+        max_length=16,
+        choices=EventType.choices,
+        verbose_name=_("type"),
+    )
     probability_weight = models.DecimalField(
         max_digits=6,
         decimal_places=2,
         default=Decimal("1.00"),
         validators=[MinValueValidator(Decimal("0"))],
         help_text=_("Higher weight increases the chances this definition is selected."),
+        verbose_name=_("probability weight"),
     )
     duration_seconds = models.PositiveIntegerField(
         validators=[MinValueValidator(1)],
         help_text=_("Duration in seconds the event should run before expiring."),
+        verbose_name=_("duration (seconds)"),
     )
     cooldown_seconds = models.PositiveIntegerField(
         null=True,
         blank=True,
         help_text=_("Optional wait time after an event ends before it can start again."),
+        verbose_name=_("cooldown (seconds)"),
     )
     params = models.JSONField(
         default=dict,
         blank=True,
         help_text=_("Arbitrary configuration such as start_multiplier or target_drink_ids."),
+        verbose_name=_("parameters"),
     )
 
     class Meta:

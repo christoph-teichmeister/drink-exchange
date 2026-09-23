@@ -15,16 +15,28 @@ class ActiveEvent(CommonInfo):
         EventDefinition,
         on_delete=models.CASCADE,
         related_name="active_events",
+        verbose_name=_("event definition"),
     )
     bar = models.ForeignKey(
         Bar,
         on_delete=models.CASCADE,
         related_name="active_events",
+        verbose_name=_("bar"),
     )
-    starts_at = models.DateTimeField(default=timezone.now)
-    ends_at = models.DateTimeField()
-    is_active = models.BooleanField(default=True)  # Flags whether the event is still running.
-    state = models.JSONField(default=dict, blank=True)
+    starts_at = models.DateTimeField(
+        default=timezone.now,
+        verbose_name=_("starts at"),
+    )
+    ends_at = models.DateTimeField(verbose_name=_("ends at"))
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name=_("active"),
+    )  # Flags whether the event is still running.
+    state = models.JSONField(
+        default=dict,
+        blank=True,
+        verbose_name=_("state"),
+    )
 
     class Meta:
         ordering = ["starts_at"]  # Keep active events ordered by their start time.

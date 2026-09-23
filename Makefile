@@ -3,7 +3,7 @@
   frontend-dev frontend-test frontend-lint \
   celery-worker-start celery-worker-stop \
   celery-beat-start celery-beat-stop \
-  ws-health
+  ws-health messages messages-compile messages-check
 
 DOCKER_COMPOSE ?= docker compose
 
@@ -51,3 +51,12 @@ celery-beat-stop:
 
 ws-health:
 	python scripts/ws-health.py
+
+messages:
+	cd backend && uv run python manage.py makemessages -l de --add-location=file --ignore=.venv --ignore=tests --ignore=staticfiles
+
+messages-compile:
+	cd backend && uv run python manage.py compilemessages -l de --ignore=.venv --ignore=staticfiles
+
+messages-check:
+	scripts/check-translations.sh

@@ -29,6 +29,8 @@ dist/
 *.egg-info/
 pip-wheel-metadata/
 pip-log.txt
+# Compiled translations are build output (compilemessages), only the .po sources are versioned.
+*.mo
 
 #### Node / Frontend
 node_modules/

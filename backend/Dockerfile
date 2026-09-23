@@ -18,6 +18,16 @@ FROM deps-prod AS deps-dev
 # The dev image additionally ships the tooling from the `dev` dependency group (ruff, pytest).
 RUN uv sync --frozen --no-install-project
 
+FROM deps-prod AS messages
+
+# Compile the German catalog at build time; `.mo` files are build output and not committed.
+RUN apt-get update \
+    && apt-get install --yes --no-install-recommends gettext \
+    && rm -rf /var/lib/apt/lists/*
+COPY . .
+RUN DJANGO_SETTINGS_MODULE=config.settings.dev .venv/bin/python manage.py compilemessages \
+    -l de --ignore=.venv --ignore=staticfiles
+
 FROM python:3.13-slim AS runtime-base
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -30,6 +40,11 @@ COPY entrypoint.sh ./entrypoint.sh
 RUN chmod +x entrypoint.sh
 
 FROM runtime-base AS dev
+
+# The dev container mounts the sources over /app, so the entrypoint compiles translations on start.
+RUN apt-get update \
+    && apt-get install --yes --no-install-recommends gettext \
+    && rm -rf /var/lib/apt/lists/*
 
 # Reuse the dependency snapshot from the matching deps stage to keep installs cached.
 COPY --from=deps-dev /app/.venv ./.venv
@@ -54,6 +69,7 @@ RUN cp -a .venv /.venv-base && cp uv.lock.sha256 /.venv-base/uv.lock.sha256
 
 # Copy the application sources separately so prod can own files with a non-root user.
 COPY . .
+COPY --from=messages /app/locale ./locale
 RUN chmod +x entrypoint.sh
 
 # Create a non-root user so containers run securely under prod mode.

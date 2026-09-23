@@ -51,6 +51,12 @@ jobs:
           python-version: "3.13"
           sync-dir: backend
 
+      - name: Install GNU gettext
+        run: sudo apt-get update && sudo apt-get install --yes --no-install-recommends gettext
+
+      - name: Check German translations
+        run: scripts/check-translations.sh
+
       - name: Wait for Postgres and Redis
         working-directory: backend
         run: |

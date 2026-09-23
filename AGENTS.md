@@ -36,6 +36,9 @@ cd backend && uv run ruff check .         # lint
 cd backend && uv run ruff format --check . # format check (drop --check to fix)
 cd backend && uv run pytest               # tests (SQLite works; CI uses Postgres + Redis)
 cd backend && uv run python manage.py makemigrations --check --dry-run
+make messages                             # update backend/locale/de/LC_MESSAGES/django.po (needs GNU gettext)
+make messages-compile                     # compile it to django.mo (git-ignored build output)
+make messages-check                       # CI check: catalog up to date, no untranslated or fuzzy entries
 
 # Frontend (Node 22, pnpm via corepack / packageManager field)
 cd frontend && pnpm install --frozen-lockfile
@@ -57,7 +60,9 @@ Backend tests run against SQLite by default. To mirror CI, point `DATABASE_URL` 
 
 Run what is relevant to the files you touched; all of it must pass before you open or update a PR.
 
-- Backend: `ruff check`, `ruff format --check`, `pytest`, `makemigrations --check`.
+- Backend: `ruff check`, `ruff format --check`, `pytest`, `makemigrations --check`, `make messages-check`.
+- New or changed backend strings get a German translation in `backend/locale/de/LC_MESSAGES/django.po` (see
+  "Translations").
 - Frontend: `lint`, `format:check`, `check`, `test`, `build`.
 - New behavior comes with tests. Bug fixes come with a test that fails without the fix.
 - Lockfiles (`backend/uv.lock`, `frontend/pnpm-lock.yaml`) are committed whenever dependencies change and are only
@@ -86,13 +91,25 @@ Run what is relevant to the files you touched; all of it must pass before you op
   Keep `CurrentRequestMiddleware` enabled so `created_by` / `lastmodified_by` stay accurate.
 - No module-level docstrings or file-header comments. Explain intent in class/function docstrings and inline
   comments. Leave a blank line after every docstring. No docstrings on `Meta` inner classes (use inline comments).
-- Wrap user-facing strings in `gettext_lazy` (`_`).
+- Wrap user-facing strings in `gettext_lazy` (`_`), including model/field `verbose_name`s.
 - Never edit an applied migration; add a new one with `makemigrations`.
 - Channel-layer groups are keyed by bar **slug** (`settings.MARKET_CHANNEL_GROUP.format(bar_id=bar.slug)`). Use the
   helpers in `market/services/broadcast.py` and the frame builders in `market/serializers.py`; the frontend depends on
   those shapes.
 - Code that reads-then-writes shared rows (ticks, event rolls) runs inside `transaction.atomic()` with
   `select_for_update()`; Celery beat fires every 5 s and tasks can overlap.
+
+### Translations
+
+- The backend answers in the request's language (`django_language` cookie, else `Accept-Language`; `LocaleMiddleware`).
+  English is the source language, German lives in `backend/locale/de/LC_MESSAGES/django.po`.
+- Workflow: `make messages` (runs `makemessages -l de --add-location=file`), fill in every empty `msgstr` and remove
+  `#, fuzzy` flags after checking them, then `make messages-compile`. Commit only the `.po` file; `*.mo` is
+  git-ignored and compiled by the Docker build (prod) or the dev entrypoint.
+- Use the frontend's terms (`frontend/src/lib/i18n.ts`): Getränk, Basispreis, Mindest-/Höchstpreis, Buchung,
+  Marktereignis, Ereignis-Definition, Gewichtung.
+- Translation tests use the `compiled_messages` fixture (`tests/conftest.py`); they skip locally without gettext and
+  fail in CI.
 
 ## Frontend conventions
 

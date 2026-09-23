@@ -14,6 +14,8 @@ Contributor and agent guidelines: [`AGENTS.md`](AGENTS.md).
 - Docker with Docker Compose v2
 - Python 3.13 and [`uv`](https://docs.astral.sh/uv/)
 - Node 22 with Corepack (pnpm version is pinned in `frontend/package.json`)
+- GNU gettext for the German backend catalog (`brew install gettext` / `apt install gettext`); the Docker images
+  bring their own
 - Optional: [`pre-commit`](https://pre-commit.com/)
 
 ## Quickstart
@@ -33,6 +35,7 @@ To work on one side outside Docker:
 
 ```bash
 docker compose up -d postgres redis
+make messages-compile        # German backend messages; .mo files are not committed
 cd backend && uv sync && uv run python manage.py migrate && uv run uvicorn config.asgi:application --reload
 cd frontend && pnpm install && pnpm dev
 ```
@@ -47,6 +50,7 @@ cd frontend && pnpm install && pnpm dev
 | `make frontend-dev` / `make frontend-lint` / `make frontend-test` | Vite dev server / ESLint / Vitest |
 | `make celery-worker-start` / `make celery-beat-start` (and `-stop`) | Control the Celery services |
 | `make ws-health` | Probe the market WebSocket handshake |
+| `make messages` / `make messages-compile` / `make messages-check` | Update / compile / verify the German backend catalog |
 
 ## Environment variables
 
@@ -77,7 +81,7 @@ All variables live in `.env` (template: `.env.example`).
 See the Definition of Done in [`AGENTS.md`](AGENTS.md#definition-of-done) for the exact commands. CI
 (`.github/workflows/`) runs on every PR and on pushes to `develop`:
 
-- **Backend CI:** migrations, `manage.py check`, pytest against Postgres + Redis, and a WebSocket probe with Celery
+- **Backend CI:** German translation check (`scripts/check-translations.sh`), migrations, `manage.py check`, pytest against Postgres + Redis, and a WebSocket probe with Celery
   worker/beat running.
 - **Frontend CI:** lint, type check, unit tests, build and a PWA output check.
 - **pre-commit:** Ruff, ESLint, Prettier, markdownlint and whitespace fixers (`pre-commit install` to run them locally).

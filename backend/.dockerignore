@@ -11,3 +11,4 @@ __pycache__/
 *.sqlite3
 *.db
 *.egg-info
+*.mo
