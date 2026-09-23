@@ -4,6 +4,8 @@ from ambient_toolbox.models import CommonInfo
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
+from bars.bar_assignment import BarAssignment  # noqa: F401
+
 
 class Bar(CommonInfo):
     """Represents a bar location with metadata."""
