@@ -6,54 +6,58 @@
   let { data }: PageProps = $props()
 
   const { translations } = getI18nContext()
+  const t = $derived($translations.board.lobby)
 </script>
 
 <svelte:head>
-  <title>{$translations.board.lobby.pageTitle}</title>
+  <title>{t.pageTitle}</title>
 </svelte:head>
 
-<section class="space-y-7">
-  <header class="space-y-2">
-    <p class="text-xs tracking-[0.4em] text-white/50 uppercase">
-      {$translations.board.lobby.subtitle}
-    </p>
-    <h1 class="text-3xl font-semibold text-white">
-      {$translations.board.lobby.pageTitle}
-    </h1>
-    <p class="max-w-3xl text-sm text-white/70">
-      {$translations.board.lobby.description}
-    </p>
+<section class="space-y-6">
+  <header>
+    <p class="ui-label">{t.subtitle}</p>
+    <h1 class="mt-1 text-2xl font-semibold tracking-tight">{t.pageTitle}</h1>
+    <p class="mt-2 max-w-2xl text-ui-muted">{t.description}</p>
   </header>
 
   {#if data.bars.length}
-    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {#each data.bars as bar (bar.slug)}
-        <article
-          class="flex h-full flex-col justify-between rounded-2xl border border-white/10 bg-white/5 p-6 shadow-lg shadow-black/50 transition hover:border-market-accent/60"
-        >
-          <div>
-            <p class="text-xs tracking-[0.4em] text-white/50 uppercase">
-              {bar.slug}
-            </p>
-            <h2 class="mt-2 text-xl font-semibold text-white">{bar.name}</h2>
-            {#if bar.description}
-              <p class="mt-2 text-sm text-white/60">{bar.description}</p>
-            {/if}
-          </div>
-          <a
-            class="mt-6 inline-flex items-center justify-center rounded-full border border-market-accent/70 px-4 py-2 text-xs font-semibold tracking-[0.4em] text-market-accent uppercase transition hover:border-market-accent/90 hover:text-white"
-            href={resolve('/dashboard/[barId]', { barId: bar.slug })}
-          >
-            {$translations.board.lobby.openDashboard}
-          </a>
-        </article>
-      {/each}
-    </div>
-  {:else}
-    <div
-      class="rounded-2xl border border-dashed border-white/30 bg-white/5 p-6 text-sm text-white/60"
+    <ul
+      class="divide-y divide-ui-line rounded-sm border border-ui-line bg-ui-panel"
     >
-      {$translations.board.lobby.empty}
-    </div>
+      {#each data.bars as bar (bar.slug)}
+        <li
+          class="flex flex-col gap-4 px-5 py-4 md:flex-row md:items-center md:justify-between"
+        >
+          <div class="min-w-0">
+            <h2 class="text-lg font-semibold tracking-tight">{bar.name}</h2>
+            {#if bar.description}
+              <p class="mt-1 text-sm text-ui-muted">{bar.description}</p>
+            {/if}
+            <p class="mt-1 font-mono text-xs text-ui-dim">{bar.slug}</p>
+          </div>
+          <div class="flex shrink-0 flex-wrap gap-2">
+            <a
+              class="ui-btn-primary"
+              href={resolve('/dashboard/[barId]', { barId: bar.slug })}
+              >{t.openDesk}</a
+            >
+            <a
+              class="ui-btn"
+              href={resolve('/board/[barId]', { barId: bar.slug })}
+              >{t.openBoard}</a
+            >
+            <a
+              class="ui-btn"
+              href={resolve('/admin/[barId]', { barId: bar.slug })}
+              >{t.openAdmin}</a
+            >
+          </div>
+        </li>
+      {/each}
+    </ul>
+  {:else}
+    <p class="rounded-sm border border-ui-line px-5 py-6 text-ui-muted">
+      {t.empty}
+    </p>
   {/if}
 </section>

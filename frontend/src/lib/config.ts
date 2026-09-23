@@ -13,6 +13,8 @@ export const buildApiEndpoints = (apiBase: string) => ({
   barsEndpoint: () => `${apiBase}/bars/`,
   barMarketEndpoint: (barId: string) =>
     `${apiBase}/bars/${encodeURIComponent(barId)}/market/`,
+  barTradesEndpoint: (barId: string) =>
+    `${apiBase}/bars/${encodeURIComponent(barId)}/trades/`,
   localeEndpoint: () => `${apiBase}/locale/`,
   auth: {
     login: () => `${apiBase}/auth/login/`,
@@ -30,3 +32,6 @@ export const wsConfig = {
   marketWebSocketUrl: (barId: string) =>
     `${wsBase}/ws/market/${encodeURIComponent(barId)}/`
 }
+
+// The Django admin lives next to the API on the backend origin.
+export const backendAdminUrl = `${publicApiBase.replace(/\/api$/, '')}/admin/`

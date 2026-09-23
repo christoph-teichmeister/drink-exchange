@@ -1,25 +1,23 @@
 <script lang="ts">
   import type { Snippet } from 'svelte'
 
-  type BadgeVariant = 'accent' | 'success' | 'warning' | 'muted'
+  type BadgeVariant = 'accent' | 'up' | 'down' | 'muted'
 
   let {
-    variant = 'accent',
+    variant = 'muted',
     children
   }: { variant?: BadgeVariant; children: Snippet } = $props()
 
   const variants: Record<BadgeVariant, string> = {
-    accent:
-      'bg-market-accent/20 text-market-accent border border-market-accent/50',
-    success:
-      'bg-market-primary/20 text-market-primary border border-market-primary/50',
-    warning: 'bg-orange-400/20 text-orange-400 border border-orange-400/40',
-    muted: 'bg-white/10 text-white border border-white/20'
+    accent: 'border-ui-accent text-ui-accent',
+    up: 'border-ui-up text-ui-up',
+    down: 'border-ui-down text-ui-down',
+    muted: 'border-ui-line-strong text-ui-muted'
   }
 </script>
 
 <span
-  class={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-[0.65rem] font-semibold tracking-widest uppercase ${variants[variant]}`}
+  class={`inline-flex items-center gap-1.5 rounded-sm border px-1.5 py-0.5 font-mono text-[0.7rem] font-semibold tracking-wider uppercase ${variants[variant]}`}
 >
   {@render children()}
 </span>
