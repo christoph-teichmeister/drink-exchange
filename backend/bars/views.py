@@ -63,6 +63,7 @@ def bar_market_snapshot(request, bar_id: str):
                 "id": str(drink.id),
                 "name": drink.name,
                 "price": float(latest_price),
+                "base_price": float(drink.base_price),
                 "delta": delta,
                 "trend": trend,
                 "history": history,
@@ -75,6 +76,7 @@ def bar_market_snapshot(request, bar_id: str):
         {
             "title": event.definition.name,
             "description": event.definition.description,
+            "event_type": event.definition.type,
             "status": "running" if event.is_active else "ended",
             "starts_at": event.starts_at.isoformat(),
             "ends_at": event.ends_at.isoformat(),
