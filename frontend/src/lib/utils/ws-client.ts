@@ -22,6 +22,8 @@ export type ActiveEventPayload = {
   event_id?: number | string
   definition_id?: number | string
   definition_name?: string
+  description?: string
+  event_type?: string
   starts_at?: string
   ends_at?: string
   is_active?: boolean

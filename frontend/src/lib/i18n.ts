@@ -42,6 +42,56 @@ const en = {
   },
   board: {
     pageTitle: 'Board View',
+    terminal: {
+      brand: 'Drink Exchange',
+      quotes: 'Quotes',
+      columns: {
+        drink: 'Drink',
+        last: 'Last',
+        change: 'Chg',
+        changePct: 'Chg %',
+        trend: 'Trend'
+      },
+      changeBasis: 'Change vs. base price',
+      chart: 'Price history',
+      tape: 'Ticker tape',
+      event: 'Market event',
+      noEvent: 'No active event. Prices drift back to base.',
+      endsIn: 'Ends in {time}',
+      ended: 'Ended',
+      eventLog: 'Event log',
+      logEmpty: 'No events yet.',
+      logStarted: 'Start',
+      logEnded: 'End',
+      eventTypes: {
+        boom: 'Boom',
+        crash: 'Crash',
+        focus: 'Focus',
+        normalize: 'Normalize',
+        unknown: 'Event'
+      },
+      eventEffects: {
+        boom: 'All prices rising',
+        crash: 'All prices falling',
+        focus: 'Selected drinks in demand',
+        normalize: 'Prices returning to base',
+        unknown: 'Market is moving'
+      },
+      status: {
+        connecting: 'Connecting',
+        connected: 'Live',
+        reconnecting: 'Reconnecting',
+        offline: 'Offline',
+        unauthorized: 'No access'
+      },
+      stale: 'Stale',
+      lastUpdate: 'Updated {time}',
+      retryIn: 'Retry in {seconds}s',
+      reconnect: 'Reconnect',
+      fullscreen: 'Fullscreen',
+      exitFullscreen: 'Exit fullscreen',
+      exit: 'Leave board'
+    },
     lobby: {
       pageTitle: 'Board Lobby',
       subtitle: 'Select a bar to view its live board.',
@@ -50,67 +100,17 @@ const en = {
       empty: 'No bars configured yet.',
       openDashboard: 'Open dashboard'
     },
-    header: { kicker: 'High Contrast Board', title: 'Ticker & Event Command' },
-    badges: {
-      live: 'live'
-    },
-    ticker: {
-      label: 'Live Ticker',
-      subTitle: 'Trading floor live board'
-    },
+    backButton: 'Back to dashboard',
     card: {
       empty: 'Waiting for drinks...'
     },
-    trendLabels: {
-      up: 'Rising',
-      down: 'Falling',
-      flat: 'Stable'
-    },
-    actions: {
-      reconnect: 'Reconnect board'
-    },
-    backButton: 'Back to dashboard',
     chart: {
-      sectionTitle: 'Prices',
-      subTitle: 'Shared curve view per bar',
-      chartBadge: 'Live',
-      legendTitle: 'Legend',
-      lastUpdated: 'Last updated',
-      noTimestamp: '—',
       ariaLabel: 'Price history chart for all drinks'
     },
     eventOverlay: {
-      started: 'Event started',
-      ended: 'Event ended',
-      idle: 'Waiting for events...',
-      live: 'Live Event',
       untitled: 'Unnamed event'
     },
-    eventFeed: {
-      title: 'Event Feed',
-      empty: 'Waiting for events...'
-    },
-    alert: {
-      prefix: 'Events and prices are driven by ',
-      eventChannel: 'event.*',
-      middle: ' and ',
-      priceChannel: 'prices.update',
-      suffix: '.'
-    },
-    connectionStatus: {
-      connecting: 'connecting...',
-      connected: 'connected',
-      reconnecting: 'reconnecting...',
-      offline: 'offline',
-      unauthorized: 'no access'
-    },
     connection: {
-      staleNotice: 'Live connection lost — prices shown may be outdated.',
-      lastUpdate: 'Last update: {time}',
-      reconnectingDetail: 'Attempt {attempt} · next try in {seconds}s',
-      reconnectingNow: 'Attempt {attempt} · connecting now',
-      offlineDetail:
-        'Your device is offline. The board reconnects automatically once the network is back.',
       unauthenticated:
         'Your session has expired. Sign in again to resume live prices.',
       forbidden:
@@ -325,6 +325,56 @@ const de: Translation = {
   },
   board: {
     pageTitle: 'Board View',
+    terminal: {
+      brand: 'Drink Exchange',
+      quotes: 'Kurse',
+      columns: {
+        drink: 'Getränk',
+        last: 'Kurs',
+        change: 'Änd.',
+        changePct: 'Änd. %',
+        trend: 'Verlauf'
+      },
+      changeBasis: 'Änderung ggü. Basispreis',
+      chart: 'Kursverlauf',
+      tape: 'Laufband',
+      event: 'Marktereignis',
+      noEvent: 'Kein aktives Ereignis. Preise laufen zum Basispreis zurück.',
+      endsIn: 'Endet in {time}',
+      ended: 'Beendet',
+      eventLog: 'Ereignisprotokoll',
+      logEmpty: 'Noch keine Ereignisse.',
+      logStarted: 'Start',
+      logEnded: 'Ende',
+      eventTypes: {
+        boom: 'Boom',
+        crash: 'Crash',
+        focus: 'Fokus',
+        normalize: 'Normalisierung',
+        unknown: 'Ereignis'
+      },
+      eventEffects: {
+        boom: 'Alle Preise steigen',
+        crash: 'Alle Preise fallen',
+        focus: 'Ausgewählte Getränke gefragt',
+        normalize: 'Preise kehren zum Basispreis zurück',
+        unknown: 'Der Markt bewegt sich'
+      },
+      status: {
+        connecting: 'Verbinde',
+        connected: 'Live',
+        reconnecting: 'Verbinde neu',
+        offline: 'Offline',
+        unauthorized: 'Kein Zugriff'
+      },
+      stale: 'Veraltet',
+      lastUpdate: 'Stand {time}',
+      retryIn: 'Neuer Versuch in {seconds} s',
+      reconnect: 'Neu verbinden',
+      fullscreen: 'Vollbild',
+      exitFullscreen: 'Vollbild beenden',
+      exit: 'Board verlassen'
+    },
     lobby: {
       pageTitle: 'Board-Lobby',
       subtitle: 'Wähle eine Bar, um ihr Live-Board aufzurufen.',
@@ -333,68 +383,17 @@ const de: Translation = {
       empty: 'Noch keine Bars konfiguriert.',
       openDashboard: 'Dashboard öffnen'
     },
-    header: { kicker: 'High Contrast Board', title: 'Ticker & Event Command' },
-    badges: {
-      live: 'live'
-    },
-    ticker: {
-      label: 'Live-Ticker',
-      subTitle: 'Trading Floor Live-Board'
-    },
+    backButton: 'Zurück zum Dashboard',
     card: {
       empty: 'Warten auf Drinks...'
     },
-    trendLabels: {
-      up: 'Steigend',
-      down: 'Fallend',
-      flat: 'Stabil'
-    },
-    actions: {
-      reconnect: 'Verbindung neu starten'
-    },
-    backButton: 'Zurück zum Dashboard',
     chart: {
-      sectionTitle: 'Preise',
-      subTitle: 'Gemeinsame Kurvenansicht pro Bar',
-      chartBadge: 'Live',
-      legendTitle: 'Legende',
-      lastUpdated: 'Letztes Update',
-      noTimestamp: '—',
       ariaLabel: 'Preisverlauf aller Drinks'
     },
     eventOverlay: {
-      started: 'Event gestartet',
-      ended: 'Event beendet',
-      idle: 'Warten auf Events...',
-      live: 'Live Event',
       untitled: 'Unbenanntes Event'
     },
-    eventFeed: {
-      title: 'Event Feed',
-      empty: 'Noch keine Events verfügbar.'
-    },
-    alert: {
-      prefix: 'Events und Preise werden über ',
-      eventChannel: 'event.*',
-      middle: ' und ',
-      priceChannel: 'prices.update',
-      suffix: ' gesteuert.'
-    },
-    connectionStatus: {
-      connecting: 'verbindet...',
-      connected: 'verbunden',
-      reconnecting: 'verbindet neu...',
-      offline: 'offline',
-      unauthorized: 'kein Zugriff'
-    },
     connection: {
-      staleNotice:
-        'Live-Verbindung unterbrochen – angezeigte Preise sind möglicherweise veraltet.',
-      lastUpdate: 'Letztes Update: {time}',
-      reconnectingDetail: 'Versuch {attempt} · nächster Versuch in {seconds} s',
-      reconnectingNow: 'Versuch {attempt} · verbindet jetzt',
-      offlineDetail:
-        'Dein Gerät ist offline. Das Board verbindet sich automatisch, sobald das Netzwerk wieder da ist.',
       unauthenticated:
         'Deine Sitzung ist abgelaufen. Melde dich erneut an, um Live-Preise zu sehen.',
       forbidden:

@@ -121,6 +121,7 @@ def test_market_snapshot_uses_current_price_and_price_points(client: Client, use
     entry = payload["drinks"][0]
     # Same source of truth as the WebSocket feed (current_price), not the last trade.
     assert entry["price"] == 6.0
+    assert entry["base_price"] == 5.0
     assert entry["trend"] == "up"
     assert entry["delta"] == pytest.approx(0.5)
     assert len(entry["history"]) == 24

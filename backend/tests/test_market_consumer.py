@@ -114,6 +114,8 @@ async def test_market_consumer_delivers_initial_snapshot():
 
     event_message = await communicator.receive_json_from()
     assert event_message["type"] == "event.started"
+    assert event_message["payload"]["description"] == definition.description
+    assert event_message["payload"]["event_type"] == definition.type
 
     status = await communicator.receive_json_from()
     assert status["type"] == "market.status"

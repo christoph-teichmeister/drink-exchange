@@ -1,6 +1,7 @@
 <script lang="ts">
   import '$lib/styles/app.css'
   import { untrack } from 'svelte'
+  import { page } from '$app/state'
   import AppShell from '$lib/components/AppShell.svelte'
   import { createI18n, setI18nContext } from '$lib/i18n'
   import type { LayoutProps } from './$types'
@@ -22,6 +23,11 @@
   })
 </script>
 
-<AppShell currentUser={data.currentUser}>
+<!-- The big-screen board is a full-viewport terminal without the app chrome. -->
+{#if page.route.id === '/board/[barId]'}
   {@render children()}
-</AppShell>
+{:else}
+  <AppShell currentUser={data.currentUser}>
+    {@render children()}
+  </AppShell>
+{/if}

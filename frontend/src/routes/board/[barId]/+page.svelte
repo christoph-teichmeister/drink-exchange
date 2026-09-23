@@ -1,5 +1,5 @@
 <script lang="ts">
-  import BoardView from '$lib/components/BoardView.svelte'
+  import TerminalBoard from '$lib/components/terminal/TerminalBoard.svelte'
   import type { PageProps } from './$types'
 
   let { data }: PageProps = $props()
@@ -10,5 +10,5 @@
   socket and builds fresh ones for the new bar.
 -->
 {#key data.snapshot.bar.slug}
-  <BoardView snapshot={data.snapshot} />
+  <TerminalBoard snapshot={data.snapshot} />
 {/key}

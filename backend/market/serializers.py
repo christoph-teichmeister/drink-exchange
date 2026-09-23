@@ -51,6 +51,8 @@ def _serialize_event(entry) -> dict:
         "event_id": entry.id,
         "definition_id": entry.definition_id,
         "definition_name": entry.definition.name,
+        "description": entry.definition.description,
+        "event_type": entry.definition.type,
         "starts_at": entry.starts_at.isoformat(),
         "ends_at": entry.ends_at.isoformat(),
         "is_active": entry.is_active,

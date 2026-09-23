@@ -20,15 +20,20 @@ export type DrinkSnapshot = {
   id: string
   name: string
   price: number
+  // Reference price the market reverts to; null when the backend did not send it.
+  base_price?: number | null
   delta: number
   trend: TrendValue
   history: DrinkHistoryPoint[]
 }
 
+export type EventType = 'boom' | 'crash' | 'focus' | 'normalize'
+
 // Shapes of the REST snapshot (backend/bars/views.py `bar_market_snapshot`).
 export type EventSnapshot = {
   title: string
   description: string
+  event_type?: string
   status: 'running' | 'ended' | 'scheduled'
   starts_at?: string
   ends_at?: string
@@ -52,8 +57,11 @@ export type BoardEvent = {
   // Null when the backend sent no name; the UI renders a translated fallback.
   title: string | null
   description: string
+  type: EventType | null
   status: BoardEventStatus
   timestamp: string
+  startsAt: string | null
+  endsAt: string | null
 }
 
 export type BoardState = {
@@ -125,6 +133,7 @@ const normalizeSnapshotDrink = (
     id: String(drink.id),
     name: drink.name || String(drink.id),
     price,
+    base_price: toNumber(drink.base_price),
     delta: toNumber(drink.delta) ?? 0,
     history: history.length
       ? history
@@ -150,11 +159,25 @@ const normalizePriceRow = (row: PriceRowPayload): DrinkSnapshot | null => {
     id,
     name: row.drink_name || id,
     price,
+    base_price: toNumber(row.base_price),
     delta,
     trend,
     history: normalizeHistory(row.history)
   }
 }
+
+const EVENT_TYPES: readonly EventType[] = [
+  'boom',
+  'crash',
+  'focus',
+  'normalize'
+]
+
+const toEventType = (value: unknown): EventType | null =>
+  typeof value === 'string' &&
+  (EVENT_TYPES as readonly string[]).includes(value)
+    ? (value as EventType)
+    : null
 
 const eventKey = (title: string | null, startsAt: string | undefined) =>
   `${title ?? ''}:${startsAt ?? ''}`
@@ -163,8 +186,11 @@ const mapSnapshotEvent = (event: EventSnapshot): BoardEvent => ({
   id: eventKey(event.title || null, event.starts_at),
   title: event.title || null,
   description: event.description ?? '',
+  type: toEventType(event.event_type),
   status: event.status === 'ended' ? 'ended' : 'running',
-  timestamp: event.starts_at ?? event.ends_at ?? ''
+  timestamp: event.starts_at ?? event.ends_at ?? '',
+  startsAt: event.starts_at ?? null,
+  endsAt: event.ends_at ?? null
 })
 
 const mapFrameEvent = (
@@ -186,8 +212,11 @@ const mapFrameEvent = (
     id: eventKey(title, payload.starts_at),
     title,
     description,
+    type: toEventType(payload.event_type),
     status,
-    timestamp
+    timestamp,
+    startsAt: payload.starts_at ?? null,
+    endsAt: payload.ends_at ?? null
   }
 }
 
@@ -239,6 +268,7 @@ export const createBoardStore = (snapshot: BoardSnapshot) => {
         drinks.set(entry.id, {
           ...entry,
           name: entry.name || existing?.name || entry.id,
+          base_price: entry.base_price ?? existing?.base_price ?? null,
           history: mergeHistory(existing?.history ?? [], incomingHistory)
         })
       }
@@ -272,7 +302,8 @@ export const createBoardStore = (snapshot: BoardSnapshot) => {
       const merged: BoardEvent = {
         ...incoming,
         title: incoming.title ?? existing?.title ?? null,
-        description: incoming.description || existing?.description || ''
+        description: incoming.description || existing?.description || '',
+        type: incoming.type ?? existing?.type ?? null
       }
       const eventFeed = [
         merged,
