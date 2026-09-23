@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 set -euo pipefail
 
 copy_venv_base() {
@@ -25,7 +25,7 @@ if [ "$BASE_HASH" != "$CURRENT_HASH" ] || [ ! -x "/app/.venv/bin/python" ]; then
   copy_venv_base
 fi
 
-if [ "${DJANGO_SETTINGS_MODULE:-}" = "config.settings.dev" ]; then
+if [ "${DJANGO_SETTINGS_MODULE:-}" = "config.settings.dev" ] && [ "${DJANGO_MIGRATE_ON_START:-1}" != "0" ]; then
   python manage.py migrate --noinput
   if [ "${DEV_FIXTURES_ENABLED:-1}" != "0" ]; then
     python manage.py ensure_dev_data

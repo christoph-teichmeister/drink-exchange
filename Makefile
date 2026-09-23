@@ -8,46 +8,46 @@
 DOCKER_COMPOSE ?= docker compose
 
 up:
-\t$(DOCKER_COMPOSE) up --build
+	$(DOCKER_COMPOSE) up --build
 
 down:
-\t$(DOCKER_COMPOSE) down
+	$(DOCKER_COMPOSE) down
 
 logs:
-\t$(DOCKER_COMPOSE) logs --follow
+	$(DOCKER_COMPOSE) logs --follow
 
 ps:
-\t$(DOCKER_COMPOSE) ps
+	$(DOCKER_COMPOSE) ps
 
 backend-shell:
-\tcd backend && uv run python manage.py shell
+	cd backend && uv run python manage.py shell
 
 backend-test:
-\tcd backend && uv run pytest
+	cd backend && uv run pytest
 
 backend-lint:
-\tcd backend && uv run ruff check .
+	cd backend && uv run ruff check .
 
 frontend-dev:
-\tcd frontend && pnpm dev --host 0.0.0.0 --port 5173
+	cd frontend && pnpm dev --host 0.0.0.0 --port 5173
 
 frontend-test:
-\tcd frontend && pnpm run build
+	cd frontend && pnpm run build
 
 frontend-lint:
-\tcd frontend && pnpm exec eslint src static --max-warnings=0
+	cd frontend && pnpm exec eslint src static --max-warnings=0
 
 celery-worker-start:
-\t$(DOCKER_COMPOSE) up -d celery-worker
+	$(DOCKER_COMPOSE) up -d celery-worker
 
 celery-worker-stop:
-\t$(DOCKER_COMPOSE) stop celery-worker
+	$(DOCKER_COMPOSE) stop celery-worker
 
 celery-beat-start:
-\t$(DOCKER_COMPOSE) up -d celery-beat
+	$(DOCKER_COMPOSE) up -d celery-beat
 
 celery-beat-stop:
-\t$(DOCKER_COMPOSE) stop celery-beat
+	$(DOCKER_COMPOSE) stop celery-beat
 
 ws-health:
-\tpython scripts/ws-health.py
+	python scripts/ws-health.py

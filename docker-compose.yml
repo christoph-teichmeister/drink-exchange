@@ -1,6 +1,6 @@
 x-backend-env: &backend-env
   DJANGO_DEBUG: "${DJANGO_DEBUG:-true}"
-  DJANGO_ALLOWED_HOSTS: "${DJANGO_ALLOWED_HOSTS:-localhost,127.0.0.1}"
+  DJANGO_ALLOWED_HOSTS: "${DJANGO_ALLOWED_HOSTS:-localhost,127.0.0.1,backend}"
   DJANGO_SECRET_KEY: "${DJANGO_SECRET_KEY:-django-insecure-change-me}"
   DJANGO_SETTINGS_MODULE: "config.settings.dev"
   DATABASE_URL: "postgres://drink_exchange:drink_exchange@postgres:5432/drink_exchange"
@@ -60,29 +60,39 @@ services:
     build:
       context: ./backend
       target: dev
-    entrypoint: ["celery", "-A", "config", "worker", "--loglevel=info"]
+    command: ["celery", "-A", "config", "worker", "--loglevel=info"]
     environment:
       <<: *backend-env
+      # Only the backend service migrates and seeds; the Celery containers just reuse the schema.
+      DJANGO_MIGRATE_ON_START: "0"
     depends_on:
-      postgres:
-        condition: service_healthy
+      backend:
+        condition: service_started
       redis:
         condition: service_healthy
     restart: unless-stopped
+    volumes:
+      - ./backend:/app:cached
+      - celery-worker-venv:/app/.venv
 
   celery-beat:
     build:
       context: ./backend
       target: dev
-    entrypoint: ["celery", "-A", "config", "beat", "--loglevel=info"]
+    command: ["celery", "-A", "config", "beat", "--loglevel=info"]
     environment:
       <<: *backend-env
+      # Only the backend service migrates and seeds; the Celery containers just reuse the schema.
+      DJANGO_MIGRATE_ON_START: "0"
     depends_on:
-      postgres:
-        condition: service_healthy
+      backend:
+        condition: service_started
       redis:
         condition: service_healthy
     restart: unless-stopped
+    volumes:
+      - ./backend:/app:cached
+      - celery-beat-venv:/app/.venv
 
   frontend:
     image: node:22-bullseye
@@ -114,4 +124,8 @@ volumes:
   redis-data:
     driver: local
   backend-venv:
+    driver: local
+  celery-worker-venv:
+    driver: local
+  celery-beat-venv:
     driver: local

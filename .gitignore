@@ -68,3 +68,8 @@ htmlcov/
 __pycache__
 coverage/
 *.pytest_cache/
+/.run/
+
+#### Claude Code
+.claude/worktrees/
+.claude/settings.local.json
