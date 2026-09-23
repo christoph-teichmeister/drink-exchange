@@ -73,7 +73,12 @@ REDIS_URL = os.environ.get("REDIS_URL", "redis://127.0.0.1:6379/0")
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
-        "CONFIG": {"hosts": [REDIS_URL]},
+        "CONFIG": {
+            # redis-py >= 8 defaults to a 5 s socket timeout, which equals channels-redis' blocking BZPOPMIN
+            # window (`brpop_timeout`, 5 s). Idle consumers then hit a read timeout and every WebSocket drops
+            # after ~10 s, so the read timeout must stay well above that window.
+            "hosts": [{"address": REDIS_URL, "socket_timeout": 30}],
+        },
     }
 }
 MARKET_CHANNEL_GROUP = "market.{bar_id}"
