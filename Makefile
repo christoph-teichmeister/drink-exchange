@@ -26,16 +26,16 @@ backend-test:
 	cd backend && uv run pytest
 
 backend-lint:
-	cd backend && uv run ruff check .
+	cd backend && uv run ruff check . && uv run ruff format --check .
 
 frontend-dev:
 	cd frontend && pnpm dev --host 0.0.0.0 --port 5173
 
 frontend-test:
-	cd frontend && pnpm run build
+	cd frontend && pnpm test
 
 frontend-lint:
-	cd frontend && pnpm exec eslint src static --max-warnings=0
+	cd frontend && pnpm lint
 
 celery-worker-start:
 	$(DOCKER_COMPOSE) up -d celery-worker

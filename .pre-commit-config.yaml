@@ -1,50 +1,38 @@
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v5.0.0
+    rev: v6.0.0
     hooks:
       - id: detect-private-key
       - id: end-of-file-fixer
       - id: trailing-whitespace
+      - id: check-yaml
+      - id: check-json
+        exclude: "^frontend/tsconfig\\.json$"
+      - id: check-merge-conflict
 
-  - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v8.52.0
-    hooks:
-      - id: eslint
-        name: eslint (frontend)
-        files: "^frontend/.*\\.(js|ts|svelte)$"
-        args: [ "--max-warnings=0", "--config", "frontend/.eslintrc.cjs" ]
-        additional_dependencies:
-          - eslint@8.52.0
-          - eslint-config-prettier@9.0.0
-          - eslint-plugin-svelte@3.13.1
-          - svelte@4.0.0
-          - '@typescript-eslint/parser@8.50.1'
-          - '@typescript-eslint/eslint-plugin@8.50.1'
-          - 'svelte-eslint-parser@1.4.1'
-
-  - repo: https://github.com/pre-commit/mirrors-prettier
-    rev: v3.0.0
-    hooks:
-      - id: prettier
-        name: prettier (frontend)
-        files: "^frontend/.*\\.(svelte|ts|js|css|json|md|html)$"
-        additional_dependencies:
-          - prettier@3.0.0
-          - prettier-plugin-svelte@3.0.0
-
-  - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.14.9
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.16.8
     hooks:
       - id: ruff-format
       - id: ruff
         args: [ --fix, --exit-non-zero-on-fix ]
 
+  # Frontend hooks run the versions pinned in frontend/package.json (requires `pnpm install` in frontend/).
   - repo: local
     hooks:
+      - id: eslint
+        name: eslint (frontend)
+        language: system
+        files: "^frontend/.*\\.(js|ts|svelte)$"
+        entry: bash -c 'cd frontend && pnpm exec eslint --max-warnings=0 "${@#frontend/}"' --
+      - id: prettier
+        name: prettier (frontend)
+        language: system
+        files: "^frontend/.*\\.(svelte|ts|js|css|json|html)$"
+        exclude: "^frontend/pnpm-lock\\.yaml$"
+        entry: bash -c 'cd frontend && pnpm exec prettier --write "${@#frontend/}"' --
+
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.49.1
+    hooks:
       - id: markdownlint
-        name: markdownlint (docs)
-        entry: markdownlint
-        language: node
-        additional_dependencies:
-          - markdownlint-cli@0.36.0
-        files: "\\.(md|mdx)$"

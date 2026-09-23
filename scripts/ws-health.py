@@ -70,7 +70,7 @@ def main() -> None:
     parser.add_argument("--host", default="localhost", help="WebSocket host")
     parser.add_argument("--port", type=int, default=8000, help="WebSocket port")
     parser.add_argument(
-        "--bar", default="demo", help="Bar id used in the market channel"
+        "--bar", default="riverfront", help="Bar slug used in the market channel"
     )
     parser.add_argument(
         "--timeout", type=float, default=5.0, help="Socket timeout in seconds"
