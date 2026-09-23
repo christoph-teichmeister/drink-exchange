@@ -95,7 +95,7 @@ services:
       - celery-beat-venv:/app/.venv
 
   frontend:
-    image: node:22-bullseye
+    image: node:22-bookworm-slim
     working_dir: /app
     ports:
       - "5173:5173"
@@ -113,7 +113,7 @@ services:
     command: >
       sh -c '
         corepack enable &&
-        corepack prepare pnpm@10.26.2 --activate &&
+        corepack prepare pnpm@10.34.5 --activate &&
         pnpm install --frozen-lockfile &&
         pnpm dev --host 0.0.0.0 --port 5173
       '

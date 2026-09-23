@@ -8,58 +8,45 @@ on:
 jobs:
   frontend:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Node.js and pnpm
         uses: ./.github/actions/setup-node-pnpm
-        with:
-          node-version: 22
-          lockfile: frontend/pnpm-lock.yaml
-
-      - name: Activate pinned pnpm version
-        run: corepack prepare pnpm@10.26.2 --activate
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-        working-directory: frontend
 
       - name: Run SvelteKit sync
         run: pnpm sync
-        working-directory: frontend
 
-      - name: Run lint
+      - name: Lint
         run: pnpm lint
-        working-directory: frontend
 
-      - name: Run tests
+      - name: Check formatting
+        run: pnpm format:check
+
+      - name: Type check
+        run: pnpm check
+
+      - name: Unit tests
         run: pnpm test
-        working-directory: frontend
 
-      - name: Build frontend
+      - name: Build
         run: pnpm build
-        working-directory: frontend
 
       - name: Validate PWA output
         run: |
-          cd frontend
+          set -euo pipefail
           test -f .svelte-kit/output/client/manifest.webmanifest
-          pwafiles=(
-            .svelte-kit/output/client/sw.js
-            .svelte-kit/output/client/service-worker.js
-            .svelte-kit/output/client/service-worker.mjs
-          )
-          found=false
-          for file in "${pwafiles[@]}"; do
-            if [ -f "$file" ]; then
-              found=true
-              break
-            fi
-          done
-
-          if [ "$found" != true ]; then
-            echo "Service worker file missing from build output"
+          test -f .svelte-kit/output/client/service-worker.js
+          # Exactly one service worker: no leftover Workbox/vite-plugin-pwa output.
+          if ls .svelte-kit/output/client/sw.js .svelte-kit/output/client/workbox-*.js >/dev/null 2>&1; then
+            echo "Unexpected second service worker in build output"
             exit 1
           fi
