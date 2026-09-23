@@ -11,11 +11,11 @@ module.exports = {
       },
       colors: {
         market: {
-          primary: '#28c07f',
-          accent: '#ffbf69',
-          surface: '#05060e',
-          muted: '#3f4b66',
-          highlight: '#f65c78'
+          primary: 'var(--market-primary)',
+          accent: 'var(--market-accent)',
+          surface: 'var(--market-surface)',
+          muted: 'var(--market-muted)',
+          highlight: 'var(--market-highlight)'
         }
       }
     }

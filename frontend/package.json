@@ -4,9 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite dev --host 0.0.0.0 --port 5173",
-    "build": "svelte-kit sync && vite build",
-    "preview": "vite preview",
+    "dev": "pnpm sync && vite dev --host 0.0.0.0 --port 5173",
+    "build": "pnpm sync && vite build",
+    "preview": "pnpm sync && vite preview",
     "sync": "svelte-kit sync",
     "lint": "eslint . --ext .ts,.js,.svelte",
     "test": "echo \"TODO: add tests\""

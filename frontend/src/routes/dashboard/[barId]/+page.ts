@@ -7,7 +7,8 @@ type BarSummary = {
   name: string
   description: string
 }
-export const load: PageLoad = async ({ fetch }) => {
+
+export const load: PageLoad = async ({ fetch, params }) => {
   const response = await fetch(apiConfig.barsEndpoint(), {
     credentials: 'include'
   })
@@ -15,9 +16,14 @@ export const load: PageLoad = async ({ fetch }) => {
     if (response.status === 401 || response.status === 403) {
       throw redirect(303, '/login?from=protected')
     }
-    throw error(response.status, 'Unable to load configured bars')
+    throw error(response.status, 'Unable to load assigned bars')
   }
 
   const payload: { bars: BarSummary[] } = await response.json()
-  return { bars: payload.bars ?? [] }
+  const bar = payload.bars?.find((candidate) => candidate.slug === params.barId)
+  if (!bar) {
+    throw error(404, 'Bar not found or not assigned')
+  }
+
+  return { bar }
 }
