@@ -20,7 +20,7 @@ jobs:
       CELERY_RESULT_BACKEND: redis://localhost:6379/0
     services:
       postgres:
-        image: postgres:15
+        image: postgres:18
         env:
           POSTGRES_DB: drink_exchange
           POSTGRES_USER: drink_exchange
@@ -33,7 +33,7 @@ jobs:
           --health-timeout=5s
           --health-retries=5
       redis:
-        image: redis:7
+        image: redis:8
         ports:
           - 6379:6379
         options: >-
