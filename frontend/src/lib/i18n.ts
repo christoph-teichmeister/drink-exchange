@@ -4,39 +4,27 @@ import { derived, writable, type Readable, type Writable } from 'svelte/store'
 const en = {
   layout: {
     headerSubtitle: 'Drink Exchange',
-    headerTitle: 'Live Engineering Console',
-    headerBadge: 'Live',
+    headerTitle: 'Staff console',
     navLabel: 'Navigation',
-    navToggleLabel: 'Toggle navigation',
+    navToggleLabel: 'Open navigation',
     navCloseLabel: 'Close navigation',
     logoutLabel: 'Log out',
-    navNow: 'now',
     navItems: {
-      board: {
-        title: 'Board Lobby',
-        description: 'Big screen & events'
-      },
-      help: {
-        title: 'Help',
-        description: 'Guides & overview'
-      }
+      board: { title: 'Bars' },
+      help: { title: 'Help' }
     },
     language: {
       label: 'Language',
       options: [
-        { code: 'de', label: 'German' },
+        { code: 'de', label: 'Deutsch' },
         { code: 'en', label: 'English' }
       ]
     },
     colorMode: {
-      label: 'Color mode',
-      options: {
-        night: '🌙',
-        day: '☀️'
-      },
-      labels: {
-        night: 'Dark mode',
-        day: 'Light mode'
+      options: { dark: 'Dark', light: 'Light' },
+      switchTo: {
+        dark: 'Switch to dark mode',
+        light: 'Switch to light mode'
       }
     }
   },
@@ -93,12 +81,14 @@ const en = {
       exit: 'Leave board'
     },
     lobby: {
-      pageTitle: 'Board Lobby',
-      subtitle: 'Select a bar to view its live board.',
+      pageTitle: 'Your bars',
+      subtitle: 'Bars',
       description:
-        'Each location streams live prices and event updates—pick a bar below to open its dashboard.',
-      empty: 'No bars configured yet.',
-      openDashboard: 'Open dashboard'
+        'Open the trading desk to book purchases, the board for the big screen, or the admin to configure the market.',
+      empty: 'No bars are assigned to your account yet.',
+      openDesk: 'Trading desk',
+      openBoard: 'Board',
+      openAdmin: 'Admin'
     },
     backButton: 'Back to dashboard',
     card: {
@@ -119,122 +109,92 @@ const en = {
     }
   },
   help: {
-    pageTitle: 'Help Center',
-    hero: {
-      title: 'Understand every corner of the console',
-      subtitle:
-        'Guides, view overviews, and action references for the Drink Exchange frontend.'
-    },
-    introParagraphs: [
-      'Use the navigation to switch between the board and help experiences.',
-      'This page explains how the board streams events, prices, and alerts so you can act confidently.'
-    ],
-    learnSections: [
+    pageTitle: 'Help',
+    title: 'How Drink Exchange works',
+    intro:
+      'Prices behave like a stock market: purchases push a drink up, the others drop slightly, and every few seconds prices drift back towards their base price. Random market events add extra movement.',
+    sections: [
       {
-        title: 'Board perspective',
-        description:
-          'The big screen experience bundles ticker data, connections, and events into one console.',
-        cards: [
+        title: 'Views',
+        items: [
           {
-            name: 'Board view',
-            summary:
-              'Big screen experience with connectivity status, ticker, and live charts.',
-            actions: [
-              {
-                label: 'Board lobby',
-                detail: 'Choose a bar to open its dedicated board stream.'
-              },
-              {
-                label: 'Reconnect board',
-                detail:
-                  'Retry the WebSocket connection if the board goes offline.'
-              }
-            ]
+            term: 'Bars',
+            detail:
+              'Lists the bars assigned to your account and opens their desk, board or admin.'
+          },
+          {
+            term: 'Trading desk',
+            detail:
+              'For staff at the counter: pick a quantity and book a purchase. Prices update immediately for everyone.'
+          },
+          {
+            term: 'Board',
+            detail:
+              'Full-screen market view for a TV: quotes, ticker tape, chart and the current market event. Use the fullscreen button in its footer.'
+          },
+          {
+            term: 'Admin',
+            detail:
+              'Links to the configuration of bar settings, drinks, market events and the trade log.'
           }
         ]
       },
       {
-        title: 'Actions & events',
-        description:
-          'Track how actions translate into events and how the UI reacts.',
-        cards: [
+        title: 'Prices',
+        items: [
           {
-            name: 'Live event overlay',
-            summary:
-              'Displays the current event status on the board so everyone sees the latest story.',
-            actions: [
-              {
-                label: 'Event.* channel',
-                detail:
-                  'Pushes lifecycle events (started, ended, idle) to boards.'
-              },
-              {
-                label: 'Event feed',
-                detail:
-                  'Streams upcoming and active event titles for quick context.'
-              }
-            ]
+            term: 'Change',
+            detail:
+              'Shown against the base price, the level the market returns to when nobody buys.'
           },
           {
-            name: 'Price updates',
-            summary:
-              'Charts and tickers listen to pricing events to keep every value current.',
-            actions: [
-              {
-                label: 'prices.update channel',
-                detail: 'Feeds the line charts with new price points.'
-              },
-              {
-                label: 'Event points',
-                detail:
-                  'Each price point is tagged with the time and trend indicator.'
-              }
-            ]
+            term: 'Purchases',
+            detail:
+              'Each unit bought raises the drink by its volatility share of the base price; the other drinks lose part of that, weighted by their weight.'
+          },
+          {
+            term: 'Bounds',
+            detail:
+              'Prices are rounded to each drink’s step and never leave its minimum and maximum.'
           }
         ]
       },
       {
-        title: 'Connectivity & best practices',
-        description: 'Keep the big screen stable and ready for events.',
-        cards: [
+        title: 'Market events',
+        items: [
           {
-            name: 'Connection states',
-            summary:
-              'Statuses change between connecting, connected, reconnecting, offline, and no access.',
-            actions: [
-              {
-                label: 'Reconnecting',
-                detail:
-                  'The board retries automatically with increasing delays and marks prices as outdated meanwhile.'
-              },
-              {
-                label: 'Reconnect button',
-                detail:
-                  'Manually restart the stream when automatic retries stall.'
-              }
-            ]
+            term: 'Boom',
+            detail: 'All prices are pulled upwards for a while.'
+          },
+          { term: 'Crash', detail: 'All prices are pulled downwards.' },
+          { term: 'Focus', detail: 'Only selected drinks are in demand.' },
+          {
+            term: 'Countdown',
+            detail:
+              'The board shows how long the current event lasts; its effect fades out towards the end.'
+          }
+        ]
+      },
+      {
+        title: 'Connection',
+        items: [
+          {
+            term: 'Live',
+            detail: 'Prices arrive in real time.'
           },
           {
-            name: 'Readiness cues',
-            summary:
-              'Colors, badges, and alerts signal liveliness across boards and actions.',
-            actions: [
-              {
-                label: 'Live badge',
-                detail: 'Confirms the console is streaming data.'
-              },
-              {
-                label: 'Alert banners',
-                detail:
-                  'Explain where events and price data originate for transparency.'
-              }
-            ]
+            term: 'Reconnecting / Offline',
+            detail:
+              'The screen retries automatically and marks prices as stale until the connection is back. Bookings on the desk still go through.'
+          },
+          {
+            term: 'No access',
+            detail:
+              'Your session expired or your account is not assigned to this bar. Sign in again.'
           }
         ]
       }
-    ],
-    footer:
-      'Need more help? Check the documentation or reach out to the operations team.'
+    ]
   },
   auth: {
     login: {
@@ -253,18 +213,54 @@ const en = {
     }
   },
   dashboard: {
-    pageTitle: 'Bar dashboard',
-    description: 'Choose where to continue once a bar is selected.',
-    actions: {
-      board: 'Open board view',
-      admin: 'Open admin console'
-    },
-    logout: 'Log out'
+    pageTitle: 'Trading desk',
+    subtitle: 'Book purchases; prices react immediately.',
+    quotes: 'Drinks',
+    book: 'Book',
+    bookLabel: 'Book {qty} × {drink}',
+    qtyLabel: 'Quantity for {drink}',
+    decrease: 'Decrease quantity',
+    increase: 'Increase quantity',
+    booked: '{qty} × {drink} booked · {before} → {after}',
+    recent: 'Recent bookings',
+    recentEmpty: 'No bookings in this session yet.',
+    staleNotice:
+      'Live prices are paused. Bookings still work; prices refresh after each booking.',
+    openBoard: 'Open board',
+    openAdmin: 'Admin',
+    errors: {
+      general: 'The booking failed. Please try again.',
+      network: 'No connection to the server. Please try again.',
+      session: 'Your session expired. Sign in again to book.',
+      forbidden: 'Your account is not assigned to this bar.'
+    }
   },
   admin: {
-    pageTitle: 'Admin console',
-    description: 'Administrative tools for this bar are coming soon.',
-    emptyState: 'Admin options will appear here once enabled.'
+    pageTitle: 'Admin',
+    description:
+      'The market is configured in the Django admin for now. Each link opens the matching section in a new tab.',
+    openDesk: 'Trading desk',
+    open: 'Open',
+    sections: {
+      bar: {
+        title: 'Bar settings',
+        detail:
+          'Tick interval, mean reversion, purchase impulse and normalization.'
+      },
+      drinks: {
+        title: 'Drinks',
+        detail: 'Base, minimum and maximum price, volatility, weight, rounding.'
+      },
+      events: {
+        title: 'Market events',
+        detail:
+          'Boom, crash and focus definitions: probability, duration, cooldown.'
+      },
+      trades: {
+        title: 'Trades',
+        detail: 'Booking log; bookings added here move prices like the desk.'
+      }
+    }
   },
   errors: {
     barsUnavailable: 'Your assigned bars could not be loaded.',
@@ -287,39 +283,27 @@ export type Translation = Widen<typeof en>
 const de: Translation = {
   layout: {
     headerSubtitle: 'Drink Exchange',
-    headerTitle: 'Live Engineering Console',
-    headerBadge: 'Live',
+    headerTitle: 'Staff-Konsole',
     navLabel: 'Navigation',
-    navToggleLabel: 'Navigation umschalten',
+    navToggleLabel: 'Navigation öffnen',
     navCloseLabel: 'Navigation schließen',
     logoutLabel: 'Abmelden',
-    navNow: 'jetzt',
     navItems: {
-      board: {
-        title: 'Board-Lobby',
-        description: 'Big Screen & Events'
-      },
-      help: {
-        title: 'Hilfe',
-        description: 'Anleitungen & Überblick'
-      }
+      board: { title: 'Bars' },
+      help: { title: 'Hilfe' }
     },
     language: {
       label: 'Sprache',
       options: [
         { code: 'de', label: 'Deutsch' },
-        { code: 'en', label: 'Englisch' }
+        { code: 'en', label: 'English' }
       ]
     },
     colorMode: {
-      label: 'Farbmodus',
-      options: {
-        night: '🌙',
-        day: '☀️'
-      },
-      labels: {
-        night: 'Dunkler Modus',
-        day: 'Heller Modus'
+      options: { dark: 'Dunkel', light: 'Hell' },
+      switchTo: {
+        dark: 'Zum dunklen Design wechseln',
+        light: 'Zum hellen Design wechseln'
       }
     }
   },
@@ -376,12 +360,14 @@ const de: Translation = {
       exit: 'Board verlassen'
     },
     lobby: {
-      pageTitle: 'Board-Lobby',
-      subtitle: 'Wähle eine Bar, um ihr Live-Board aufzurufen.',
+      pageTitle: 'Deine Bars',
+      subtitle: 'Bars',
       description:
-        'Jede Location streamt Live-Preise und Events. Wähle eine Bar aus, um ihr Dashboard zu öffnen.',
-      empty: 'Noch keine Bars konfiguriert.',
-      openDashboard: 'Dashboard öffnen'
+        'Öffne den Trading-Desk zum Buchen von Käufen, das Board für den großen Bildschirm oder den Admin-Bereich zur Konfiguration des Markts.',
+      empty: 'Deinem Konto sind noch keine Bars zugewiesen.',
+      openDesk: 'Trading-Desk',
+      openBoard: 'Board',
+      openAdmin: 'Admin'
     },
     backButton: 'Zurück zum Dashboard',
     card: {
@@ -402,120 +388,92 @@ const de: Translation = {
     }
   },
   help: {
-    pageTitle: 'Hilfecenter',
-    hero: {
-      title: 'Kenntnisse über alle Bereiche der Konsole',
-      subtitle:
-        'Leitfäden, Überblick über Ansichten und Aktionsreferenzen für das Drink Exchange Frontend.'
-    },
-    introParagraphs: [
-      'Nutze die Navigation, um zwischen Board- und Hilfeseiten zu wechseln.',
-      'Diese Seite erklärt, wie das Board Events, Preise und Alerts bereitstellt, damit du sicher handelst.'
-    ],
-    learnSections: [
+    pageTitle: 'Hilfe',
+    title: 'So funktioniert Drink Exchange',
+    intro:
+      'Die Preise verhalten sich wie an der Börse: Käufe treiben ein Getränk nach oben, die anderen fallen leicht, und alle paar Sekunden laufen die Preise zum Basispreis zurück. Zufällige Marktereignisse sorgen für zusätzliche Bewegung.',
+    sections: [
       {
-        title: 'Board-Perspektive',
-        description:
-          'Das Big Screen-Erlebnis bündelt Ticker, Verbindungen und Events in einer übersichtlichen Konsole.',
-        cards: [
+        title: 'Ansichten',
+        items: [
           {
-            name: 'Board-Ansicht',
-            summary:
-              'Big Screen-Erlebnis mit Verbindungsstatus, Ticker und Live-Charts.',
-            actions: [
-              {
-                label: 'Board-Lobby',
-                detail: 'Wähle eine Bar, um ihren Board-Stream zu öffnen.'
-              },
-              {
-                label: 'Board neu verbinden',
-                detail:
-                  'Startet die WebSocket-Verbindung neu, wenn das Board offline geht.'
-              }
-            ]
+            term: 'Bars',
+            detail:
+              'Zeigt die Bars deines Kontos und öffnet deren Desk, Board oder Admin-Bereich.'
+          },
+          {
+            term: 'Trading-Desk',
+            detail:
+              'Für den Tresen: Menge wählen und Kauf buchen. Die Preise ändern sich sofort für alle.'
+          },
+          {
+            term: 'Board',
+            detail:
+              'Vollbild-Marktansicht für den Fernseher: Kurse, Laufband, Chart und das aktuelle Marktereignis. Vollbild über den Knopf in der Fußzeile.'
+          },
+          {
+            term: 'Admin',
+            detail:
+              'Links zur Konfiguration von Bar-Einstellungen, Getränken, Marktereignissen und zum Buchungsprotokoll.'
           }
         ]
       },
       {
-        title: 'Aktionen & Events',
-        description:
-          'Verfolge, wie Aktionen in Events münden und wie die UI reagiert.',
-        cards: [
+        title: 'Preise',
+        items: [
           {
-            name: 'Event-Overlay',
-            summary:
-              'Zeigt den aktuellen Eventstatus auf dem Board, sodass alle den neuesten Ablauf sehen.',
-            actions: [
-              {
-                label: 'Event.*-Kanal',
-                detail:
-                  'Sendet Lifecycle-Events (gestartet, beendet, idle) an die Boards.'
-              },
-              {
-                label: 'Event-Feed',
-                detail:
-                  'Streaming aktivierter und geplanter Eventtitel für Kontext.'
-              }
-            ]
+            term: 'Änderung',
+            detail:
+              'Bezogen auf den Basispreis – das Niveau, zu dem der Markt ohne Käufe zurückkehrt.'
           },
           {
-            name: 'Preisupdates',
-            summary:
-              'Charts und Ticker lauschen auf Preis-Events, damit alle Werte aktuell bleiben.',
-            actions: [
-              {
-                label: 'prices.update-Kanal',
-                detail: 'Versorgt die Liniencharts mit neuen Preiswerten.'
-              },
-              {
-                label: 'Eventpunkte',
-                detail: 'Jeder Wertepunkt bekommt Zeitstempel und Trendlabel.'
-              }
-            ]
+            term: 'Käufe',
+            detail:
+              'Jede gekaufte Einheit hebt das Getränk um seinen Volatilitätsanteil am Basispreis; die anderen verlieren einen Teil davon, gewichtet nach ihrem Gewicht.'
+          },
+          {
+            term: 'Grenzen',
+            detail:
+              'Preise werden auf die Schrittweite des Getränks gerundet und verlassen nie Minimum und Maximum.'
           }
         ]
       },
       {
-        title: 'Konnektivität & Best Practices',
-        description: 'Halte das Big Screen stabil und bereit für Events.',
-        cards: [
+        title: 'Marktereignisse',
+        items: [
           {
-            name: 'Verbindungsstatus',
-            summary:
-              'Status wechselt zwischen verbindet, verbunden, verbindet neu, offline und kein Zugriff.',
-            actions: [
-              {
-                label: 'Verbindet neu',
-                detail:
-                  'Das Board versucht es automatisch mit wachsenden Abständen erneut und markiert Preise solange als veraltet.'
-              },
-              {
-                label: 'Neustart-Button',
-                detail:
-                  'Startet den Stream manuell neu, wenn automatische Versuche stocken.'
-              }
-            ]
+            term: 'Boom',
+            detail: 'Alle Preise werden eine Zeit lang nach oben gezogen.'
+          },
+          { term: 'Crash', detail: 'Alle Preise werden nach unten gezogen.' },
+          { term: 'Fokus', detail: 'Nur ausgewählte Getränke sind gefragt.' },
+          {
+            term: 'Countdown',
+            detail:
+              'Das Board zeigt, wie lange das Ereignis noch läuft; seine Wirkung klingt zum Ende hin ab.'
+          }
+        ]
+      },
+      {
+        title: 'Verbindung',
+        items: [
+          {
+            term: 'Live',
+            detail: 'Preise kommen in Echtzeit an.'
           },
           {
-            name: 'Bereitschaftshinweise',
-            summary:
-              'Farben, Badges und Hinweise zeigen, dass die Daten live sind.',
-            actions: [
-              {
-                label: 'Live-Badge',
-                detail: 'Bestätigt, dass die Konsole Daten streamt.'
-              },
-              {
-                label: 'Hinweisbanner',
-                detail: 'Erklärt, woher Events und Preisdaten stammen.'
-              }
-            ]
+            term: 'Verbinde neu / Offline',
+            detail:
+              'Der Bildschirm versucht es automatisch erneut und markiert Preise als veraltet, bis die Verbindung steht. Buchungen am Desk funktionieren trotzdem.'
+          },
+          {
+            term: 'Kein Zugriff',
+            detail:
+              'Deine Sitzung ist abgelaufen oder dein Konto ist dieser Bar nicht zugewiesen. Melde dich erneut an.'
           }
         ]
       }
-    ],
-    footer:
-      'Mehr Hilfe gewünscht? Schau in die Dokumentation oder kontaktiere das Operations-Team.'
+    ]
   },
   auth: {
     login: {
@@ -534,18 +492,56 @@ const de: Translation = {
     }
   },
   dashboard: {
-    pageTitle: 'Bar-Dashboard',
-    description: 'Wähle eine Ansicht für die ausgewählte Bar.',
-    actions: {
-      board: 'Board-Ansicht öffnen',
-      admin: 'Admin-Konsole öffnen'
-    },
-    logout: 'Abmelden'
+    pageTitle: 'Trading-Desk',
+    subtitle: 'Käufe buchen, die Preise reagieren sofort.',
+    quotes: 'Getränke',
+    book: 'Buchen',
+    bookLabel: '{qty} × {drink} buchen',
+    qtyLabel: 'Menge für {drink}',
+    decrease: 'Menge verringern',
+    increase: 'Menge erhöhen',
+    booked: '{qty} × {drink} gebucht · {before} → {after}',
+    recent: 'Letzte Buchungen',
+    recentEmpty: 'In dieser Sitzung noch keine Buchungen.',
+    staleNotice:
+      'Live-Preise pausieren. Buchen funktioniert weiter; die Preise aktualisieren sich nach jeder Buchung.',
+    openBoard: 'Board öffnen',
+    openAdmin: 'Admin',
+    errors: {
+      general: 'Die Buchung ist fehlgeschlagen. Bitte erneut versuchen.',
+      network: 'Keine Verbindung zum Server. Bitte erneut versuchen.',
+      session: 'Deine Sitzung ist abgelaufen. Melde dich zum Buchen erneut an.',
+      forbidden: 'Dein Konto ist dieser Bar nicht zugewiesen.'
+    }
   },
   admin: {
-    pageTitle: 'Admin-Konsole',
-    description: 'Administrative Funktionen für diese Bar folgen bald.',
-    emptyState: 'Admin-Tools für diese Bar kommen in Kürze.'
+    pageTitle: 'Admin',
+    description:
+      'Der Markt wird vorerst im Django-Admin konfiguriert. Jeder Link öffnet den passenden Bereich in einem neuen Tab.',
+    openDesk: 'Trading-Desk',
+    open: 'Öffnen',
+    sections: {
+      bar: {
+        title: 'Bar-Einstellungen',
+        detail:
+          'Tick-Intervall, Rückkehr zum Basispreis, Kauf-Impuls und Normalisierung.'
+      },
+      drinks: {
+        title: 'Getränke',
+        detail:
+          'Basis-, Mindest- und Höchstpreis, Volatilität, Gewicht, Rundung.'
+      },
+      events: {
+        title: 'Marktereignisse',
+        detail:
+          'Boom-, Crash- und Fokus-Definitionen: Wahrscheinlichkeit, Dauer, Abklingzeit.'
+      },
+      trades: {
+        title: 'Buchungen',
+        detail:
+          'Buchungsprotokoll; hier angelegte Buchungen bewegen die Preise wie am Desk.'
+      }
+    }
   },
   errors: {
     barsUnavailable: 'Deine zugewiesenen Bars konnten nicht geladen werden.',

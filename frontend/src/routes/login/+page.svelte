@@ -53,63 +53,57 @@
   <title>{$translations.auth.login.pageTitle}</title>
 </svelte:head>
 
-<div
-  class="flex min-h-[calc(100vh-96px)] items-center justify-center px-4 py-8"
->
-  <Card
-    title={$translations.auth.login.pageTitle}
-    description={$translations.auth.login.description}
-  >
-    <!-- method="post" keeps credentials out of the URL if the form is submitted before hydration. -->
-    <form class="space-y-5" method="post" onsubmit={handleSubmit}>
-      {#if errorMessage}
-        <div role="alert">
-          <Alert level="danger">
-            <p class="text-sm">{errorMessage}</p>
-          </Alert>
+<div class="flex min-h-[70dvh] items-center justify-center py-8">
+  <div class="w-full max-w-sm">
+    <Card
+      title={$translations.auth.login.pageTitle}
+      heading={$translations.auth.login.description}
+    >
+      <!-- method="post" keeps credentials out of the URL if the form is submitted before hydration. -->
+      <form class="space-y-5" method="post" onsubmit={handleSubmit}>
+        {#if errorMessage}
+          <div role="alert">
+            <Alert level="danger">{errorMessage}</Alert>
+          </div>
+        {/if}
+        <div class="space-y-2">
+          <label for="login-username" class="ui-label"
+            >{$translations.auth.login.usernameLabel}</label
+          >
+          <input
+            id="login-username"
+            class="ui-input"
+            type="text"
+            name="username"
+            autocomplete="username"
+            bind:value={username}
+            required
+          />
         </div>
-      {/if}
-      <div class="space-y-2">
-        <label
-          for="login-username"
-          class="text-xs tracking-[0.35em] text-white/60 uppercase"
-          >{$translations.auth.login.usernameLabel}</label
+        <div class="space-y-2">
+          <label for="login-password" class="ui-label"
+            >{$translations.auth.login.passwordLabel}</label
+          >
+          <input
+            id="login-password"
+            class="ui-input"
+            type="password"
+            name="password"
+            autocomplete="current-password"
+            bind:value={password}
+            required
+          />
+        </div>
+        <button
+          class="ui-btn-primary w-full py-3"
+          type="submit"
+          disabled={isSubmitting}
+          aria-busy={isSubmitting}
         >
-        <input
-          id="login-username"
-          class="w-full rounded-2xl border border-white/10 bg-market-surface/20 px-4 py-3 text-sm text-white placeholder:text-white/40 focus:border-market-accent/60 focus:outline-hidden"
-          type="text"
-          name="username"
-          autocomplete="username"
-          bind:value={username}
-          required
-        />
-      </div>
-      <div class="space-y-2">
-        <label
-          for="login-password"
-          class="text-xs tracking-[0.35em] text-white/60 uppercase"
-          >{$translations.auth.login.passwordLabel}</label
-        >
-        <input
-          id="login-password"
-          class="w-full rounded-2xl border border-white/10 bg-market-surface/20 px-4 py-3 text-sm text-white placeholder:text-white/40 focus:border-market-accent/60 focus:outline-hidden"
-          type="password"
-          name="password"
-          autocomplete="current-password"
-          bind:value={password}
-          required
-        />
-      </div>
-      <button
-        class="w-full rounded-2xl bg-market-primary px-4 py-3 text-xs font-semibold tracking-[0.4em] text-white uppercase transition hover:bg-market-primary/90 disabled:cursor-not-allowed disabled:opacity-70"
-        type="submit"
-        disabled={isSubmitting}
-        aria-busy={isSubmitting}
-      >
-        {$translations.auth.login.submitLabel}
-      </button>
-      <p class="text-xs text-white/60">{$translations.auth.login.helper}</p>
-    </form>
-  </Card>
+          {$translations.auth.login.submitLabel}
+        </button>
+        <p class="text-sm text-ui-muted">{$translations.auth.login.helper}</p>
+      </form>
+    </Card>
+  </div>
 </div>

@@ -12,6 +12,7 @@
   import { seriesColor } from '$lib/utils/chart'
   import { formatTime } from '$lib/utils/format'
   import { changeFromBase, directionOf, lastMove } from '$lib/utils/market'
+  import { connectMarketFeed } from '$lib/utils/market-feed'
   import {
     createMarketWebSocket,
     FORBIDDEN_CLOSE_CODE
@@ -44,26 +45,12 @@
     }
     document.addEventListener('fullscreenchange', onFullscreenChange)
 
-    const unsubscribers = [
-      marketWs.onStatus((connection) => board.setConnection(connection)),
-      marketWs.on('prices.update', (payload, frame) =>
-        board.applyPriceUpdate(payload, frame.timestamp)
-      ),
-      marketWs.on('event.started', (payload, frame) =>
-        board.applyEvent('event.started', payload, frame.timestamp)
-      ),
-      marketWs.on('event.ended', (payload, frame) =>
-        board.applyEvent('event.ended', payload, frame.timestamp)
-      )
-    ]
-    marketWs.connect()
+    const disconnectFeed = connectMarketFeed(board, marketWs)
 
     return () => {
       clearInterval(clock)
       document.removeEventListener('fullscreenchange', onFullscreenChange)
-      unsubscribers.forEach((unsubscribe) => unsubscribe())
-      marketWs.disconnect()
-      board.destroy()
+      disconnectFeed()
     }
   })
 

@@ -3,7 +3,6 @@
   import type { Snippet } from 'svelte'
   import { goto } from '$app/navigation'
   import { page } from '$app/state'
-  import Badge from '$lib/components/Badge.svelte'
   import NavList from '$lib/components/NavList.svelte'
   import { apiConfig } from '$lib/config'
   import {
@@ -107,32 +106,53 @@
     await syncLanguageWithBackend(nextLocale)
   }
 
-  type ThemeChoice = { id: 'night' | 'day'; value: ColorMode }
-  const themeChoices: ThemeChoice[] = [
-    { id: 'night', value: 'dark' },
-    { id: 'day', value: 'light' }
-  ]
+  const nextMode = $derived<ColorMode>($colorMode === 'dark' ? 'light' : 'dark')
 </script>
 
 <svelte:window onkeydown={handleKeydown} />
 
-<div class="min-h-screen bg-market-surface">
-  <header
-    class="border-b border-white/10 bg-linear-to-b from-market-surface/90 to-market-surface/50 px-6 py-4"
+{#snippet settings(idSuffix: string)}
+  <label class="sr-only" for={`app-language-${idSuffix}`}
+    >{$translations.layout.language.label}</label
   >
-    <div class="flex items-center justify-between gap-4">
-      <div class="flex items-center gap-4">
+  <select
+    id={`app-language-${idSuffix}`}
+    class="rounded-sm border border-ui-line-strong bg-ui-raised px-2 py-1.5 text-sm text-ui-text focus:border-ui-accent focus:outline-none"
+    value={$locale}
+    onchange={handleLanguageChange}
+  >
+    {#each $translations.layout.language.options as option (option.code)}
+      <option value={option.code}>{option.label}</option>
+    {/each}
+  </select>
+  <button
+    type="button"
+    class="ui-btn px-3 py-1.5"
+    aria-label={$translations.layout.colorMode.switchTo[nextMode]}
+    title={$translations.layout.colorMode.switchTo[nextMode]}
+    onclick={() => setColorMode(nextMode)}
+  >
+    {$translations.layout.colorMode.options[nextMode]}
+  </button>
+{/snippet}
+
+<div class="flex min-h-dvh flex-col">
+  <header class="border-b border-ui-line bg-ui-panel">
+    <div
+      class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 md:px-6"
+    >
+      <div class="flex min-w-0 items-center gap-3">
         {#if currentUser}
           <button
             bind:this={navToggle}
             type="button"
-            class="h-10 w-10 rounded-full border border-white/20 text-white/80 transition hover:border-white/40"
+            class="ui-btn h-9 w-9 p-0 md:hidden"
             aria-label={$translations.layout.navToggleLabel}
             aria-expanded={navOpen}
             aria-controls="app-navigation"
             onclick={toggleNav}
           >
-            <svg viewBox="0 0 24 24" class="m-auto h-5 w-5" aria-hidden="true">
+            <svg viewBox="0 0 24 24" class="h-4 w-4" aria-hidden="true">
               <path
                 d="M4 7h16M4 12h16M4 17h16"
                 stroke="currentColor"
@@ -142,107 +162,93 @@
             </svg>
           </button>
         {/if}
-        <div>
-          <p class="text-xs tracking-[0.4em] text-white/50 uppercase">
-            {$translations.layout.headerSubtitle}
-          </p>
-          <p class="text-2xl font-semibold text-white">
-            {$translations.layout.headerTitle}
-          </p>
-        </div>
+        <a
+          href={resolve(currentUser ? '/board' : '/login')}
+          class="flex min-w-0 items-baseline gap-3"
+        >
+          <span
+            class="font-mono text-xs font-semibold tracking-wider whitespace-nowrap text-ui-accent uppercase"
+            >{$translations.layout.headerSubtitle}</span
+          >
+          <span class="hidden truncate font-semibold sm:inline"
+            >{$translations.layout.headerTitle}</span
+          >
+        </a>
+        {#if currentUser}
+          <nav
+            class="ml-4 hidden md:block"
+            aria-label={$translations.layout.navLabel}
+          >
+            <NavList currentPath={page.url.pathname} orientation="horizontal" />
+          </nav>
+        {/if}
       </div>
-      {#if currentUser}
-        <Badge variant="success">{$translations.layout.headerBadge}</Badge>
-      {/if}
+
+      <div class="flex items-center gap-2">
+        <div class="hidden items-center gap-2 sm:flex">
+          {@render settings('header')}
+        </div>
+        {#if currentUser}
+          <span class="ml-2 hidden font-mono text-sm text-ui-muted md:inline"
+            >{currentUser.username}</span
+          >
+          <button
+            type="button"
+            class="ui-btn hidden px-3 py-1.5 md:inline-flex"
+            onclick={handleLogout}
+            disabled={isLoggingOut}
+          >
+            {$translations.layout.logoutLabel}
+          </button>
+        {/if}
+      </div>
     </div>
   </header>
-  <div class="flex min-h-[calc(100vh-96px)]">
+
+  {#if currentUser}
     {#if navOpen}
       <button
         type="button"
-        class="fixed inset-0 z-20 cursor-default bg-black/40"
+        class="fixed inset-0 z-20 cursor-default bg-black/50 md:hidden"
         aria-label={$translations.layout.navCloseLabel}
         tabindex="-1"
         onclick={closeNav}
       ></button>
     {/if}
+    <aside
+      id="app-navigation"
+      class={`fixed inset-y-0 left-0 z-30 flex w-72 flex-col border-r border-ui-line bg-ui-panel px-5 py-6 transition-transform duration-200 md:hidden ${
+        navOpen ? 'translate-x-0' : '-translate-x-full'
+      }`}
+      aria-label={$translations.layout.navLabel}
+      inert={!navOpen}
+    >
+      <p class="ui-label">{$translations.layout.navLabel}</p>
+      <NavList
+        currentPath={page.url.pathname}
+        orientation="vertical"
+        onChoose={closeNav}
+      />
+      <div class="mt-8 flex items-center gap-2 border-t border-ui-line pt-6">
+        {@render settings('drawer')}
+      </div>
+      <div class="mt-auto border-t border-ui-line pt-4">
+        <p class="mb-3 font-mono text-sm text-ui-muted">
+          {currentUser.username}
+        </p>
+        <button
+          type="button"
+          class="ui-btn w-full"
+          onclick={handleLogout}
+          disabled={isLoggingOut}
+        >
+          {$translations.layout.logoutLabel}
+        </button>
+      </div>
+    </aside>
+  {/if}
 
-    {#if currentUser}
-      <aside
-        id="app-navigation"
-        class={`side-panel fixed inset-y-0 left-0 z-30 w-64 border-r border-white/20 px-6 py-8 transition-transform duration-300 ${
-          navOpen ? 'translate-x-0' : '-translate-x-full'
-        } flex flex-col`}
-        aria-label={$translations.layout.navLabel}
-        inert={!navOpen}
-      >
-        <div class="flex h-full flex-col">
-          <NavList currentPath={page.url.pathname} onChoose={closeNav} />
-          <div class="mt-10 space-y-6 border-t border-white/10 pt-6">
-            <div>
-              <label
-                for="app-language"
-                class="text-xs tracking-[0.4em] text-white/60 uppercase"
-              >
-                {$translations.layout.language.label}
-              </label>
-              <select
-                id="app-language"
-                class="mt-2 w-full rounded-2xl border border-white/10 bg-market-surface/30 px-4 py-3 text-sm text-white transition focus:border-market-accent/80 focus:outline-hidden"
-                value={$locale}
-                onchange={handleLanguageChange}
-              >
-                {#each $translations.layout.language.options as option (option.code)}
-                  <option value={option.code}>{option.label}</option>
-                {/each}
-              </select>
-            </div>
-            <div role="group" aria-labelledby="app-color-mode-label">
-              <p
-                id="app-color-mode-label"
-                class="text-xs tracking-[0.4em] text-white/60 uppercase"
-              >
-                {$translations.layout.colorMode.label}
-              </p>
-              <div class="mt-3 grid grid-cols-2 gap-3">
-                {#each themeChoices as choice (choice.id)}
-                  <button
-                    type="button"
-                    class={`rounded-2xl border px-4 py-3 text-xs font-semibold tracking-[0.3em] uppercase transition focus:outline-hidden ${
-                      $colorMode === choice.value
-                        ? 'border-market-primary/70 bg-market-primary/10 text-market-primary'
-                        : 'border-white/10 text-white/70 hover:border-white/30'
-                    }`}
-                    aria-label={$translations.layout.colorMode.labels[
-                      choice.id
-                    ]}
-                    aria-pressed={$colorMode === choice.value}
-                    onclick={() => setColorMode(choice.value)}
-                  >
-                    <span aria-hidden="true"
-                      >{$translations.layout.colorMode.options[choice.id]}</span
-                    >
-                  </button>
-                {/each}
-              </div>
-            </div>
-          </div>
-          <div class="mt-auto border-t border-white/10 pt-4">
-            <button
-              type="button"
-              class="flex w-full items-center justify-center rounded-2xl border border-white/10 bg-market-surface/30 px-4 py-3 text-xs font-semibold tracking-[0.3em] text-white uppercase transition hover:border-market-accent/70 disabled:opacity-50"
-              onclick={handleLogout}
-              disabled={isLoggingOut}
-            >
-              {$translations.layout.logoutLabel}
-            </button>
-          </div>
-        </div>
-      </aside>
-    {/if}
-
-    <main class="flex-1 p-8">
-      {@render children()}
-    </main>
-  </div>
+  <main class="mx-auto w-full max-w-7xl flex-1 px-4 py-6 md:px-6 md:py-8">
+    {@render children()}
+  </main>
 </div>

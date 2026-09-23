@@ -6,9 +6,8 @@
 
 /*
  * `inline` makes utilities reference the runtime variables directly, so the
- * light/dark palettes below keep working. Tailwind 4 builds opacity variants
- * (e.g. `bg-market-surface/90`) with `color-mix()`, which also works for
- * colors that are plain `var(--x)` references.
+ * light/dark palettes below keep working (opacity variants use color-mix()).
+ * `term-*`: the always-dark big-screen board. `ui-*`: the staff views.
  */
 @theme inline {
   --font-sans:
@@ -25,21 +24,28 @@
   --color-term-up: var(--term-up);
   --color-term-down: var(--term-down);
   --color-term-amber: var(--term-amber);
-  --color-market-primary: var(--market-primary);
-  --color-market-accent: var(--market-accent);
-  --color-market-surface: var(--market-surface);
-  --color-market-muted: var(--market-muted);
-  --color-market-highlight: var(--market-highlight);
+  --color-ui-bg: var(--ui-bg);
+  --color-ui-panel: var(--ui-panel);
+  --color-ui-raised: var(--ui-raised);
+  --color-ui-line: var(--ui-line);
+  --color-ui-line-strong: var(--ui-line-strong);
+  --color-ui-text: var(--ui-text);
+  --color-ui-muted: var(--ui-muted);
+  --color-ui-dim: var(--ui-dim);
+  --color-ui-accent: var(--ui-accent);
+  --color-ui-accent-ink: var(--ui-accent-ink);
+  --color-ui-up: var(--ui-up);
+  --color-ui-down: var(--ui-down);
 }
 
 @layer base {
-  /* Tailwind 3 defaults kept for visual parity after the v4 upgrade. */
+  /* Default hairline color for any border without an explicit color. */
   *,
   ::after,
   ::before,
   ::backdrop,
   ::file-selector-button {
-    border-color: var(--color-gray-200, currentColor);
+    border-color: var(--ui-line, currentColor);
   }
 
   button:not(:disabled),
@@ -48,42 +54,44 @@
   }
 }
 
+/*
+ * App palette for the staff views (login, lobby, trading desk, admin, help).
+ * Dark is the default; the light theme swaps the same tokens so no component
+ * needs theme-specific classes. Hairlines instead of cards, amber as the only
+ * accent, green/red strictly for price direction (same language as the board).
+ */
 :root {
-  --market-primary: #3056ff;
-  --market-accent: #ff6d5f;
-  --market-surface: #f8f9ff;
-  --market-muted: #5d6678;
-  --market-highlight: #fb7185;
-
-  --surface-base: var(--market-surface);
-  --surface-soft: #ffffff;
-  --surface-strong: #e4e8ff;
-  --border-base: rgba(15, 23, 42, 0.28);
-  --border-muted: rgba(15, 23, 42, 0.14);
-  --text-primary: #0f172a;
-  --text-muted: #4b5563;
-  --overlay: rgba(15, 23, 42, 0.55);
-
-  color-scheme: light;
-}
-
-:root[data-theme='dark'] {
-  --market-primary: #7dd3fc;
-  --market-accent: #a855f7;
-  --market-surface: #030712;
-  --market-muted: #9fb6cd;
-  --market-highlight: #fb7185;
-
-  --surface-base: var(--market-surface);
-  --surface-soft: #080f23;
-  --surface-strong: #111a33;
-  --border-base: rgba(255, 255, 255, 0.16);
-  --border-muted: rgba(255, 255, 255, 0.08);
-  --text-primary: #f8fafc;
-  --text-muted: #cbd5f5;
-  --overlay: rgba(2, 3, 11, 0.85);
+  --ui-bg: #06080b;
+  --ui-panel: #0b0f14;
+  --ui-raised: #111720;
+  --ui-line: #1b222c;
+  --ui-line-strong: #2b3440;
+  --ui-text: #e8edf2;
+  --ui-muted: #8f99a8;
+  --ui-dim: #5d6674;
+  --ui-accent: #ffb020;
+  --ui-accent-ink: #1a1200;
+  --ui-up: #2fd67f;
+  --ui-down: #ff5c5c;
 
   color-scheme: dark;
+}
+
+:root[data-theme='light'] {
+  --ui-bg: #f5f6f8;
+  --ui-panel: #ffffff;
+  --ui-raised: #ffffff;
+  --ui-line: #e1e5ea;
+  --ui-line-strong: #c3cad3;
+  --ui-text: #0e1318;
+  --ui-muted: #56606d;
+  --ui-dim: #8a93a0;
+  --ui-accent: #9a5b00;
+  --ui-accent-ink: #ffffff;
+  --ui-up: #0c7f43;
+  --ui-down: #c62828;
+
+  color-scheme: light;
 }
 
 body {
@@ -93,57 +101,30 @@ body {
     system-ui,
     -apple-system,
     sans-serif;
-  background-color: var(--surface-base);
-  color: var(--text-primary);
+  background-color: var(--ui-bg);
+  color: var(--ui-text);
 }
 
-.side-panel {
-  background-color: var(--surface-soft);
-  background: linear-gradient(
-    180deg,
-    rgba(247, 249, 255, 0.96) 0%,
-    rgba(241, 243, 255, 0.92) 100%
-  );
-  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.15);
-  border-right: 1px solid var(--border-base);
-}
+@layer components {
+  .ui-label {
+    @apply text-xs font-medium tracking-wider text-ui-muted uppercase;
+  }
 
-:root[data-theme='dark'] .side-panel {
-  background-color: var(--surface-soft);
-  background: linear-gradient(
-    180deg,
-    rgba(12, 15, 32, 0.95) 0%,
-    rgba(10, 12, 25, 0.92) 100%
-  );
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
-}
+  .ui-input {
+    @apply w-full rounded-sm border border-ui-line-strong bg-ui-raised px-3 py-2.5 text-base text-ui-text placeholder:text-ui-dim focus:border-ui-accent focus:outline-none;
+  }
 
-:root.light .text-white {
-  color: var(--text-primary) !important;
-}
+  .ui-btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-sm border border-ui-line-strong px-4 whitespace-nowrap py-2.5 text-sm font-semibold text-ui-text transition-colors hover:border-ui-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent disabled:cursor-not-allowed disabled:opacity-50;
+  }
 
-:root.light .text-white\/40 {
-  color: rgba(15, 23, 42, 0.4) !important;
-}
+  .ui-btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-sm border border-ui-accent bg-ui-accent px-4 whitespace-nowrap py-2.5 text-sm font-semibold text-ui-accent-ink transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent disabled:cursor-not-allowed disabled:opacity-50;
+  }
 
-:root.light .text-white\/50 {
-  color: rgba(15, 23, 42, 0.5) !important;
-}
-
-:root.light .text-white\/60 {
-  color: rgba(15, 23, 42, 0.6) !important;
-}
-
-:root.light .text-white\/70 {
-  color: rgba(15, 23, 42, 0.7) !important;
-}
-
-:root.light .text-white\/80 {
-  color: rgba(15, 23, 42, 0.8) !important;
-}
-
-:root.light .text-white\/90 {
-  color: rgba(15, 23, 42, 0.9) !important;
+  .ui-link {
+    @apply text-ui-accent underline-offset-4 hover:underline;
+  }
 }
 
 /*
@@ -219,7 +200,35 @@ body {
   animation: term-blink 1.6s steps(1, end) infinite;
 }
 
+@keyframes ui-flash-up {
+  from {
+    background-color: color-mix(in srgb, var(--ui-up) 20%, transparent);
+  }
+  to {
+    background-color: transparent;
+  }
+}
+
+@keyframes ui-flash-down {
+  from {
+    background-color: color-mix(in srgb, var(--ui-down) 20%, transparent);
+  }
+  to {
+    background-color: transparent;
+  }
+}
+
+.ui-flash-up {
+  animation: ui-flash-up 1.2s ease-out forwards;
+}
+
+.ui-flash-down {
+  animation: ui-flash-down 1.2s ease-out forwards;
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .ui-flash-up,
+  .ui-flash-down,
   .term-flash-up,
   .term-flash-down,
   .term-tape,
