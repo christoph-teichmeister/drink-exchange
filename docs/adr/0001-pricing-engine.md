@@ -1,114 +1,114 @@
-# ADR 0001: Preisengine & Marktmechanik
+# ADR 0001: Pricing Engine & Market Mechanics
 
 ## Status
 
 Accepted
 
-## Kontext
+## Context
 
-Wir simulieren einen Getränkemarkt für eine Bar:
+We simulate a drink market for a bar:
 
-- Käufe beeinflussen Preise sofort (Impuls)
-- Ohne Käufe sollen Preise langsam zum Basispreis zurückkehren (Decay/Mean-Reversion)
-- „Andere Preise sinken“ als Ausgleich (Normalization), damit der Markt „atmet“
-- Random Events können global oder zielgerichtet wirken
+- Purchases influence prices immediately (impulse)
+- Without purchases, prices should slowly return to the base price (decay/mean-reversion)
+- "Other prices drop" as an offset (normalization), so the market "breathes"
+- Random events can act globally or in a targeted way
 
-Wir benötigen eine Preislogik, die:
+We need a pricing logic that:
 
-- verständlich konfigurierbar ist
-- stabil ist (keine Explosion)
-- live-fähig ist (häufige Updates)
-- deterministisch genug ist, um debugbar zu sein
+- is understandably configurable
+- is stable (no explosion)
+- is live-capable (frequent updates)
+- is deterministic enough to be debuggable
 
-## Entscheidung
+## Decision
 
-Wir implementieren eine hybride Preisengine aus:
+We implement a hybrid pricing engine consisting of:
 
-1. **Impuls pro Trade**
-2. **Normalization auf andere Drinks**
-3. **Mean-Reversion pro Tick**
-4. **Event-Multipliers (zeitlich begrenzt)**
+1. **Impulse per trade**
+2. **Normalization on other drinks**
+3. **Mean-reversion per tick**
+4. **Event multipliers (time-limited)**
 5. **Clamping (min/max)**
 
-### 1) Impuls auf gekauftes Getränk
+### 1) Impulse on the purchased drink
 
-Bei Trade `qty`:
+For a trade of `qty`:
 
 - `impulse = qty * volatility * impulse_factor`
 - `price_target += impulse`
 
-`volatility` ist pro Drink konfigurierbar (z. B. 0.02 bis 0.15).
+`volatility` is configurable per drink (e.g. 0.02 to 0.15).
 
-### 2) Normalization (andere sinken)
+### 2) Normalization (others drop)
 
-Um einen einfachen „Markt-Ausgleich“ zu erzeugen:
+To produce a simple "market offset":
 
-- Der Gesamtimpuls wird auf andere Drinks verteilt (proportional nach `weight`)
-- Für jedes andere Getränk:
+- The total impulse is distributed across the other drinks (proportional to `weight`)
+- For each other drink:
     - `price_other -= impulse * normalization_factor * (weight_other / sum_weights_others)`
 
-Das erzeugt das gewünschte Verhalten: Einer steigt, andere sinken etwas.
+This produces the desired behavior: one goes up, others drop slightly.
 
-### 3) Mean-Reversion / Decay pro Tick
+### 3) Mean-reversion / decay per tick
 
-Alle X Sekunden:
+Every X seconds:
 
 - `price = price + (base_price - price) * reversion_rate`
 
-`reversion_rate` (z. B. 0.01–0.05 pro Tick) ist bar-weit konfigurierbar.
+`reversion_rate` (e.g. 0.01–0.05 per tick) is configurable bar-wide.
 
 ### 4) Events
 
-Active Events liefern Multipliers:
+Active events provide multipliers:
 
-- Global: alle Drinks
-- Focus: nur Ziel-Subset
-- Crash/Boom: additiv oder multiplikativ (Konfiguration)
+- Global: all drinks
+- Focus: only a target subset
+- Crash/boom: additive or multiplicative (configuration)
 
-Wir nutzen *multiplikativ* als Default:
+We use *multiplicative* as the default:
 
 - `price *= event_multiplier`
 
-Eventwirkung kann über die Zeit abklingen:
+Event impact can decay over time:
 
-- `event_multiplier(t)` interpoliert von start_multiplier zu 1.0
+- `event_multiplier(t)` interpolates from start_multiplier to 1.0
 
 ### 5) Clamping
 
-Nach jeder Berechnung:
+After each calculation:
 
 - `price = clamp(price, min_price, max_price)`
-- optional: auf 0.05/0.10 runden (currency_step)
+- optional: round to 0.05/0.10 (currency_step)
 
-## Alternativen
+## Alternatives
 
-- Rein supply/demand mit Orderbook (zu komplex)
-- Rein zufällige Preisbewegungen (zu wenig kausal)
-- Nur Mean-Reversion ohne Normalization (Markt wirkt „tot“)
+- Pure supply/demand with an order book (too complex)
+- Purely random price movements (too little causality)
+- Mean-reversion only, without normalization (market feels "dead")
 
-## Konsequenzen
+## Consequences
 
-Positiv:
+Positive:
 
-- Einfach zu erklären
-- Konfigurierbar pro Bar/Drink
-- Stabil und testbar
-- Live-tauglich
+- Easy to explain
+- Configurable per bar/drink
+- Stable and testable
+- Live-capable
 
-Negativ:
+Negative:
 
-- Normalization ist ein „Game-Mechanic“, kein echter Markt
-- Muss sorgfältig geclamped werden, sonst entsteht Drift/Edge Cases
+- Normalization is a "game mechanic", not a real market
+- Must be clamped carefully, otherwise drift/edge cases occur
 
-## Teststrategie
+## Test strategy
 
-- Unit-Tests für:
-    - Impulsberechnung
-    - Normalization-Summe (Gesamtänderung im Rahmen)
-    - Mean-Reversion Konvergenz
-    - Event-Multipliers + Ablauf
+- Unit tests for:
+    - Impulse calculation
+    - Normalization sum (total change stays within bounds)
+    - Mean-reversion convergence
+    - Event multipliers + expiry
     - Clamping & rounding
 
-- Property-based Tests (optional):
-    - Preis bleibt in [min,max]
-    - Reversion führt langfristig Richtung base_price
+- Property-based tests (optional):
+    - Price stays within [min,max]
+    - Reversion moves the price toward base_price in the long run

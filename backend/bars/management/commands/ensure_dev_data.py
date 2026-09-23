@@ -6,8 +6,7 @@ from django.core.management.base import BaseCommand
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
-from bars.bar_assignment import BarAssignment
-from bars.models import Bar
+from bars.models import Bar, BarAssignment
 from events.models import EventDefinition
 from market.models import Drink, MarketSession, PricePoint, Trade
 

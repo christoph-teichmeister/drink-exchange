@@ -4,10 +4,11 @@ from decimal import Decimal
 import pytest
 from channels.db import database_sync_to_async
 from channels.testing import WebsocketCommunicator
-from django.test import override_settings
+from django.contrib.auth import get_user_model
+from django.test import Client, override_settings
 from django.utils import timezone
 
-from bars.models import Bar
+from bars.models import Bar, BarAssignment
 from config.asgi import application
 from events.models import ActiveEvent, EventDefinition
 from market.models.drink import Drink
@@ -60,6 +61,24 @@ def _create_active_event(
     )
 
 
+@database_sync_to_async
+def _session_cookie_for(bar: Bar | None, username: str) -> str:
+    """Create a user (optionally assigned to the bar) and return a logged-in session cookie header."""
+    user = get_user_model().objects.create_user(username=username, password="secret-pass")
+    if bar is not None:
+        BarAssignment.objects.create(user=user, bar=bar)
+    client = Client()
+    client.force_login(user)
+    return f"sessionid={client.cookies['sessionid'].value}"
+
+
+def _communicator(bar_slug: str, cookie: str | None = None, origin: str = "http://localhost:5173"):
+    headers = [(b"origin", origin.encode())]
+    if cookie:
+        headers.append((b"cookie", cookie.encode()))
+    return WebsocketCommunicator(application, f"/ws/market/{bar_slug}/", headers=headers)
+
+
 async def _drain_until_status(comm: WebsocketCommunicator):
     while True:
         message = await comm.receive_json_from()
@@ -82,7 +101,8 @@ async def test_market_consumer_delivers_initial_snapshot():
         ends_at=now + timedelta(hours=1),
     )
 
-    communicator = WebsocketCommunicator(application, f"/ws/market/{bar.slug}/")
+    cookie = await _session_cookie_for(bar, "river-staff")
+    communicator = _communicator(bar.slug, cookie)
     connected, _ = await communicator.connect()
     assert connected
 
@@ -108,7 +128,8 @@ async def test_broadcast_prices_publishes_to_group():
     bar = await _create_bar(slug="oak-bar", name="Oak Bar")
     drink = await _create_drink(bar, name="Pilsner", base_price=Decimal("4.00"))
 
-    communicator = WebsocketCommunicator(application, f"/ws/market/{bar.slug}/")
+    cookie = await _session_cookie_for(bar, "oak-staff")
+    communicator = _communicator(bar.slug, cookie)
     connected, _ = await communicator.connect()
     assert connected
 
@@ -122,3 +143,42 @@ async def test_broadcast_prices_publishes_to_group():
     assert update["payload"]["prices"][0]["drink_name"] == drink.name
 
     await communicator.disconnect()
+
+
+@override_settings(CHANNEL_LAYERS=IN_MEMORY_CHANNEL_LAYERS)
+@pytest.mark.asyncio
+@pytest.mark.django_db(transaction=True)
+async def test_market_consumer_rejects_anonymous_users_with_4401():
+    bar = await _create_bar(slug="anon-bar", name="Anon Bar")
+
+    communicator = _communicator(bar.slug)
+    connected, _ = await communicator.connect()
+    assert connected
+    closed = await communicator.receive_output()
+    assert closed == {"type": "websocket.close", "code": 4401}
+
+
+@override_settings(CHANNEL_LAYERS=IN_MEMORY_CHANNEL_LAYERS)
+@pytest.mark.asyncio
+@pytest.mark.django_db(transaction=True)
+async def test_market_consumer_rejects_unassigned_users_with_4403():
+    bar = await _create_bar(slug="private-bar", name="Private Bar")
+    cookie = await _session_cookie_for(None, "outsider")
+
+    communicator = _communicator(bar.slug, cookie)
+    connected, _ = await communicator.connect()
+    assert connected
+    closed = await communicator.receive_output()
+    assert closed == {"type": "websocket.close", "code": 4403}
+
+
+@override_settings(CHANNEL_LAYERS=IN_MEMORY_CHANNEL_LAYERS)
+@pytest.mark.asyncio
+@pytest.mark.django_db(transaction=True)
+async def test_market_consumer_rejects_foreign_origins():
+    bar = await _create_bar(slug="origin-bar", name="Origin Bar")
+    cookie = await _session_cookie_for(bar, "origin-staff")
+
+    communicator = _communicator(bar.slug, cookie, origin="https://evil.example")
+    connected, _ = await communicator.connect()
+    assert not connected

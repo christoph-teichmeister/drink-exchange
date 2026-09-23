@@ -41,10 +41,8 @@ if (browser) {
   })
 }
 
+// Only ever called from browser event handlers, so the module-level store is
+// never written during SSR (where it stays at its constant default).
 export const setColorMode = (mode: ColorMode) => {
   colorMode.set(mode)
-}
-
-export const toggleColorMode = () => {
-  colorMode.update((current) => (current === 'dark' ? 'light' : 'dark'))
 }

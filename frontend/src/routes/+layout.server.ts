@@ -1,34 +1,22 @@
 import type { LayoutServerLoad } from './$types'
-import {
-  fallbackLocale,
-  languageCookieName,
-  matchSupportedLocale,
-  Locale
-} from '$lib/i18n'
+import { serverApi } from '$lib/server/api'
+import type { AuthUser } from '$lib/types'
 
-const parseAcceptLanguage = (value?: string): Locale | undefined => {
-  if (!value) {
-    return undefined
-  }
-
-  const fragments = value.split(',').map((fragment) => fragment.trim())
-  for (const fragment of fragments) {
-    const [langPart] = fragment.split(';')
-    const candidate = matchSupportedLocale(langPart.trim())
-    if (candidate) {
-      return candidate
+// Runs per request on the server; `handleFetch` forwards the session cookie to
+// the internal API so a hard refresh keeps the user signed in.
+export const load: LayoutServerLoad = async ({ fetch, locals }) => {
+  let currentUser: AuthUser | null = null
+  try {
+    const response = await fetch(serverApi().auth.me())
+    if (response.ok) {
+      currentUser = (await response.json()) as AuthUser
     }
+  } catch (error) {
+    console.error('Auth check failed', error)
   }
 
-  return undefined
-}
-
-export const load: LayoutServerLoad = async ({ cookies, request }) => {
-  const cookieLocale = matchSupportedLocale(cookies.get(languageCookieName))
-  const headerLocale = parseAcceptLanguage(
-    request.headers.get('accept-language')
-  )
   return {
-    preferredLocale: cookieLocale ?? headerLocale ?? fallbackLocale
+    locale: locals.locale,
+    currentUser
   }
 }

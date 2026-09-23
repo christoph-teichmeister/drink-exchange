@@ -7,7 +7,6 @@ import secrets
 import socket
 import sys
 
-
 GUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
 
 
@@ -31,6 +30,8 @@ def probe(host: str, port: int, bar_id: str, timeout: float) -> None:
     request = (
         f"GET {resource} HTTP/1.1\r\n"
         f"Host: {host}:{port}\r\n"
+        # The backend validates the Origin against ALLOWED_HOSTS; a missing Origin is rejected.
+        f"Origin: http://{host}:{port}\r\n"
         "Upgrade: websocket\r\n"
         "Connection: Upgrade\r\n"
         f"Sec-WebSocket-Key: {key}\r\n"
@@ -68,7 +69,7 @@ def main() -> None:
     parser.add_argument("--host", default="localhost", help="WebSocket host")
     parser.add_argument("--port", type=int, default=8000, help="WebSocket port")
     parser.add_argument(
-        "--bar", default="demo", help="Bar id used in the market channel"
+        "--bar", default="riverfront", help="Bar slug used in the market channel"
     )
     parser.add_argument(
         "--timeout", type=float, default=5.0, help="Socket timeout in seconds"

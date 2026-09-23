@@ -104,7 +104,7 @@ def test_select_event_ignores_other_bars_definitions():
 
 
 @pytest.mark.django_db
-def test_event_roll_broadcasts_end_of_expired_event():
+def test_event_roll_broadcasts_to_the_bar_slug_group():
     bar = Bar.objects.create(slug="broadcast", name="Broadcast Bar")
     definition = EventDefinition.objects.create(
         bar=bar,
@@ -115,8 +115,46 @@ def test_event_roll_broadcasts_end_of_expired_event():
         cooldown_seconds=3600,
     )
     expired = start_event(bar.id, definition, now=timezone.now() - timedelta(seconds=10))
-    with mock.patch.object(tasks, "_broadcast_event") as broadcast:
+    with (
+        mock.patch.object(tasks, "broadcast_event_ended") as ended,
+        mock.patch.object(tasks, "broadcast_event_started") as started,
+    ):
         tasks.event_roll(bar.id)
-    ended_calls = [call for call in broadcast.call_args_list if call.args[1] == "event.ended"]
-    assert len(ended_calls) == 1
-    assert ended_calls[0].args[2]["event_id"] == expired.id
+    ended.assert_called_once()
+    group_key, event = ended.call_args.args
+    # Consumers join `market.<slug>`; broadcasting by primary key would reach nobody.
+    assert group_key == bar.slug
+    assert event.id == expired.id
+    started.assert_not_called()
+
+
+@pytest.mark.django_db
+def test_end_expired_events_ends_each_event_only_once():
+    bar = Bar.objects.create(slug="once", name="Once Bar")
+    definition = EventDefinition.objects.create(
+        bar=bar,
+        name="Short",
+        type=EventDefinition.EventType.CRASH,
+        probability_weight=1,
+        duration_seconds=1,
+    )
+    start_event(bar.id, definition, now=timezone.now() - timedelta(seconds=10))
+    assert len(end_expired_events(bar.id)) == 1
+    assert end_expired_events(bar.id) == []
+
+
+@pytest.mark.django_db
+def test_cleanup_expired_events_broadcasts_with_slug():
+    bar = Bar.objects.create(slug="cleanup", name="Cleanup Bar")
+    definition = EventDefinition.objects.create(
+        bar=bar,
+        name="Gone",
+        type=EventDefinition.EventType.BOOM,
+        probability_weight=1,
+        duration_seconds=1,
+    )
+    start_event(bar.id, definition, now=timezone.now() - timedelta(seconds=10))
+    with mock.patch.object(tasks, "broadcast_event_ended") as ended:
+        tasks.cleanup_expired_events()
+    ended.assert_called_once()
+    assert ended.call_args.args[0] == bar.slug

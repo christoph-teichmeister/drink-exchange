@@ -1,6 +1,6 @@
 x-backend-env: &backend-env
   DJANGO_DEBUG: "${DJANGO_DEBUG:-true}"
-  DJANGO_ALLOWED_HOSTS: "${DJANGO_ALLOWED_HOSTS:-localhost,127.0.0.1}"
+  DJANGO_ALLOWED_HOSTS: "${DJANGO_ALLOWED_HOSTS:-localhost,127.0.0.1,backend}"
   DJANGO_SECRET_KEY: "${DJANGO_SECRET_KEY:-django-insecure-change-me}"
   DJANGO_SETTINGS_MODULE: "config.settings.dev"
   DATABASE_URL: "postgres://drink_exchange:drink_exchange@postgres:5432/drink_exchange"
@@ -10,7 +10,7 @@ x-backend-env: &backend-env
 
 services:
   postgres:
-    image: postgres:15
+    image: postgres:18
     environment:
       POSTGRES_DB: drink_exchange
       POSTGRES_USER: drink_exchange
@@ -18,7 +18,8 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      # Postgres 18+ keeps PGDATA under /var/lib/postgresql/<major>/docker, so mount the parent directory.
+      - postgres18-data:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U drink_exchange -d drink_exchange"]
       interval: 10s
@@ -27,7 +28,7 @@ services:
       start_period: 5s
 
   redis:
-    image: redis:7
+    image: redis:8
     command: ["redis-server", "--save", "", "--appendonly", "yes"]
     volumes:
       - redis-data:/data
@@ -60,32 +61,42 @@ services:
     build:
       context: ./backend
       target: dev
-    entrypoint: ["celery", "-A", "config", "worker", "--loglevel=info"]
+    command: ["celery", "-A", "config", "worker", "--loglevel=info"]
     environment:
       <<: *backend-env
+      # Only the backend service migrates and seeds; the Celery containers just reuse the schema.
+      DJANGO_MIGRATE_ON_START: "0"
     depends_on:
-      postgres:
-        condition: service_healthy
+      backend:
+        condition: service_started
       redis:
         condition: service_healthy
     restart: unless-stopped
+    volumes:
+      - ./backend:/app:cached
+      - celery-worker-venv:/app/.venv
 
   celery-beat:
     build:
       context: ./backend
       target: dev
-    entrypoint: ["celery", "-A", "config", "beat", "--loglevel=info"]
+    command: ["celery", "-A", "config", "beat", "--loglevel=info"]
     environment:
       <<: *backend-env
+      # Only the backend service migrates and seeds; the Celery containers just reuse the schema.
+      DJANGO_MIGRATE_ON_START: "0"
     depends_on:
-      postgres:
-        condition: service_healthy
+      backend:
+        condition: service_started
       redis:
         condition: service_healthy
     restart: unless-stopped
+    volumes:
+      - ./backend:/app:cached
+      - celery-beat-venv:/app/.venv
 
   frontend:
-    image: node:22-bullseye
+    image: node:22-bookworm-slim
     working_dir: /app
     ports:
       - "5173:5173"
@@ -103,15 +114,19 @@ services:
     command: >
       sh -c '
         corepack enable &&
-        corepack prepare pnpm@10.26.2 --activate &&
+        corepack prepare pnpm@10.34.5 --activate &&
         pnpm install --frozen-lockfile &&
         pnpm dev --host 0.0.0.0 --port 5173
       '
 
 volumes:
-  postgres-data:
+  postgres18-data:
     driver: local
   redis-data:
     driver: local
   backend-venv:
+    driver: local
+  celery-worker-venv:
+    driver: local
+  celery-beat-venv:
     driver: local

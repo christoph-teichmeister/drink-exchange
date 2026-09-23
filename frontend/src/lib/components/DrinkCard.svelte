@@ -1,14 +1,26 @@
 <script lang="ts">
-  export let name = ''
-  export let priceLabel = ''
-  export let deltaLabel = ''
-  export let trendLabel = ''
-  export let deltaTone = 'text-white/70'
+  let {
+    name = '',
+    priceLabel = '',
+    deltaLabel = '',
+    trendLabel = '',
+    deltaTone = 'text-white/70',
+    stale = false
+  }: {
+    name?: string
+    priceLabel?: string
+    deltaLabel?: string
+    trendLabel?: string
+    deltaTone?: string
+    stale?: boolean
+  } = $props()
 </script>
 
-<article class="h-full min-h-[150px] rounded-2xl border border-white/10 bg-white/5 p-4 text-sm">
+<article
+  class={`h-full min-h-[150px] rounded-2xl border border-white/10 bg-white/5 p-4 text-sm transition-opacity ${stale ? 'opacity-50' : ''}`}
+>
   <div class="flex h-full flex-col justify-between gap-3">
-    <p class="text-xs uppercase tracking-[0.3em] text-white/40">
+    <p class="text-xs tracking-[0.3em] text-white/40 uppercase">
       <span class="block truncate">{name}</span>
     </p>
     <div class="space-y-1">

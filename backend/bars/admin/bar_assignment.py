@@ -1,10 +1,13 @@
+from ambient_toolbox.admin.model_admins.mixins import CommonInfoAdminMixin
 from django.contrib import admin
 
-from bars.bar_assignment import BarAssignment
+from bars.models import BarAssignment
 
 
 @admin.register(BarAssignment)
-class BarAssignmentAdmin(admin.ModelAdmin):
+class BarAssignmentAdmin(CommonInfoAdminMixin, admin.ModelAdmin):
+    """Controls admin list rendering for bar assignments."""
+
     list_display = ("user", "bar")
     list_filter = ("bar", "user")
     search_fields = ("user__username", "bar__name")

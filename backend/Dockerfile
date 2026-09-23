@@ -1,4 +1,4 @@
-FROM python:3.13-slim AS deps
+FROM python:3.13-slim AS deps-prod
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
@@ -10,8 +10,13 @@ RUN python -m pip install --upgrade pip uv
 
 # Copy the lock metadata first so uv sync can leverage layer caching.
 COPY pyproject.toml uv.lock ./
-RUN uv sync --frozen
+RUN uv sync --frozen --no-dev --no-install-project
 RUN sha256sum uv.lock | cut -d ' ' -f1 > uv.lock.sha256
+
+FROM deps-prod AS deps-dev
+
+# The dev image additionally ships the tooling from the `dev` dependency group (ruff, pytest).
+RUN uv sync --frozen --no-install-project
 
 FROM python:3.13-slim AS runtime-base
 
@@ -21,15 +26,15 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-# Reuse the dependency snapshot from the deps stage to keep installs cached.
-COPY --from=deps /app/.venv ./.venv
-COPY --from=deps /app/uv.lock.sha256 ./uv.lock.sha256
-RUN cp -a .venv /.venv-base
-RUN cp uv.lock.sha256 /.venv-base/uv.lock.sha256
 COPY entrypoint.sh ./entrypoint.sh
 RUN chmod +x entrypoint.sh
 
 FROM runtime-base AS dev
+
+# Reuse the dependency snapshot from the matching deps stage to keep installs cached.
+COPY --from=deps-dev /app/.venv ./.venv
+COPY --from=deps-dev /app/uv.lock.sha256 ./uv.lock.sha256
+RUN cp -a .venv /.venv-base && cp uv.lock.sha256 /.venv-base/uv.lock.sha256
 
 # Dev target surfaces reload + optional debug hooks without altering the dependency lock.
 COPY . .
@@ -42,6 +47,11 @@ ENTRYPOINT ["/app/entrypoint.sh"]
 
 FROM runtime-base AS prod
 
+# Reuse the dependency snapshot from the matching deps stage to keep installs cached.
+COPY --from=deps-prod /app/.venv ./.venv
+COPY --from=deps-prod /app/uv.lock.sha256 ./uv.lock.sha256
+RUN cp -a .venv /.venv-base && cp uv.lock.sha256 /.venv-base/uv.lock.sha256
+
 # Copy the application sources separately so prod can own files with a non-root user.
 COPY . .
 RUN chmod +x entrypoint.sh
@@ -51,6 +61,8 @@ RUN useradd --create-home --home-dir /app --shell /bin/sh app \
     && chown -R app:app /app
 
 USER app
+
+ENV DJANGO_SETTINGS_MODULE=config.settings.prod
 
 # Mounting additional volumes in prod (e.g., config/secret) is still possible thanks to the non-root user above.
 # Entrypoint documentation: prod runs uvicorn without reload via the locked dependencies above.

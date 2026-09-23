@@ -13,8 +13,10 @@ from django.utils import timezone
 from redis.lock import Lock as RedisLock
 
 from bars.models import Bar
+from events.models import ActiveEvent
+from events.services import compute_event_multiplier
 from market.models import Drink, PricePoint
-from market.serializers import build_price_update_payload
+from market.serializers import HISTORY_LIMIT, build_price_update_payload
 from market.services import broadcast_prices
 
 logger = logging.getLogger(__name__)
@@ -37,15 +39,22 @@ def _clamp_price(value: Decimal, minimum: Decimal, maximum: Decimal) -> Decimal:
     return max(minimum, min(value, maximum))
 
 
-def _calculate_next_price(drink: Drink, reversion_rate: Decimal) -> Decimal:
-    """Apply the bar's reversion curve to derive the next tick price for a drink."""
+def _calculate_next_price(drink: Drink, reversion_rate: Decimal, multiplier: float = 1.0) -> Decimal:
+    """Apply the bar's reversion curve to derive the next tick price for a drink.
+
+    Active market events shift the reversion target from the base price to `base_price * multiplier`,
+    so a boom pulls prices up and a crash pulls them down while the event lasts.
+    """
+
     current = drink.current_price or drink.base_price
-    # Moves the price partway back towards the base price based on reversion_rate.
-    delta = (drink.base_price - current) * reversion_rate
-    next_price = current + delta
+    target = drink.base_price * Decimal(str(multiplier))
+    # Moves the price partway towards the (event-adjusted) target based on reversion_rate.
+    delta = (target - current) * reversion_rate
+    next_price = _round_to_step(current + delta, drink.rounding_step)
+    # Clamp after rounding: rounding can otherwise push a price below min_price or above max_price
+    # and violate the drink's bounds check constraint.
     next_price = _clamp_price(next_price, drink.min_price, drink.max_price)
-    rounded = _round_to_step(next_price, drink.rounding_step)
-    return rounded.quantize(PRICE_QUANTUM)
+    return next_price.quantize(PRICE_QUANTUM)
 
 
 def _is_tick_due(bar: Bar, now: datetime) -> bool:
@@ -124,38 +133,45 @@ def _execute_tick(bar: Bar) -> bool:
     bar.refresh_from_db()
     if not _is_tick_due(bar, now):
         return False
+    # Only the newest points are ever serialized, so never load a drink's full price history.
     price_points_prefetch = Prefetch(
         "price_points",
-        queryset=PricePoint.objects.order_by("-recorded_at"),
+        queryset=PricePoint.objects.order_by("-recorded_at")[:HISTORY_LIMIT],
         to_attr="recent_points",
     )
-    drinks = list(bar.drinks.prefetch_related(price_points_prefetch))
-    drink_map = {drink.id: drink for drink in drinks}
-    for drink in drinks:
-        if not hasattr(drink, "recent_points"):
-            drink.recent_points = []
-    updated_prices: list[Drink] = []
+    active_events = list(
+        ActiveEvent.objects.filter(bar=bar, is_active=True, starts_at__lte=now, ends_at__gt=now).select_related(
+            "definition"
+        )
+    )
     interval_seconds = bar.tick_interval_seconds or 0
     tick_interval_seconds = interval_seconds if interval_seconds > 0 else 1
     previous_timestamp = (now - timedelta(seconds=tick_interval_seconds)).isoformat()
-    for drink in drinks:
-        old_price = drink.current_price if drink.current_price is not None else drink.base_price
-        next_price = _calculate_next_price(drink, bar.reversion_rate)
-        drink.history_override = [
-            {"timestamp": previous_timestamp, "price": str(old_price)},
-            {"timestamp": now.isoformat(), "price": str(next_price)},
-        ]
-        drink.current_price = next_price
-        updated_prices.append(drink)
     tick_counter = (bar.tick_counter or 0) + 1
     should_record = bar.price_point_retention_ticks > 0 and tick_counter % bar.price_point_retention_ticks == 0
     with transaction.atomic():
-        if updated_prices:
-            Drink.objects.bulk_update(updated_prices, ["current_price"])
+        # Lock the drink rows so concurrent writes (e.g. an admin edit) are not silently overwritten.
+        drinks = list(bar.drinks.select_for_update().order_by("pk").prefetch_related(price_points_prefetch))
+        for drink in drinks:
+            if not hasattr(drink, "recent_points"):
+                drink.recent_points = []
+            old_price = drink.current_price if drink.current_price is not None else drink.base_price
+            multiplier = 1.0
+            for active_event in active_events:
+                multiplier *= compute_event_multiplier(active_event, drink.id, now=now)
+            next_price = _calculate_next_price(drink, bar.reversion_rate, multiplier)
+            drink.history_override = [
+                {"timestamp": previous_timestamp, "price": str(old_price)},
+                {"timestamp": now.isoformat(), "price": str(next_price)},
+            ]
+            drink.current_price = next_price
+        if drinks:
+            Drink.objects.bulk_update(drinks, ["current_price"])
         bar.last_tick_at = now
         bar.tick_counter = tick_counter
         bar.save(update_fields=["last_tick_at", "tick_counter"])
         if should_record and drinks:
+            drink_map = {drink.id: drink for drink in drinks}
             recorded_points = PricePoint.objects.bulk_create(
                 [
                     PricePoint(
@@ -205,4 +221,5 @@ def market_tick_all_bars() -> None:
     for bar in Bar.objects.all():
         if not _is_tick_due(bar, now):
             continue
-        market_tick(bar.pk)
+        # Fan out one task per bar so a slow bar never delays the others.
+        market_tick.delay(bar.pk)

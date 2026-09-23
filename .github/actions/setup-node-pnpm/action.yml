@@ -1,21 +1,20 @@
 name: Setup Node & pnpm
-description: Provides Node.js with pnpm enabled and cached assets.
+description: Installs pnpm (version from frontend/package.json `packageManager`) and Node.js with the pnpm store cached.
 inputs:
   node-version:
     description: Node.js version to install.
     required: false
     default: '22'
-  lockfile:
-    description: Lockfile used to prime the pnpm cache.
-    required: true
-    default: frontend/pnpm-lock.yaml
 runs:
   using: composite
   steps:
+    - name: Install pnpm
+      uses: pnpm/action-setup@v6
+      with:
+        package_json_file: frontend/package.json
     - name: Setup Node.js
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v7
       with:
         node-version: ${{ inputs.node-version }}
-    - name: Enable pnpm via Corepack
-      run: corepack enable pnpm
-      shell: bash
+        cache: pnpm
+        cache-dependency-path: frontend/pnpm-lock.yaml

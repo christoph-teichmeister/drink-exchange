@@ -1,12 +1,15 @@
 import { writable } from 'svelte/store'
-import type { MarketDrink, MarketPayload } from '$lib/utils/ws-client'
+import {
+  initialConnectionState,
+  type ActiveEventPayload,
+  type ConnectionState,
+  type MarketPayloads,
+  type PriceHistoryPayload,
+  type PriceRowPayload,
+  type TrendValue
+} from '$lib/utils/ws-client'
 
-export type ConnectionStatus =
-  | 'connecting'
-  | 'connected'
-  | 'reconnecting'
-  | 'disconnected'
-export type TrendValue = 'up' | 'down' | 'flat'
+export type { TrendValue }
 
 export type DrinkHistoryPoint = {
   timestamp: string
@@ -22,6 +25,7 @@ export type DrinkSnapshot = {
   history: DrinkHistoryPoint[]
 }
 
+// Shapes of the REST snapshot (backend/bars/views.py `bar_market_snapshot`).
 export type EventSnapshot = {
   title: string
   description: string
@@ -41,27 +45,30 @@ export type BoardSnapshot = {
   updated_at?: string
 }
 
-type BoardEventStatus = 'started' | 'ended' | 'running'
+export type BoardEventStatus = 'running' | 'ended'
 
-type BoardEvent = {
+export type BoardEvent = {
   id: string
-  title: string
+  // Null when the backend sent no name; the UI renders a translated fallback.
+  title: string | null
   description: string
   status: BoardEventStatus
   timestamp: string
 }
 
-type BoardState = {
+export type BoardState = {
   bar: BoardSnapshot['bar'] | null
   drinks: DrinkSnapshot[]
-  connection: ConnectionStatus
+  connection: ConnectionState
   activeEvent: BoardEvent | null
   eventFeed: BoardEvent[]
+  // ISO timestamp of the last real price data (snapshot or live frame).
   lastUpdated: string | null
 }
 
-const MAX_HISTORY_POINTS = 24
-const EVENT_FEED_LIMIT = 4
+export const MAX_HISTORY_POINTS = 24
+export const EVENT_FEED_LIMIT = 4
+export const ENDED_EVENT_DISPLAY_MS = 8000
 
 const getTrendFromDelta = (delta: number): TrendValue => {
   if (delta > 0) return 'up'
@@ -69,348 +76,248 @@ const getTrendFromDelta = (delta: number): TrendValue => {
   return 'flat'
 }
 
-const clampHistory = (points: DrinkHistoryPoint[]): DrinkHistoryPoint[] => {
-  while (points.length > MAX_HISTORY_POINTS) {
-    points.shift()
-  }
-  return points
-}
-
-const ensureDrinkHistory = (drink: DrinkSnapshot): DrinkSnapshot => {
-  if (drink.history.length) {
-    return drink
-  }
-
-  return {
-    ...drink,
-    history: [{ timestamp: new Date().toISOString(), price: drink.price }]
-  }
-}
-
-const safeNumber = (value: unknown, fallback = 0) => {
-  const numeric = typeof value === 'number' ? value : Number(value)
-  return Number.isFinite(numeric) ? numeric : fallback
-}
-
-const normalizeHistoryRow = (historyRow: {
-  timestamp?: string
-  price?: number | string
-}): DrinkHistoryPoint | null => {
-  const price = safeNumber(historyRow.price)
-  if (!historyRow.timestamp || Number.isNaN(price)) {
+const toNumber = (value: unknown): number | null => {
+  if (value === null || value === undefined || value === '') {
     return null
   }
-  return { timestamp: historyRow.timestamp, price }
+  const numeric = typeof value === 'number' ? value : Number(value)
+  return Number.isFinite(numeric) ? numeric : null
 }
 
-const normalizeHistoryRows = (rows: unknown): DrinkHistoryPoint[] => {
-  if (!Array.isArray(rows)) {
-    return []
+const normalizeHistory = (
+  rows: PriceHistoryPayload[] | DrinkHistoryPoint[] | undefined
+): DrinkHistoryPoint[] =>
+  (rows ?? []).flatMap((row) => {
+    const price = toNumber(row.price)
+    return row.timestamp && price !== null
+      ? [{ timestamp: row.timestamp, price }]
+      : []
+  })
+
+const timestampValue = (value: string) => {
+  const parsed = Date.parse(value)
+  return Number.isNaN(parsed) ? 0 : parsed
+}
+
+// Merges two histories, de-duplicating by timestamp (newer data wins), sorted
+// chronologically and clamped to the display window.
+export const mergeHistory = (
+  existing: DrinkHistoryPoint[],
+  incoming: DrinkHistoryPoint[]
+): DrinkHistoryPoint[] => {
+  const byTimestamp = new Map<string, DrinkHistoryPoint>()
+  for (const point of [...existing, ...incoming]) {
+    byTimestamp.set(point.timestamp, point)
   }
-  return rows
-    .map((entry) =>
-      normalizeHistoryRow(
-        entry as { timestamp?: string; price?: number | string }
-      )
-    )
-    .filter((point): point is DrinkHistoryPoint => point !== null)
+  return [...byTimestamp.values()]
+    .sort((a, b) => timestampValue(a.timestamp) - timestampValue(b.timestamp))
+    .slice(-MAX_HISTORY_POINTS)
 }
 
-const normalizePriceRow = (row: {
-  drink_id?: string | number
-  drink_name?: string
-  price?: number | string
-  delta?: number | string
-  trend?: TrendValue
-  history?: unknown
-}): DrinkSnapshot => {
-  const price = safeNumber(row.price)
-  const delta = safeNumber(row.delta, 0)
-  const trend = row.trend ?? getTrendFromDelta(delta)
+const normalizeSnapshotDrink = (
+  drink: DrinkSnapshot,
+  fallbackTimestamp: string
+): DrinkSnapshot => {
+  const price = toNumber(drink.price) ?? 0
+  const history = mergeHistory([], normalizeHistory(drink.history))
+  return {
+    ...drink,
+    id: String(drink.id),
+    name: drink.name || String(drink.id),
+    price,
+    delta: toNumber(drink.delta) ?? 0,
+    history: history.length
+      ? history
+      : [{ timestamp: fallbackTimestamp, price }]
+  }
+}
+
+const normalizePriceRow = (row: PriceRowPayload): DrinkSnapshot | null => {
+  const price = toNumber(row.price)
   const id =
     row.drink_id !== undefined && row.drink_id !== null
       ? String(row.drink_id)
-      : `${row.drink_name ?? 'drink'}-${Math.random().toString(36).slice(2, 6)}`
-  const name = row.drink_name ?? id
-  const historyPoints = normalizeHistoryRows(row.history)
+      : row.drink_name
+  if (!id || price === null) {
+    return null
+  }
+  const delta = toNumber(row.delta) ?? 0
+  // The backend currently always reports "flat"; derive it from the delta
+  // unless an explicit direction is provided.
+  const trend =
+    row.trend && row.trend !== 'flat' ? row.trend : getTrendFromDelta(delta)
   return {
     id,
-    name,
+    name: row.drink_name || id,
     price,
     delta,
     trend,
-    history: clampHistory(
-      historyPoints.length
-        ? historyPoints
-        : [{ timestamp: new Date().toISOString(), price }]
-    )
+    history: normalizeHistory(row.history)
   }
 }
 
-type MarketHistoryPoint = NonNullable<MarketDrink['history']>[number]
+const eventKey = (title: string | null, startsAt: string | undefined) =>
+  `${title ?? ''}:${startsAt ?? ''}`
 
-const sanitizeHistory = (history: MarketHistoryPoint[]): DrinkHistoryPoint[] =>
-  history
-    .map((point) => ({
-      timestamp: point.timestamp ?? new Date().toISOString(),
-      price: safeNumber(point.price)
-    }))
-    .filter((point) => !Number.isNaN(point.price))
+const mapSnapshotEvent = (event: EventSnapshot): BoardEvent => ({
+  id: eventKey(event.title || null, event.starts_at),
+  title: event.title || null,
+  description: event.description ?? '',
+  status: event.status === 'ended' ? 'ended' : 'running',
+  timestamp: event.starts_at ?? event.ends_at ?? ''
+})
 
-const normalizeDrinkSnapshot = (drink: MarketDrink): DrinkSnapshot => {
-  const price = safeNumber(drink.price)
-  const delta = safeNumber(drink.delta, 0)
-  const history = sanitizeHistory(drink.history ?? [])
-  const record: DrinkSnapshot = {
-    id:
-      drink.id ??
-      `${drink.name ?? 'drink'}-${Math.random().toString(36).slice(2, 6)}`,
-    name: drink.name ?? drink.id ?? 'Drink',
-    price,
-    delta,
-    trend: (drink.trend as TrendValue) ?? getTrendFromDelta(delta),
-    history: clampHistory(history)
-  }
-  return record
-}
-
-const parsePriceString = (value?: string) => {
-  if (!value) return 0
-  const sanitized = value.replace(/[^0-9.-]/g, '')
-  const numeric = Number(sanitized)
-  return Number.isFinite(numeric) ? numeric : 0
-}
-
-const normalizeRateUpdate = (rate: {
-  id: string
-  price?: string
-}): DrinkSnapshot => {
-  const price = parsePriceString(rate.price)
+const mapFrameEvent = (
+  payload: ActiveEventPayload,
+  status: BoardEventStatus,
+  frameTimestamp: string
+): BoardEvent => {
+  const title =
+    typeof payload.definition_name === 'string' && payload.definition_name
+      ? payload.definition_name
+      : null
+  const description =
+    typeof payload.description === 'string' ? payload.description : ''
+  const timestamp =
+    status === 'ended'
+      ? (payload.ends_at ?? frameTimestamp)
+      : (payload.starts_at ?? frameTimestamp)
   return {
-    id: rate.id,
-    name: rate.id,
-    price,
-    delta: 0,
-    trend: 'flat',
-    history: [{ timestamp: new Date().toISOString(), price }]
-  }
-}
-
-const normalizeMarketPayload = (payload: MarketPayload): DrinkSnapshot[] => {
-  if (Array.isArray(payload.drinks) && payload.drinks.length) {
-    return payload.drinks.map((drink) => normalizeDrinkSnapshot(drink))
-  }
-  if (Array.isArray(payload.rates) && payload.rates.length) {
-    return payload.rates.map((rate) => normalizeRateUpdate(rate))
-  }
-  if (Array.isArray(payload.prices) && payload.prices.length) {
-    return payload.prices.map((price) => normalizePriceRow(price))
-  }
-  return []
-}
-
-const buildBoardEvent = (
-  type: string,
-  payload: MarketPayload
-): BoardEvent | null => {
-  if (!payload.event) {
-    return null
-  }
-  const timestamp = new Date().toISOString()
-  const status: BoardEventStatus = type.endsWith('ended')
-    ? 'ended'
-    : type.endsWith('started')
-    ? 'started'
-    : 'running'
-
-  return {
-    id: `${type}:${timestamp}`,
-    title: String(payload.event.title ?? 'Live Event'),
-    description: String(payload.event.description ?? ''),
+    id: eventKey(title, payload.starts_at),
+    title,
+    description,
     status,
     timestamp
   }
 }
 
-const mapSnapshotEvents = (events?: EventSnapshot[]): BoardEvent[] => {
-  return (events ?? [])
-    .map((event) => {
-      const status: BoardEventStatus =
-        event.status === 'ended'
-          ? 'ended'
-          : event.status === 'running'
-          ? 'running'
-          : 'started'
-
-      return {
-        id: `${event.title}:${
-          event.starts_at ?? event.ends_at ?? event.status
-        }`,
-        title: event.title,
-        description: event.description,
-        status,
-        timestamp: event.starts_at ?? event.ends_at ?? new Date().toISOString()
-      }
-    })
+export const createBoardStore = (snapshot: BoardSnapshot) => {
+  const now = new Date().toISOString()
+  const eventFeed = (snapshot.events ?? [])
+    .map(mapSnapshotEvent)
     .slice(0, EVENT_FEED_LIMIT)
-}
 
-const createBoardStore = (initialSnapshot?: BoardSnapshot) => {
-  const initialEvents = mapSnapshotEvents(initialSnapshot?.events)
-  const initialDrinks = (initialSnapshot?.drinks ?? []).map(ensureDrinkHistory)
-  const initialState: BoardState = {
-    bar: initialSnapshot?.bar ?? null,
-    drinks: initialDrinks,
-    connection: 'connecting',
-    activeEvent:
-      initialEvents.find((event) => event.status === 'started') ?? null,
-    eventFeed: initialEvents,
-    lastUpdated: initialSnapshot?.updated_at ?? new Date().toISOString()
-  }
+  const { subscribe, update } = writable<BoardState>({
+    bar: snapshot.bar,
+    drinks: (snapshot.drinks ?? []).map((drink) =>
+      normalizeSnapshotDrink(drink, snapshot.updated_at ?? now)
+    ),
+    connection: initialConnectionState(),
+    activeEvent: eventFeed.find((event) => event.status === 'running') ?? null,
+    eventFeed,
+    lastUpdated: snapshot.updated_at ?? null
+  })
 
-  const { subscribe, set, update } = writable(initialState)
-  let eventTimer: ReturnType<typeof setTimeout> | null = null
+  let clearTimer: ReturnType<typeof setTimeout> | null = null
 
-  const clearActiveEvent = () => {
-    update((value) => ({ ...value, activeEvent: null }))
-  }
-
-  const scheduleEventClear = (delay: number) => {
-    if (eventTimer) {
-      clearTimeout(eventTimer)
-    }
-    eventTimer = setTimeout(() => {
-      clearActiveEvent()
-      eventTimer = null
-    }, delay)
-  }
-
-  const mergeDrink = (
-    existing: DrinkSnapshot | undefined,
-    update: DrinkSnapshot
-  ): DrinkSnapshot => {
-    const newPoint = {
-      timestamp: new Date().toISOString(),
-      price: update.price
-    }
-    const incomingHistory = update.history.length
-      ? update.history.slice()
-      : [newPoint]
-
-    const history =
-      existing && existing.history.length
-        ? clampHistory([...existing.history, ...incomingHistory])
-        : clampHistory(incomingHistory)
-    const previousPrice = existing?.price ?? update.price
-    const delta =
-      typeof update.delta === 'number'
-        ? update.delta
-        : update.price - previousPrice
-    const trend = update.trend ?? getTrendFromDelta(delta)
-
-    return {
-      id: update.id,
-      name: update.name ?? existing?.name ?? update.id,
-      price: update.price,
-      delta,
-      trend,
-      history
+  const cancelClear = () => {
+    if (clearTimer !== null) {
+      clearTimeout(clearTimer)
+      clearTimer = null
     }
   }
 
-  const setSnapshot = (snapshot: BoardSnapshot) => {
-    const events = mapSnapshotEvents(snapshot.events)
-    set({
-      bar: snapshot.bar,
-      drinks: snapshot.drinks.map(ensureDrinkHistory),
-      connection: 'connecting',
-      activeEvent: events.find((event) => event.status === 'started') ?? null,
-      eventFeed: events,
-      lastUpdated: snapshot.updated_at ?? new Date().toISOString()
-    })
-    if (events.length) {
-      scheduleEventClear(12000)
-    }
-  }
-
-  const applyPriceUpdate = (payload: MarketPayload) => {
-    const updates = normalizeMarketPayload(payload)
+  const applyPriceUpdate = (
+    payload: MarketPayloads['prices.update'],
+    timestamp?: string
+  ) => {
+    const updates = (payload.prices ?? [])
+      .map(normalizePriceRow)
+      .filter((row): row is DrinkSnapshot => row !== null)
     if (!updates.length) {
       return
     }
+    const receivedAt = timestamp ?? new Date().toISOString()
 
     update((state) => {
-      const drinkMap = new Map(state.drinks.map((drink) => [drink.id, drink]))
-      updates.forEach((entry) => {
-        const existing = drinkMap.get(entry.id)
-        drinkMap.set(entry.id, mergeDrink(existing, entry))
-      })
-
-      const nextDrinks = [
-        ...state.drinks.map((drink) => drinkMap.get(drink.id) ?? drink),
-        ...updates
-          .filter(
-            (entry) => !state.drinks.some((drink) => drink.id === entry.id)
-          )
-          .map((entry) => drinkMap.get(entry.id) ?? entry)
-      ]
-
+      const drinks = new Map(state.drinks.map((drink) => [drink.id, drink]))
+      for (const entry of updates) {
+        const existing = drinks.get(entry.id)
+        const incomingHistory = entry.history.length
+          ? entry.history
+          : [{ timestamp: receivedAt, price: entry.price }]
+        drinks.set(entry.id, {
+          ...entry,
+          name: entry.name || existing?.name || entry.id,
+          history: mergeHistory(existing?.history ?? [], incomingHistory)
+        })
+      }
       return {
         ...state,
-        drinks: nextDrinks,
-        lastUpdated: new Date().toISOString()
+        drinks: [...drinks.values()],
+        lastUpdated: receivedAt
       }
     })
   }
 
-  const addEventToFeed = (event: BoardEvent) => {
-    update((state) => ({
-      ...state,
-      eventFeed: [event, ...state.eventFeed].slice(0, EVENT_FEED_LIMIT)
-    }))
-  }
+  const applyEvent = (
+    type: 'event.started' | 'event.ended',
+    payload: ActiveEventPayload,
+    timestamp?: string
+  ) => {
+    const status: BoardEventStatus =
+      type === 'event.ended' ? 'ended' : 'running'
+    const incoming = mapFrameEvent(
+      payload,
+      status,
+      timestamp ?? new Date().toISOString()
+    )
 
-  const queueEvent = (eventType: string, payload: MarketPayload) => {
-    const boardEvent = buildBoardEvent(eventType, payload)
-    if (!boardEvent) {
+    update((state) => {
+      const existing = state.eventFeed.find((event) => event.id === incoming.id)
+      if (existing && existing.status === incoming.status) {
+        // Re-sent on every (re)connect for already running events.
+        return state
+      }
+      const merged: BoardEvent = {
+        ...incoming,
+        title: incoming.title ?? existing?.title ?? null,
+        description: incoming.description || existing?.description || ''
+      }
+      const eventFeed = [
+        merged,
+        ...state.eventFeed.filter((event) => event.id !== merged.id)
+      ].slice(0, EVENT_FEED_LIMIT)
+
+      let activeEvent = state.activeEvent
+      if (status === 'running') {
+        activeEvent = merged
+      } else if (!activeEvent || activeEvent.id === merged.id) {
+        activeEvent = merged
+      }
+      return { ...state, eventFeed, activeEvent }
+    })
+
+    if (status === 'running') {
+      cancelClear()
       return
     }
-
-    addEventToFeed(boardEvent)
-    update((state) => ({
-      ...state,
-      activeEvent: boardEvent
-    }))
-
-    if (boardEvent.status === 'ended') {
-      scheduleEventClear(8000)
-    } else {
-      scheduleEventClear(12000)
-    }
+    cancelClear()
+    clearTimer = setTimeout(() => {
+      clearTimer = null
+      update((state) =>
+        state.activeEvent?.status === 'ended'
+          ? { ...state, activeEvent: null }
+          : state
+      )
+    }, ENDED_EVENT_DISPLAY_MS)
   }
 
-  const setConnectionStatus = (connection: ConnectionStatus) => {
+  const setConnection = (connection: ConnectionState) => {
     update((state) => ({ ...state, connection }))
   }
 
   const destroy = () => {
-    if (eventTimer) {
-      clearTimeout(eventTimer)
-      eventTimer = null
-    }
+    cancelClear()
   }
 
   return {
     subscribe,
-    setSnapshot,
     applyPriceUpdate,
-    queueEvent,
-    setConnectionStatus,
+    applyEvent,
+    setConnection,
     destroy
   }
 }
 
-type BoardStore = ReturnType<typeof createBoardStore>
-
-export { createBoardStore }
-export type { BoardStore }
+export type BoardStore = ReturnType<typeof createBoardStore>

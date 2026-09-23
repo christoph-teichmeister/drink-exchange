@@ -8,6 +8,7 @@ http_application = get_asgi_application()
 
 from channels.auth import AuthMiddlewareStack  # noqa: E402
 from channels.routing import ProtocolTypeRouter, URLRouter  # noqa: E402
+from channels.security.websocket import AllowedHostsOriginValidator  # noqa: E402
 
 from market.routing import websocket_urlpatterns  # noqa: E402
 
@@ -16,6 +17,7 @@ from market.routing import websocket_urlpatterns  # noqa: E402
 application = ProtocolTypeRouter(
     {
         "http": http_application,
-        "websocket": AuthMiddlewareStack(URLRouter(websocket_urlpatterns)),
+        # Reject cross-site WebSocket connections: the Origin host must be listed in ALLOWED_HOSTS.
+        "websocket": AllowedHostsOriginValidator(AuthMiddlewareStack(URLRouter(websocket_urlpatterns))),
     }
 )

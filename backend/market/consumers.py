@@ -3,7 +3,7 @@ from channels.generic.websocket import AsyncJsonWebsocketConsumer
 from django.conf import settings
 from django.utils import timezone
 
-from bars.models import Bar
+from bars.models import Bar, BarAssignment
 from market.serializers import (
     build_event_payload,
     build_market_status_payload,
@@ -12,19 +12,36 @@ from market.serializers import (
 
 
 class MarketConsumer(AsyncJsonWebsocketConsumer):
-    """Bridges websocket clients to the market.<bar_id> channel layer groups."""
+    """Bridges websocket clients to the market.<bar_id> channel layer groups.
+
+    Only authenticated users assigned to the bar may subscribe, mirroring the REST snapshot endpoint.
+    """
+
+    # Application close codes (4000-4999) so clients can tell auth failures apart from network drops.
+    CLOSE_CODE_UNAUTHENTICATED = 4401
+    CLOSE_CODE_FORBIDDEN = 4403
 
     async def connect(self):
         """Accept the websocket if the related Bar exists and send an initial snapshot."""
         self.bar_id = self.scope["url_route"]["kwargs"]["bar_id"]
         self.group_name = settings.MARKET_CHANNEL_GROUP.format(bar_id=self.bar_id)
+        self.joined_group = False
         self.bar = await self._load_bar()
         if not self.bar:
             await self.close()
             return
 
+        user = self.scope.get("user")
+        if user is None or not user.is_authenticated:
+            await self._reject(self.CLOSE_CODE_UNAUTHENTICATED)
+            return
+        if not await self._is_assigned(user):
+            await self._reject(self.CLOSE_CODE_FORBIDDEN)
+            return
+
         # Join the market group and acknowledge the websocket open before sending any data.
         await self.channel_layer.group_add(self.group_name, self.channel_name)
+        self.joined_group = True
         await self.accept()
         snapshot_payload, events = await self._build_snapshot()
         await self.send_json(snapshot_payload)
@@ -32,7 +49,8 @@ class MarketConsumer(AsyncJsonWebsocketConsumer):
 
     async def disconnect(self, code):
         """Leave the market channel group when the websocket disconnects."""
-        await self.channel_layer.group_discard(self.group_name, self.channel_name)
+        if getattr(self, "joined_group", False):
+            await self.channel_layer.group_discard(self.group_name, self.channel_name)
 
     async def market_message(self, event):
         """Proxy incoming layer messages directly to the websocket client."""
@@ -48,6 +66,20 @@ class MarketConsumer(AsyncJsonWebsocketConsumer):
                     "timestamp": timezone.now().isoformat(),
                 }
             )
+
+    async def _reject(self, code: int) -> None:
+        """Accept and immediately close so the browser receives the application close code.
+
+        Closing before the handshake completes would surface as a generic HTTP 403 / code 1006 instead.
+        """
+
+        await self.accept()
+        await self.close(code=code)
+
+    @database_sync_to_async
+    def _is_assigned(self, user) -> bool:
+        """Check whether the user may watch the bar's market."""
+        return BarAssignment.objects.filter(user=user, bar=self.bar).exists()
 
     @database_sync_to_async
     def _load_bar(self):

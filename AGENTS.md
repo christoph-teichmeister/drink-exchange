@@ -1,37 +1,120 @@
-# Agent Contract (Codex)
+# AGENTS.md
 
-## Hard Rules
+Guidance for AI coding agents (Claude Code, and any other agent that reads `AGENTS.md`) and for human contributors.
+This file is the single source of truth for conventions and checks; `CLAUDE.md` imports it.
 
-- Only implement what the current ticket requires (no refactors, no tool swaps).
-- One ticket = one branch = one PR.
-- Always commit lockfiles: uv.lock, pnpm-lock.yaml.
-- Update .env.example whenever adding env vars.
-- Never use relative imports; always reference modules with their full package paths.
-- Wrap new user-facing text with translation utilities (backend via `gettext_lazy`, frontend via the `$translations` catalog in `frontend/src/lib/i18n.ts`) so every string stays localizable.
-- Keep `frontend/src/lib/i18n.ts` in sync when updating UI text and always consume `$translations` in Svelte views instead of hardcoding strings.
-- Keep at most one Python class per file; split domains into separate modules so each file defines a single class.
-- Avoid top-level module docstrings or comments; keep module-level explanations inside class docstrings or inline annotations so
-  every class is self-describing for junior readers.
-- Do not add docstrings to `Meta` inner classes; keep their configuration comments inline instead.
-- Do not add `from __future__ import annotations`; rely on explicit typing imports instead.
+## Project in one paragraph
 
-## Definition of Done (run what’s relevant)
+Drink Exchange is a PWA that runs a live "stock market" for drink prices in a bar. A Django 6 backend (Channels/ASGI,
+Celery worker + beat, Postgres, Redis) ticks prices every few seconds, rolls random market events (boom, crash, focus)
+and pushes updates over WebSockets. A SvelteKit frontend renders the big-screen board, a staff dashboard and an admin
+view. See `docs/architecture.md` and `docs/adr/` for the design.
 
-### Backend
+## Repository map
 
-- cd backend && uv sync --frozen
-- cd backend && uv run ruff check .
-- cd backend && uv run ruff format --check .
-- cd backend && uv run pytest
-- cd backend && uv run python manage.py migrate
+| Path | Contents |
+| --- | --- |
+| `backend/config/` | Django settings (`base`, `dev`, `prod`), ASGI/WSGI, Celery app and beat schedule |
+| `backend/bars/` | `Bar` and `BarAssignment` (which user may see which bar), REST market snapshot, dev fixtures command |
+| `backend/market/` | `Drink`, `PricePoint`, `Trade`, `MarketSession`; tick task (`tasks.py`), WS consumer, payload serializers |
+| `backend/events/` | `EventDefinition`, `ActiveEvent`; event selection, multipliers, roll/cleanup tasks |
+| `backend/api/` | Session auth (login/logout/me) and locale endpoints |
+| `backend/tests/` | pytest suite (pytest-django, pytest-asyncio, Channels `WebsocketCommunicator`) |
+| `frontend/src/routes/` | SvelteKit pages: `board/[barId]` (big screen), `dashboard/[barId]`, `admin/[barId]`, `login`, `help` |
+| `frontend/src/lib/` | Components, stores, WebSocket client (`utils/ws-client.ts`), i18n catalog (`i18n.ts`) |
+| `docs/` | Architecture, ADRs, tickets (`docs/tickets/README.md` explains the ticket format) |
+| `scripts/ws-health.py` | WebSocket handshake probe used by CI |
 
-### Frontend
+## Commands
 
-- cd frontend && pnpm install --frozen-lockfile
-- cd frontend && pnpm build
+Run everything from the repository root unless noted. Shortcuts for the common ones live in the `Makefile`.
 
-### Docker
+```bash
+# Backend (Python 3.13, uv)
+cd backend && uv sync --frozen            # install (incl. dev group)
+cd backend && uv run ruff check .         # lint
+cd backend && uv run ruff format --check . # format check (drop --check to fix)
+cd backend && uv run pytest               # tests (SQLite works; CI uses Postgres + Redis)
+cd backend && uv run python manage.py makemigrations --check --dry-run
 
-- docker compose build
-- docker compose up -d
-- docker compose ps
+# Frontend (Node 22, pnpm via corepack / packageManager field)
+cd frontend && pnpm install --frozen-lockfile
+cd frontend && pnpm lint                  # ESLint (flat config) incl. Svelte rules
+cd frontend && pnpm format:check          # Prettier
+cd frontend && pnpm check                 # svelte-check (types)
+cd frontend && pnpm test                  # Vitest
+cd frontend && pnpm build
+
+# Whole stack
+make up                                   # docker compose up --build (postgres, redis, backend, celery, frontend)
+pre-commit run --all-files                # same hooks as CI
+```
+
+Backend tests run against SQLite by default. To mirror CI, point `DATABASE_URL` at Postgres
+(`postgres://drink_exchange:drink_exchange@localhost:5432/drink_exchange`) and start Redis.
+
+## Definition of done
+
+Run what is relevant to the files you touched; all of it must pass before you open or update a PR.
+
+- Backend: `ruff check`, `ruff format --check`, `pytest`, `makemigrations --check`.
+- Frontend: `lint`, `format:check`, `check`, `test`, `build`.
+- New behavior comes with tests. Bug fixes come with a test that fails without the fix.
+- Lockfiles (`backend/uv.lock`, `frontend/pnpm-lock.yaml`) are committed whenever dependencies change and are only
+  ever regenerated by `uv lock` / `pnpm install`, never edited by hand.
+- New environment variables are added to `.env.example` and documented in `README.md`.
+
+## Workflow
+
+- One ticket = one branch = one PR = one agent session. Tickets live in `docs/tickets/` (format:
+  `docs/tickets/README.md`).
+- Branch off `develop` (the default branch). PRs target `develop`.
+- Commits follow Conventional Commits: `feat(scope): ...`, `fix(scope): ...`, `chore(scope): ...`, `docs: ...`,
+  `refactor(scope): ...`, `test(scope): ...`. Scopes in use: `backend`, `frontend`, `market`, `events`, `bars`, `api`,
+  `ui`, `ci`.
+- Fill in the PR template (`.github/pull_request_template.md`), including "How to verify".
+- Stay in scope: implement what the ticket asks for. Unrelated refactors, tool swaps or dependency bumps go into their
+  own ticket.
+
+## Backend conventions
+
+- Absolute imports only (`from market.models import Drink`), never relative imports.
+- No `from __future__ import annotations`; use explicit `typing` imports.
+- At most one class per Python file. Models live in a `models/` package, admin classes in an `admin/` package; each
+  package `__init__.py` imports its classes directly and declares an explicit `__all__`.
+- Business models derive from `ambient_toolbox.models.CommonInfo`; their admin classes use `CommonInfoAdminMixin`.
+  Keep `CurrentRequestMiddleware` enabled so `created_by` / `lastmodified_by` stay accurate.
+- No module-level docstrings or file-header comments. Explain intent in class/function docstrings and inline
+  comments. Leave a blank line after every docstring. No docstrings on `Meta` inner classes (use inline comments).
+- Wrap user-facing strings in `gettext_lazy` (`_`).
+- Never edit an applied migration; add a new one with `makemigrations`.
+- Channel-layer groups are keyed by bar **slug** (`settings.MARKET_CHANNEL_GROUP.format(bar_id=bar.slug)`). Use the
+  helpers in `market/services/broadcast.py` and the frame builders in `market/serializers.py`; the frontend depends on
+  those shapes.
+- Code that reads-then-writes shared rows (ticks, event rolls) runs inside `transaction.atomic()` with
+  `select_for_update()`; Celery beat fires every 5 s and tasks can overlap.
+
+## Frontend conventions
+
+- Svelte 5 with runes (`$props`, `$state`, `$derived`, `$effect`); no legacy `export let` / `$:` syntax.
+- All user-facing text, including `aria-label`s and error messages, comes from `$translations` in
+  `frontend/src/lib/i18n.ts`. Keep the German and English catalogs in sync (same keys). Format numbers and currency
+  with the active locale.
+- Never write to module-level stores during SSR; per-request data (user, locale) flows through `load` data or context.
+- The WebSocket client must never show invented data. When disconnected, show the connection state and mark prices as
+  stale.
+- Browser-only APIs (`window`, `localStorage`, `WebSocket`) only inside `onMount`/`$effect` or behind a
+  `browser` check.
+
+## WebSocket contract
+
+- Endpoint: `/ws/market/<bar-slug>/`. Requires a logged-in session whose user has a `BarAssignment` for the bar, and
+  an `Origin` whose host is in `DJANGO_ALLOWED_HOSTS`.
+- Close codes: `4401` not authenticated, `4403` not assigned to the bar. Clients must not auto-reconnect on these.
+- Frames: `prices.update`, `event.started`, `event.ended`, `market.status`, `pong` (see `market/serializers.py`).
+
+## Things not to do
+
+- Do not commit secrets, `.env` files, IDE folders (`.idea/`, `.vscode/`) or local databases.
+- Do not disable, skip or delete tests to get a green run.
+- Do not change the WebSocket/REST payload shapes without updating the frontend and its tests in the same PR.

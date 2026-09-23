@@ -1,7 +1,39 @@
-@import '@skeletonlabs/skeleton/styles/all.css';
-@import 'tailwindcss/base';
-@import 'tailwindcss/components';
-@import 'tailwindcss/utilities';
+@import 'tailwindcss';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * `inline` makes utilities reference the runtime variables directly, so the
+ * light/dark palettes below keep working. Tailwind 4 builds opacity variants
+ * (e.g. `bg-market-surface/90`) with `color-mix()`, which also works for
+ * colors that are plain `var(--x)` references.
+ */
+@theme inline {
+  --font-sans:
+    'Inter', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+    'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  --color-market-primary: var(--market-primary);
+  --color-market-accent: var(--market-accent);
+  --color-market-surface: var(--market-surface);
+  --color-market-muted: var(--market-muted);
+  --color-market-highlight: var(--market-highlight);
+}
+
+@layer base {
+  /* Tailwind 3 defaults kept for visual parity after the v4 upgrade. */
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentColor);
+  }
+
+  button:not(:disabled),
+  [role='button']:not(:disabled) {
+    cursor: pointer;
+  }
+}
 
 :root {
   --market-primary: #3056ff;
@@ -18,12 +50,6 @@
   --text-primary: #0f172a;
   --text-muted: #4b5563;
   --overlay: rgba(15, 23, 42, 0.55);
-  --modal-backdrop: rgba(15, 23, 42, 0.75);
-  --board-gradient-top: rgba(248, 250, 255, 0.98);
-  --board-gradient-bottom: rgba(229, 233, 255, 0.95);
-  --chart-highlight: rgba(48, 86, 255, 0.35);
-  --chart-border: rgba(48, 86, 255, 0.55);
-  --shadow-elevated: 0 30px 80px rgba(15, 23, 42, 0.12);
 
   color-scheme: light;
 }
@@ -43,12 +69,6 @@
   --text-primary: #f8fafc;
   --text-muted: #cbd5f5;
   --overlay: rgba(2, 3, 11, 0.85);
-  --modal-backdrop: rgba(2, 3, 11, 0.9);
-  --board-gradient-top: rgba(12, 16, 36, 0.98);
-  --board-gradient-bottom: rgba(5, 8, 20, 0.96);
-  --chart-highlight: rgba(125, 211, 252, 0.28);
-  --chart-border: rgba(125, 211, 252, 0.45);
-  --shadow-elevated: 0 30px 80px rgba(0, 0, 0, 0.45);
 
   color-scheme: dark;
 }
@@ -61,53 +81,6 @@ body {
     sans-serif;
   background-color: var(--surface-base);
   color: var(--text-primary);
-}
-
-.board-shell {
-  background: linear-gradient(
-    180deg,
-    var(--board-gradient-top) 0%,
-    var(--board-gradient-bottom) 100%
-  );
-  border: 1px solid var(--border-base);
-  box-shadow: var(--shadow-elevated);
-}
-
-.ticker-line {
-  font-weight: 600;
-  letter-spacing: 0.15em;
-  color: var(--text-muted);
-}
-
-.chart-skeleton {
-  background: radial-gradient(
-    circle at top,
-    var(--chart-highlight),
-    transparent 60%
-  );
-  border-radius: 1.5rem;
-  border: 1px solid var(--chart-border);
-  min-height: 200px;
-}
-
-.event-chip {
-  border-radius: 9999px;
-  padding: 0.35rem 0.85rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  background: var(--surface-soft);
-  color: var(--text-primary);
-}
-
-.modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: var(--modal-backdrop);
-  backdrop-filter: blur(12px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 50;
 }
 
 .side-panel {

@@ -11,24 +11,28 @@ requires-python = ">=3.13,<3.14"
 license = "MIT"
 authors = [ { name = "Drink Exchange" } ]
 dependencies = [
-    "Django>=6.0,<7",
-    "channels>=4.0,<5",
-    "daphne>=4.0,<5",
-    "channels-redis>=4.0,<5",
-    "celery>=5.3,<5.4",
-    "dj-database-url>=1.0,<2",
-    "django-cors-headers>=4.0,<5",
-    "psycopg[binary]>=3,<4",
-    "redis>=5.0,<6",
-    "whitenoise>=6.5,<7",
-    "uvicorn>=0.23,<0.24",
-    "websockets>=11,<12",
-    "ruff>=0.14,<0.15",
-    "pytest>=7.0,<8",
-    "pytest-django>=4.0,<5",
-    "pytest-asyncio>=0.23,<0.25",
-    "python-dotenv>=1.0,<1.1",
-    "ambient-toolbox>=12.6,<13",
+    "Django>=6.1,<7",
+    "channels>=4.3,<5",
+    "daphne>=4.2,<5",
+    "channels-redis>=4.3,<5",
+    "celery>=5.6,<6",
+    "dj-database-url>=3.1,<4",
+    "django-cors-headers>=4.9,<5",
+    "psycopg[binary]>=3.3,<4",
+    "redis>=8,<9",
+    "whitenoise>=6.12,<7",
+    "uvicorn[standard]>=0.53,<1",
+    "websockets>=17,<18",
+    "python-dotenv>=1.2,<2",
+    "ambient-toolbox>=12.13,<13",
+]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.16,<0.17",
+    "pytest>=9,<10",
+    "pytest-django>=4.14,<5",
+    "pytest-asyncio>=1.4,<2",
 ]
 
 [tool.setuptools.packages.find]

@@ -65,6 +65,12 @@ htmlcov/
 #### Misc
 *.sqlite3
 *.db
+dump.rdb
 __pycache__
 coverage/
 *.pytest_cache/
+/.run/
+
+#### Claude Code
+.claude/worktrees/
+.claude/settings.local.json

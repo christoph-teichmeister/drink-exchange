@@ -3,7 +3,7 @@ name: Backend CI
 on:
   pull_request:
   push:
-    branches: [main]
+    branches: [develop]
 
 jobs:
   backend:
@@ -20,7 +20,7 @@ jobs:
       CELERY_RESULT_BACKEND: redis://localhost:6379/0
     services:
       postgres:
-        image: postgres:15
+        image: postgres:18
         env:
           POSTGRES_DB: drink_exchange
           POSTGRES_USER: drink_exchange
@@ -33,7 +33,7 @@ jobs:
           --health-timeout=5s
           --health-retries=5
       redis:
-        image: redis:7
+        image: redis:8
         ports:
           - 6379:6379
         options: >-
@@ -43,15 +43,12 @@ jobs:
           --health-retries=5
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Python environment with uv
         uses: ./.github/actions/setup-python-uv
         with:
-          python-version: 3.13
-          cache-paths: |
-            backend/uv.lock
-            backend/pyproject.toml
+          python-version: "3.13"
           sync-dir: backend
 
       - name: Wait for Postgres and Redis
@@ -120,7 +117,13 @@ jobs:
           uv run uvicorn config.asgi:application --host 0.0.0.0 --port 8000 &
           pids+=("$!")
 
-          sleep 5
+          # Wait until uvicorn accepts connections instead of sleeping a fixed amount.
+          for _ in $(seq 1 30); do
+            if curl -s -o /dev/null http://127.0.0.1:8000/admin/login/; then
+              break
+            fi
+            sleep 1
+          done
           uv run python ../scripts/ws-health.py --bar ci-demo
 
           cleanup
