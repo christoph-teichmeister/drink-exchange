@@ -20,6 +20,9 @@ def _broadcast_event(bar_id: int, payload_type: str, payload: dict) -> None:
 
 
 def _roll_and_broadcast(bar_id: int) -> None:
+    # End expired events here so their `event.ended` broadcast is not swallowed by the roll.
+    for ended_event in end_expired_events(bar_id):
+        _broadcast_event(bar_id, "event.ended", serialize_active_event(ended_event))
     event = roll_event_for_bar(bar_id)
     if event:
         _broadcast_event(bar_id, "event.started", serialize_active_event(event))

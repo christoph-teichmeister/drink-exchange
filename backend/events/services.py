@@ -16,7 +16,7 @@ def select_event(
     rng = rng or random
     if ActiveEvent.objects.filter(bar_id=bar_id, is_active=True, starts_at__lte=now, ends_at__gt=now).exists():
         return None
-    definitions = EventDefinition.objects.filter(probability_weight__gt=0).order_by("pk")
+    definitions = EventDefinition.objects.filter(bar_id=bar_id, probability_weight__gt=0).order_by("pk")
     eligible = [
         definition
         for definition in definitions
@@ -24,13 +24,15 @@ def select_event(
     ]
     if not eligible:
         return None
-    total_weight = sum(definition.probability_weight for definition in eligible)
+    # probability_weight is a DecimalField; convert once so it can be scaled by rng.random().
+    weights = [float(definition.probability_weight) for definition in eligible]
+    total_weight = sum(weights)
     if total_weight <= 0:
         return None
     pick = rng.random() * total_weight
     cursor = 0.0
-    for definition in eligible:
-        cursor += definition.probability_weight
+    for definition, weight in zip(eligible, weights):
+        cursor += weight
         if pick < cursor:
             return definition
     return eligible[-1]
@@ -88,7 +90,7 @@ def compute_event_multiplier(active_event: ActiveEvent, drink_id: int, now: Opti
     elapsed = max(0.0, (now - active_event.starts_at).total_seconds())
     progress = min(elapsed / duration, 1.0)
     current = start_multiplier + (1.0 - start_multiplier) * progress
-    if definition.type == "FOCUS":
+    if definition.type == EventDefinition.EventType.FOCUS:
         target_ids = _normalize_target_ids(params.get("target_drink_ids"))
         if target_ids and drink_id not in target_ids:
             return 1.0
