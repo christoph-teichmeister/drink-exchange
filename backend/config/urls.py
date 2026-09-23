@@ -7,7 +7,7 @@ from api.views import (
     logout_user,
     set_user_language,
 )
-from bars.views import bar_list, bar_market_snapshot
+from bars.views import bar_list, bar_market_snapshot, bar_record_trade
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -20,5 +20,6 @@ urlpatterns = [
         bar_market_snapshot,
         name="bar-market-snapshot",
     ),
+    path("api/bars/<slug:bar_id>/trades/", bar_record_trade, name="bar-record-trade"),
     path("api/locale/", set_user_language, name="set-user-language"),
 ]

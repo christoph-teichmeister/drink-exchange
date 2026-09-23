@@ -128,6 +128,14 @@ The board is a trading terminal for a TV in a bar. Keep it that way:
   Price rows carry `price` and `base_price`; event payloads carry `definition_name`, `description`, `event_type`,
   `starts_at` and `ends_at`.
 
+## REST endpoints
+
+- `GET /api/bars/<slug>/market/`: market snapshot (drinks with `price`, `base_price`, `delta`, `trend`, `history`;
+  recent events).
+- `POST /api/bars/<slug>/trades/` with `{"drink_id": int, "qty": int}` (JSON only): records a purchase, applies the
+  impulse and normalization (`market/services/trading.py`), broadcasts `prices.update` and returns the trade plus the
+  bar's new prices (201). 400 invalid drink/qty, 401, 403 not assigned, 415 non-JSON.
+
 ## Things not to do
 
 - Do not commit secrets, `.env` files, IDE folders (`.idea/`, `.vscode/`) or local databases.
