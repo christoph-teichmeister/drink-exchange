@@ -5,9 +5,6 @@ export type ColorMode = 'light' | 'dark'
 
 const STORAGE_KEY = 'drink-exchange-color-mode'
 
-const getPreferredMode = (): ColorMode =>
-  window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-
 const resolveInitialMode = (): ColorMode => {
   if (!browser) {
     return 'dark'
@@ -18,7 +15,8 @@ const resolveInitialMode = (): ColorMode => {
     return stored
   }
 
-  return getPreferredMode()
+  // Dark is the product default (matching the big-screen board); light is opt-in.
+  return 'dark'
 }
 
 const applyColorMode = (mode: ColorMode) => {

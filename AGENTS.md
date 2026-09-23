@@ -119,6 +119,16 @@ The board is a trading terminal for a TV in a bar. Keep it that way:
 - Sizes scale with the viewport (`clamp(...)`) so prices stay readable from across the room.
 - Uppercase labels use modest tracking (`tracking-wider`), never wide letter-spacing.
 
+### Staff views design (login, bars, trading desk, admin, help)
+
+- Same language as the board: hairline panels (`rounded-sm border border-ui-line bg-ui-panel`), no cards, shadows,
+  glows, gradients or side stripes.
+- Colors only via the `ui-*` tokens in `app.css`. Dark is the default theme; light swaps the same tokens, so never
+  hardcode `text-white`/`bg-black` or theme-specific classes.
+- Reuse the component classes `ui-label`, `ui-input`, `ui-btn`, `ui-btn-primary`, `ui-link`. Amber (`ui-accent`) is
+  the only accent and marks the primary action; green/red (`ui-up`/`ui-down`) mean price direction or success/error.
+- Touch targets on the trading desk stay at least 44 px high (bar staff use tablets).
+
 ## WebSocket contract
 
 - Endpoint: `/ws/market/<bar-slug>/`. Requires a logged-in session whose user has a `BarAssignment` for the bar, and
