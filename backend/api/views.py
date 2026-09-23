@@ -1,4 +1,3 @@
-import json
 from typing import Optional
 
 from django.conf import settings
@@ -9,6 +8,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_POST
 
 from api.decorators import json_login_required
+from api.json_body import parse_json_body, unsupported_media_type
 
 
 def _default_language() -> str:
@@ -30,18 +30,6 @@ def _match_supported_language(language_code: Optional[str]) -> str:
     return _default_language()
 
 
-def _parse_json_body(request: HttpRequest) -> dict:
-    try:
-        payload = json.loads(request.body.decode("utf-8") or "{}")
-    except (json.JSONDecodeError, UnicodeDecodeError):
-        return {}
-    return payload if isinstance(payload, dict) else {}
-
-
-def _unsupported_media_type() -> JsonResponse:
-    return JsonResponse({"detail": _("Requests must be sent as application/json.")}, status=415)
-
-
 # These endpoints are CSRF-exempt so the cross-origin SvelteKit frontend can call them without a token
 # handshake. They only accept `application/json` bodies instead: browsers cannot send that content type
 # cross-site without a CORS preflight, which CORS_ALLOWED_ORIGINS rejects for foreign origins. That blocks
@@ -50,8 +38,8 @@ def _unsupported_media_type() -> JsonResponse:
 @require_POST
 def login_user(request: HttpRequest) -> JsonResponse:
     if request.content_type != "application/json":
-        return _unsupported_media_type()
-    payload = _parse_json_body(request)
+        return unsupported_media_type()
+    payload = parse_json_body(request)
     username = payload.get("username")
     password = payload.get("password")
     if not username or not password:
@@ -101,8 +89,8 @@ def current_user(request: HttpRequest) -> JsonResponse:
 @require_POST
 def set_user_language(request: HttpRequest) -> JsonResponse:
     if request.content_type != "application/json":
-        return _unsupported_media_type()
-    requested_language = _parse_json_body(request).get("language")
+        return unsupported_media_type()
+    requested_language = parse_json_body(request).get("language")
 
     language_code = _match_supported_language(requested_language)
     response = JsonResponse({"language": language_code})

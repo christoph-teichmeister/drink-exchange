@@ -2,7 +2,7 @@ import logging
 import threading
 from contextlib import contextmanager
 from datetime import datetime, timedelta
-from decimal import ROUND_HALF_UP, Decimal
+from decimal import Decimal
 
 import redis
 from celery import shared_task
@@ -18,25 +18,12 @@ from events.services import compute_event_multiplier
 from market.models import Drink, PricePoint
 from market.serializers import HISTORY_LIMIT, build_price_update_payload
 from market.services import broadcast_prices
+from market.services.price_math import finalize_price
 
 logger = logging.getLogger(__name__)
 
-PRICE_QUANTUM = Decimal("0.01")
 REDIS_LOCK_TIMEOUT = 10
 _LOCAL_LOCKS: dict[int, threading.Lock] = {}
-
-
-def _round_to_step(value: Decimal, step: Decimal) -> Decimal:
-    """Snap a price value to the configured rounding step with half-up rounding."""
-    if not step or step <= 0:
-        return value
-    ratio = (value / step).quantize(Decimal("1"), rounding=ROUND_HALF_UP)
-    return (ratio * step).quantize(PRICE_QUANTUM)
-
-
-def _clamp_price(value: Decimal, minimum: Decimal, maximum: Decimal) -> Decimal:
-    """Ensure calculated prices always stay within the bar's min/max bounds."""
-    return max(minimum, min(value, maximum))
 
 
 def _calculate_next_price(drink: Drink, reversion_rate: Decimal, multiplier: float = 1.0) -> Decimal:
@@ -50,11 +37,7 @@ def _calculate_next_price(drink: Drink, reversion_rate: Decimal, multiplier: flo
     target = drink.base_price * Decimal(str(multiplier))
     # Moves the price partway towards the (event-adjusted) target based on reversion_rate.
     delta = (target - current) * reversion_rate
-    next_price = _round_to_step(current + delta, drink.rounding_step)
-    # Clamp after rounding: rounding can otherwise push a price below min_price or above max_price
-    # and violate the drink's bounds check constraint.
-    next_price = _clamp_price(next_price, drink.min_price, drink.max_price)
-    return next_price.quantize(PRICE_QUANTUM)
+    return finalize_price(current + delta, drink)
 
 
 def _is_tick_due(bar: Bar, now: datetime) -> bool:

@@ -34,16 +34,21 @@ We implement a hybrid pricing engine consisting of:
 
 For a trade of `qty`:
 
-- `impulse = qty * volatility * impulse_factor`
-- `price_target += impulse`
+- `impulse = qty * volatility * impulse_factor * base_price`
+- `price += impulse`
 
-`volatility` is configurable per drink (e.g. 0.02 to 0.15).
+`volatility` is configurable per drink (e.g. 0.02 to 0.15) and is a fraction of the drink's `base_price`, so impulses
+scale with the price level. `impulse_factor` is configurable per bar (default 1.0).
+
+Implementation note: `market/services/trading.py` (`apply_trade`); the price is moved directly rather than via a
+separate target. Mean-reversion (step 3) then pulls it back on subsequent ticks.
 
 ### 2) Normalization (others drop)
 
 To produce a simple "market offset":
 
-- The total impulse is distributed across the other drinks (proportional to `weight`)
+- The total impulse is distributed across the other drinks (proportional to `weight`); `normalization_factor` is
+  configurable per bar (0–1, default 0.5)
 - For each other drink:
     - `price_other -= impulse * normalization_factor * (weight_other / sum_weights_others)`
 

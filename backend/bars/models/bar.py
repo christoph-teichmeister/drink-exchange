@@ -23,6 +23,20 @@ class Bar(CommonInfo):
     )
     last_tick_at = models.DateTimeField(null=True, blank=True)
     tick_counter = models.PositiveBigIntegerField(default=0)
+    # Scales how strongly a purchase pushes its drink's price up (see ADR 0001, "Impulse per trade").
+    impulse_factor = models.DecimalField(
+        max_digits=6,
+        decimal_places=3,
+        default=Decimal("1.000"),
+        validators=[MinValueValidator(Decimal("0"))],
+    )
+    # Share of a purchase's impulse that is taken off the other drinks (ADR 0001, "Normalization").
+    normalization_factor = models.DecimalField(
+        max_digits=4,
+        decimal_places=3,
+        default=Decimal("0.500"),
+        validators=[MinValueValidator(Decimal("0")), MaxValueValidator(Decimal("1"))],
+    )
     price_point_retention_ticks = models.PositiveIntegerField(
         default=1,
         validators=[MinValueValidator(0)],
