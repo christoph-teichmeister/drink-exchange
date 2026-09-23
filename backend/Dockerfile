@@ -62,6 +62,8 @@ RUN useradd --create-home --home-dir /app --shell /bin/sh app \
 
 USER app
 
+ENV DJANGO_SETTINGS_MODULE=config.settings.prod
+
 # Mounting additional volumes in prod (e.g., config/secret) is still possible thanks to the non-root user above.
 # Entrypoint documentation: prod runs uvicorn without reload via the locked dependencies above.
 ENV DEFAULT_CMD="uvicorn config.asgi:application --host 0.0.0.0 --port 8000"

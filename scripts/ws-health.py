@@ -31,6 +31,8 @@ def probe(host: str, port: int, bar_id: str, timeout: float) -> None:
     request = (
         f"GET {resource} HTTP/1.1\r\n"
         f"Host: {host}:{port}\r\n"
+        # The backend validates the Origin against ALLOWED_HOSTS; a missing Origin is rejected.
+        f"Origin: http://{host}:{port}\r\n"
         "Upgrade: websocket\r\n"
         "Connection: Upgrade\r\n"
         f"Sec-WebSocket-Key: {key}\r\n"

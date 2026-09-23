@@ -22,7 +22,7 @@ def _match_supported_language(language_code: Optional[str]) -> str:
         return _default_language()
 
     normalized = language_code.lower()
-    for code, label in settings.LANGUAGES:
+    for code, _label in settings.LANGUAGES:
         candidate = code.lower()
         if normalized == candidate or normalized.startswith(f"{candidate}-"):
             return code
@@ -31,32 +31,39 @@ def _match_supported_language(language_code: Optional[str]) -> str:
 
 
 def _parse_json_body(request: HttpRequest) -> dict:
-    if request.content_type != "application/json":
-        return {}
-
     try:
-        return json.loads(request.body.decode("utf-8") or "{}")
-    except json.JSONDecodeError:
+        payload = json.loads(request.body.decode("utf-8") or "{}")
+    except (json.JSONDecodeError, UnicodeDecodeError):
         return {}
+    return payload if isinstance(payload, dict) else {}
 
 
+def _unsupported_media_type() -> JsonResponse:
+    return JsonResponse({"detail": _("Requests must be sent as application/json.")}, status=415)
+
+
+# These endpoints are CSRF-exempt so the cross-origin SvelteKit frontend can call them without a token
+# handshake. They only accept `application/json` bodies instead: browsers cannot send that content type
+# cross-site without a CORS preflight, which CORS_ALLOWED_ORIGINS rejects for foreign origins. That blocks
+# login CSRF (forging a login into an attacker-controlled account) via plain HTML forms.
 @csrf_exempt
 @require_POST
 def login_user(request: HttpRequest) -> JsonResponse:
+    if request.content_type != "application/json":
+        return _unsupported_media_type()
     payload = _parse_json_body(request)
-    username = payload.get("username") or request.POST.get("username")
-    password = payload.get("password") or request.POST.get("password")
+    username = payload.get("username")
+    password = payload.get("password")
     if not username or not password:
         return JsonResponse(
             {"detail": _("Username and password are required.")},
             status=400,
         )
 
+    # authenticate() already returns None for inactive users, so no separate is_active check is needed.
     user = authenticate(request, username=username, password=password)
     if user is None:
         return JsonResponse({"detail": _("Invalid credentials.")}, status=400)
-    if not user.is_active:
-        return JsonResponse({"detail": _("Account is disabled.")}, status=403)
 
     login(request, user)
     return JsonResponse(
@@ -93,15 +100,9 @@ def current_user(request: HttpRequest) -> JsonResponse:
 @csrf_exempt
 @require_POST
 def set_user_language(request: HttpRequest) -> JsonResponse:
-    requested_language = None
-    if request.content_type == "application/json":
-        try:
-            payload = json.loads(request.body.decode("utf-8") or "{}")
-        except json.JSONDecodeError:
-            payload = {}
-        requested_language = payload.get("language")
-    else:
-        requested_language = request.POST.get("language")
+    if request.content_type != "application/json":
+        return _unsupported_media_type()
+    requested_language = _parse_json_body(request).get("language")
 
     language_code = _match_supported_language(requested_language)
     response = JsonResponse({"language": language_code})

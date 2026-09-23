@@ -1,9 +1,10 @@
+from ambient_toolbox.models import CommonInfo
 from django.conf import settings
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 
-class BarAssignment(models.Model):
+class BarAssignment(CommonInfo):
     """Assigns a user to a bar so only allowed locations are visible."""
 
     user = models.ForeignKey(
