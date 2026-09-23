@@ -97,6 +97,26 @@ describe('createBoardStore', () => {
     ])
   })
 
+  it('treats each update as the full drink list and keeps row order', () => {
+    const store = createBoardStore(snapshot())
+    store.applyPriceUpdate({
+      prices: [
+        { drink_id: 2, drink_name: 'Spritz', price: '6.00' },
+        { drink_id: 1, drink_name: 'Lager', price: '4.60' }
+      ]
+    })
+    expect(get(store).drinks.map((drink) => drink.name)).toEqual([
+      'Lager',
+      'Spritz'
+    ])
+
+    // Lager was deleted in the admin: it disappears from boards and desks.
+    store.applyPriceUpdate({
+      prices: [{ drink_id: 2, drink_name: 'Spritz', price: '6.10' }]
+    })
+    expect(get(store).drinks.map((drink) => drink.name)).toEqual(['Spritz'])
+  })
+
   it('ignores rows without id or price', () => {
     const store = createBoardStore(snapshot())
     const before = get(store)

@@ -1,4 +1,5 @@
 from market.services.broadcast import (
+    broadcast_bar_prices,
     broadcast_event_ended,
     broadcast_event_started,
     broadcast_market_status,
@@ -7,6 +8,7 @@ from market.services.broadcast import (
 from market.services.pricing import get_effective_multiplier
 
 __all__ = [
+    "broadcast_bar_prices",
     "broadcast_prices",
     "broadcast_event_started",
     "broadcast_event_ended",

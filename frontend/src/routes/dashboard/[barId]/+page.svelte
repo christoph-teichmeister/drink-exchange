@@ -1,6 +1,7 @@
 <script lang="ts">
   import TradingDesk from '$lib/components/desk/TradingDesk.svelte'
   import { getI18nContext } from '$lib/i18n'
+  import { canManageBar } from '$lib/utils/roles'
   import type { PageProps } from './$types'
 
   let { data }: PageProps = $props()
@@ -15,5 +16,9 @@
 
 <!-- Keyed by bar so switching bars tears down the old store and socket. -->
 {#key data.snapshot.bar.slug}
-  <TradingDesk snapshot={data.snapshot} {description} />
+  <TradingDesk
+    snapshot={data.snapshot}
+    {description}
+    canManage={canManageBar(data.bar.role)}
+  />
 {/key}

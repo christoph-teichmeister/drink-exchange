@@ -1,6 +1,7 @@
 <script lang="ts">
   import { resolve } from '$app/paths'
   import { getI18nContext } from '$lib/i18n'
+  import { canManageBar } from '$lib/utils/roles'
   import type { PageProps } from './$types'
 
   let { data }: PageProps = $props()
@@ -46,11 +47,13 @@
               href={resolve('/board/[barId]', { barId: bar.slug })}
               >{t.openBoard}</a
             >
-            <a
-              class="ui-btn"
-              href={resolve('/admin/[barId]', { barId: bar.slug })}
-              >{t.openAdmin}</a
-            >
+            {#if canManageBar(bar.role)}
+              <a
+                class="ui-btn"
+                href={resolve('/admin/[barId]', { barId: bar.slug })}
+                >{t.openAdmin}</a
+              >
+            {/if}
           </div>
         </li>
       {/each}

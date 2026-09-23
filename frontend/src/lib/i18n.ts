@@ -238,33 +238,86 @@ const en = {
   admin: {
     pageTitle: 'Admin',
     description:
-      'The market is configured in the Django admin for now. Each link opens the matching section in a new tab.',
+      'Configure this bar’s market. Changes to drinks take effect on the board and desk immediately.',
     openDesk: 'Trading desk',
-    open: 'Open',
-    sections: {
-      bar: {
-        title: 'Bar settings',
-        detail:
-          'Tick interval, mean reversion, purchase impulse and normalization.'
-      },
-      drinks: {
-        title: 'Drinks',
-        detail: 'Base, minimum and maximum price, volatility, weight, rounding.'
-      },
-      events: {
-        title: 'Market events',
-        detail:
-          'Boom, crash and focus definitions: probability, duration, cooldown.'
-      },
-      trades: {
-        title: 'Trades',
-        detail: 'Booking log; bookings added here move prices like the desk.'
+    actions: { save: 'Save', delete: 'Delete' },
+    feedback: {
+      saved: 'Saved.',
+      created: 'Created.',
+      invalid: 'Please correct the highlighted fields.',
+      failed: 'Saving failed. Please try again.',
+      network: 'No connection to the server. Please try again.',
+      session: 'Your session expired. Sign in again.',
+      forbidden: 'Only bar managers can change the market configuration.'
+    },
+    validation: {
+      required: 'Required.',
+      number: 'Enter a number.',
+      integer: 'Enter a whole number.'
+    },
+    settings: {
+      title: 'Bar settings',
+      hint: 'Reversion pulls prices back towards the base price on every tick; impulse and normalization control how strongly purchases move prices.',
+      fields: {
+        name: 'Name',
+        description: 'Description',
+        tick: 'Tick interval (s)',
+        reversion: 'Reversion rate (0–1)',
+        impulse: 'Purchase impulse',
+        normalization: 'Normalization (0–1)',
+        retention: 'Record history every n ticks'
+      }
+    },
+    drinks: {
+      title: 'Drinks',
+      hint: 'Volatility is the share of the base price one purchase adds; weight controls how much a drink drops when others are bought.',
+      newTitle: 'New drink',
+      add: 'Add drink',
+      confirmDelete: 'Delete “{name}”?',
+      hasTrades: 'Has bookings, cannot be deleted',
+      fields: {
+        name: 'Name',
+        base: 'Base price',
+        min: 'Minimum',
+        max: 'Maximum',
+        step: 'Rounding step',
+        volatility: 'Volatility',
+        weight: 'Weight'
+      }
+    },
+    events: {
+      title: 'Market events',
+      hint: 'A random event starts based on its weight; its multiplier fades back to 1 over the duration.',
+      newTitle: 'New event',
+      add: 'Add event',
+      confirmDelete: 'Delete “{name}”?',
+      fields: {
+        name: 'Name',
+        type: 'Type',
+        weight: 'Weight',
+        duration: 'Duration (s)',
+        cooldown: 'Cooldown (s)',
+        multiplier: 'Start multiplier',
+        description: 'Description',
+        targets: 'Drinks in focus'
+      }
+    },
+    advanced: {
+      title: 'Advanced',
+      hint: 'Users, bar assignments and the full booking log are managed in the Django admin.',
+      links: {
+        bar: 'Bars',
+        drinks: 'Drinks',
+        events: 'Event definitions',
+        trades: 'Trades'
       }
     }
   },
   errors: {
     barsUnavailable: 'Your assigned bars could not be loaded.',
     barNotFound: 'This bar does not exist or is not assigned to you.',
+    managerRequired: 'Only bar managers can open the admin area.',
+    configUnavailable: 'The market configuration could not be loaded.',
     snapshotUnavailable: 'The market snapshot could not be loaded.',
     backendUnreachable: 'The Drink Exchange backend is currently unreachable.'
   }
@@ -517,35 +570,86 @@ const de: Translation = {
   admin: {
     pageTitle: 'Admin',
     description:
-      'Der Markt wird vorerst im Django-Admin konfiguriert. Jeder Link öffnet den passenden Bereich in einem neuen Tab.',
+      'Konfiguriere den Markt dieser Bar. Änderungen an Getränken wirken sofort auf Board und Desk.',
     openDesk: 'Trading-Desk',
-    open: 'Öffnen',
-    sections: {
-      bar: {
-        title: 'Bar-Einstellungen',
-        detail:
-          'Tick-Intervall, Rückkehr zum Basispreis, Kauf-Impuls und Normalisierung.'
-      },
-      drinks: {
-        title: 'Getränke',
-        detail:
-          'Basis-, Mindest- und Höchstpreis, Volatilität, Gewicht, Rundung.'
-      },
-      events: {
-        title: 'Marktereignisse',
-        detail:
-          'Boom-, Crash- und Fokus-Definitionen: Wahrscheinlichkeit, Dauer, Abklingzeit.'
-      },
-      trades: {
-        title: 'Buchungen',
-        detail:
-          'Buchungsprotokoll; hier angelegte Buchungen bewegen die Preise wie am Desk.'
+    actions: { save: 'Speichern', delete: 'Löschen' },
+    feedback: {
+      saved: 'Gespeichert.',
+      created: 'Angelegt.',
+      invalid: 'Bitte die markierten Felder korrigieren.',
+      failed: 'Speichern fehlgeschlagen. Bitte erneut versuchen.',
+      network: 'Keine Verbindung zum Server. Bitte erneut versuchen.',
+      session: 'Deine Sitzung ist abgelaufen. Melde dich erneut an.',
+      forbidden: 'Nur Bar-Manager können die Marktkonfiguration ändern.'
+    },
+    validation: {
+      required: 'Pflichtfeld.',
+      number: 'Bitte eine Zahl eingeben.',
+      integer: 'Bitte eine ganze Zahl eingeben.'
+    },
+    settings: {
+      title: 'Bar-Einstellungen',
+      hint: 'Die Rückkehrrate zieht die Preise bei jedem Tick zum Basispreis zurück; Impuls und Normalisierung steuern, wie stark Käufe die Preise bewegen.',
+      fields: {
+        name: 'Name',
+        description: 'Beschreibung',
+        tick: 'Tick-Intervall (s)',
+        reversion: 'Rückkehrrate (0–1)',
+        impulse: 'Kauf-Impuls',
+        normalization: 'Normalisierung (0–1)',
+        retention: 'Verlauf alle n Ticks speichern'
+      }
+    },
+    drinks: {
+      title: 'Getränke',
+      hint: 'Die Volatilität ist der Anteil am Basispreis, den ein Kauf aufschlägt; das Gewicht bestimmt, wie stark ein Getränk fällt, wenn andere gekauft werden.',
+      newTitle: 'Neues Getränk',
+      add: 'Getränk anlegen',
+      confirmDelete: '„{name}“ löschen?',
+      hasTrades: 'Hat Buchungen, kann nicht gelöscht werden',
+      fields: {
+        name: 'Name',
+        base: 'Basispreis',
+        min: 'Minimum',
+        max: 'Maximum',
+        step: 'Rundungsschritt',
+        volatility: 'Volatilität',
+        weight: 'Gewicht'
+      }
+    },
+    events: {
+      title: 'Marktereignisse',
+      hint: 'Ein zufälliges Ereignis startet gemäß seinem Gewicht; sein Multiplikator klingt über die Dauer auf 1 ab.',
+      newTitle: 'Neues Ereignis',
+      add: 'Ereignis anlegen',
+      confirmDelete: '„{name}“ löschen?',
+      fields: {
+        name: 'Name',
+        type: 'Typ',
+        weight: 'Gewichtung',
+        duration: 'Dauer (s)',
+        cooldown: 'Abklingzeit (s)',
+        multiplier: 'Start-Multiplikator',
+        description: 'Beschreibung',
+        targets: 'Getränke im Fokus'
+      }
+    },
+    advanced: {
+      title: 'Erweitert',
+      hint: 'Benutzer, Bar-Zuordnungen und das vollständige Buchungsprotokoll werden im Django-Admin verwaltet.',
+      links: {
+        bar: 'Bars',
+        drinks: 'Getränke',
+        events: 'Ereignis-Definitionen',
+        trades: 'Buchungen'
       }
     }
   },
   errors: {
     barsUnavailable: 'Deine zugewiesenen Bars konnten nicht geladen werden.',
     barNotFound: 'Diese Bar existiert nicht oder ist dir nicht zugewiesen.',
+    managerRequired: 'Nur Bar-Manager können den Admin-Bereich öffnen.',
+    configUnavailable: 'Die Marktkonfiguration konnte nicht geladen werden.',
     snapshotUnavailable: 'Der Markt-Snapshot konnte nicht geladen werden.',
     backendUnreachable:
       'Das Drink Exchange Backend ist gerade nicht erreichbar.'

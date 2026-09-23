@@ -447,7 +447,7 @@ def _ensure_event_definitions(bars: dict[str, Bar], drinks: dict[tuple[str, str]
 
 def _ensure_bar_assignments(user, bars: dict[str, Bar]) -> None:
     for bar in bars.values():
-        BarAssignment.objects.get_or_create(user=user, bar=bar)
+        BarAssignment.objects.update_or_create(user=user, bar=bar, defaults={"role": BarAssignment.Role.MANAGER})
 
 
 class Command(BaseCommand):

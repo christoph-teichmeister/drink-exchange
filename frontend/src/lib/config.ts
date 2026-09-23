@@ -15,6 +15,12 @@ export const buildApiEndpoints = (apiBase: string) => ({
     `${apiBase}/bars/${encodeURIComponent(barId)}/market/`,
   barTradesEndpoint: (barId: string) =>
     `${apiBase}/bars/${encodeURIComponent(barId)}/trades/`,
+  barSettingsEndpoint: (barId: string) =>
+    `${apiBase}/bars/${encodeURIComponent(barId)}/settings/`,
+  barDrinksEndpoint: (barId: string, drinkId?: number) =>
+    `${apiBase}/bars/${encodeURIComponent(barId)}/drinks/${drinkId === undefined ? '' : `${drinkId}/`}`,
+  barEventsEndpoint: (barId: string, eventId?: number) =>
+    `${apiBase}/bars/${encodeURIComponent(barId)}/events/${eventId === undefined ? '' : `${eventId}/`}`,
   localeEndpoint: () => `${apiBase}/locale/`,
   auth: {
     login: () => `${apiBase}/auth/login/`,

@@ -15,8 +15,10 @@
 
   let {
     snapshot,
-    description
-  }: { snapshot: BoardSnapshot; description: string } = $props()
+    description,
+    canManage
+  }: { snapshot: BoardSnapshot; description: string; canManage: boolean } =
+    $props()
 
   const { locale, translations } = getI18nContext()
   const t = $derived($translations.dashboard)
@@ -164,9 +166,11 @@
       <a class="ui-btn" href={resolve('/board/[barId]', { barId: barSlug })}
         >{t.openBoard}</a
       >
-      <a class="ui-btn" href={resolve('/admin/[barId]', { barId: barSlug })}
-        >{t.openAdmin}</a
-      >
+      {#if canManage}
+        <a class="ui-btn" href={resolve('/admin/[barId]', { barId: barSlug })}
+          >{t.openAdmin}</a
+        >
+      {/if}
     </div>
   </header>
 

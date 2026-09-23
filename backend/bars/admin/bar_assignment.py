@@ -8,6 +8,6 @@ from bars.models import BarAssignment
 class BarAssignmentAdmin(CommonInfoAdminMixin, admin.ModelAdmin):
     """Controls admin list rendering for bar assignments."""
 
-    list_display = ("user", "bar")
-    list_filter = ("bar", "user")
+    list_display = ("user", "bar", "role")
+    list_filter = ("bar", "role", "user")
     search_fields = ("user__username", "bar__name")
