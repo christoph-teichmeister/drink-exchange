@@ -2,8 +2,10 @@ import random
 from datetime import datetime, timedelta
 from typing import List, Optional, Set
 
+from django.db import transaction
 from django.utils import timezone
 
+from bars.models import Bar
 from events.models import ActiveEvent, EventDefinition
 
 
@@ -52,12 +54,17 @@ def start_event(bar_id: int, definition: EventDefinition, now: Optional[datetime
 
 def end_expired_events(bar_id: int, now: Optional[datetime] = None) -> List[ActiveEvent]:
     now = now or timezone.now()
-    expired = list(
-        ActiveEvent.objects.filter(bar_id=bar_id, is_active=True, ends_at__lte=now).select_related("definition")
-    )
-    for event in expired:
-        event.is_active = False
-        event.save(update_fields=["is_active"])
+    with transaction.atomic():
+        # Row locks make concurrent callers (event roll + cleanup beat tasks) skip rows that another
+        # transaction already ended, so each event is ended and broadcast exactly once.
+        expired = list(
+            ActiveEvent.objects.select_for_update(of=("self",))
+            .filter(bar_id=bar_id, is_active=True, ends_at__lte=now)
+            .select_related("definition")
+        )
+        for event in expired:
+            event.is_active = False
+            event.save(update_fields=["is_active"])
     return expired
 
 
@@ -66,14 +73,21 @@ def roll_event_for_bar(
     rng: Optional[random.Random] = None,
     now: Optional[datetime] = None,
 ) -> Optional[ActiveEvent]:
+    """Start a new event for the bar unless one is already running.
+
+    Callers are expected to end expired events first (see `end_expired_events`) so those can be broadcast.
+    """
+
     now = now or timezone.now()
-    end_expired_events(bar_id, now=now)
-    if ActiveEvent.objects.filter(bar_id=bar_id, is_active=True, starts_at__lte=now, ends_at__gt=now).exists():
-        return None
-    definition = select_event(bar_id, rng=rng, now=now)
-    if not definition:
-        return None
-    return start_event(bar_id, definition, now=now)
+    with transaction.atomic():
+        # Lock the bar row so two concurrent rolls cannot both pass the "no running event" check.
+        Bar.objects.select_for_update().filter(pk=bar_id).first()
+        if ActiveEvent.objects.filter(bar_id=bar_id, is_active=True, starts_at__lte=now, ends_at__gt=now).exists():
+            return None
+        definition = select_event(bar_id, rng=rng, now=now)
+        if not definition:
+            return None
+        return start_event(bar_id, definition, now=now)
 
 
 def compute_event_multiplier(active_event: ActiveEvent, drink_id: int, now: Optional[datetime] = None) -> float:
