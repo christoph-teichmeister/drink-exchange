@@ -49,7 +49,7 @@
   const ARROWS: Record<TrendValue, string> = { up: '▲', down: '▼', flat: '' }
 
   const columns =
-    'grid grid-cols-[minmax(0,1fr)_auto_10ch] items-center gap-x-[clamp(0.75rem,1.6vw,2.5rem)] md:grid-cols-[minmax(0,1fr)_auto_8ch_10ch_minmax(4rem,9vw)]'
+    'grid grid-cols-[minmax(0,1fr)_auto_12ch] items-center gap-x-[clamp(0.75rem,1.6vw,2.5rem)] md:grid-cols-[minmax(0,1fr)_auto_8ch_12ch_minmax(4rem,9vw)]'
 </script>
 
 <div role="table" class="flex h-full min-h-0 flex-col">
