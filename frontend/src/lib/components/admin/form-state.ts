@@ -39,7 +39,9 @@ export const parseNumbers = (
 
 export type SaveFeedback = { level: 'success' | 'danger'; text: string } | null
 
-// Turns a failed request into field errors plus a translated summary message.
+// Turns a failed request into field errors plus a summary message. The backend
+// translates its `detail` into the active language, so it is shown whenever it
+// is more specific than our own text; network and session problems keep ours.
 export const describeFailure = (
   error: unknown,
   t: Translation['admin']
@@ -55,10 +57,11 @@ export const describeFailure = (
       ? t.feedback.network
       : error.status === 401
         ? t.feedback.session
-        : error.status === 403
-          ? t.feedback.forbidden
-          : error.status === 400
-            ? t.feedback.invalid
-            : (error.detail ?? t.feedback.failed)
+        : (error.detail ??
+          (error.status === 403
+            ? t.feedback.forbidden
+            : error.status === 400
+              ? t.feedback.invalid
+              : t.feedback.failed))
   return { errors: error.errors, feedback: { level: 'danger', text } }
 }

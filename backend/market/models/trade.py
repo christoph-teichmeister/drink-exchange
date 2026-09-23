@@ -13,17 +13,32 @@ from market.models.drink import Drink
 class Trade(CommonInfo):
     """Log each completed drink trade so dashboards can surface the latest activity."""
 
-    drink = models.ForeignKey(Drink, on_delete=models.CASCADE, related_name="trades")
-    bar = models.ForeignKey(Bar, on_delete=models.CASCADE, related_name="trades")
+    drink = models.ForeignKey(
+        Drink,
+        on_delete=models.CASCADE,
+        related_name="trades",
+        verbose_name=_("drink"),
+    )
+    bar = models.ForeignKey(
+        Bar,
+        on_delete=models.CASCADE,
+        related_name="trades",
+        verbose_name=_("bar"),
+    )
     price = models.DecimalField(
         max_digits=10,
         decimal_places=2,
         validators=[MinValueValidator(Decimal("0.01"))],
+        verbose_name=_("price"),
     )
     qty = models.PositiveIntegerField(
         validators=[MinValueValidator(1)],
+        verbose_name=_("quantity"),
     )
-    occurred_at = models.DateTimeField(default=timezone.now)
+    occurred_at = models.DateTimeField(
+        default=timezone.now,
+        verbose_name=_("occurred at"),
+    )
 
     class Meta:
         ordering = ["-occurred_at"]  # Keep recent trades at the top of summaries.

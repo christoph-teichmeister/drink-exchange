@@ -18,14 +18,21 @@ class BarAssignment(CommonInfo):
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="bar_assignments",
+        verbose_name=_("user"),
     )
     bar = models.ForeignKey(
         "bars.Bar",
         on_delete=models.CASCADE,
         related_name="assignments",
         related_query_name="assignment",
+        verbose_name=_("bar"),
     )
-    role = models.CharField(max_length=16, choices=Role.choices, default=Role.OPERATOR)
+    role = models.CharField(
+        max_length=16,
+        choices=Role.choices,
+        default=Role.OPERATOR,
+        verbose_name=_("role"),
+    )
 
     class Meta:
         unique_together = ("user", "bar")

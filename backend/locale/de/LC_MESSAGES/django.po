@@ -1,0 +1,430 @@
+# German translations for the Drink Exchange backend.
+msgid ""
+msgstr ""
+"Project-Id-Version: drink-exchange\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-09-23 09:43+0000\n"
+"PO-Revision-Date: 2026-09-23 00:00+0000\n"
+"Last-Translator: Drink Exchange contributors\n"
+"Language-Team: German\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: api/decorators.py
+msgid "Authentication required."
+msgstr "Anmeldung erforderlich."
+
+#: api/json_body.py
+msgid "Requests must be sent as application/json."
+msgstr "Anfragen müssen als application/json gesendet werden."
+
+#: api/views.py
+msgid "Username and password are required."
+msgstr "Benutzername und Passwort sind erforderlich."
+
+#: api/views.py
+msgid "Invalid credentials."
+msgstr "Ungültiger Benutzername oder Passwort."
+
+#: api/views.py
+msgid "Logged out."
+msgstr "Abgemeldet."
+
+#: bars/config_views.py
+msgid "Please correct the highlighted fields."
+msgstr "Bitte die markierten Felder korrigieren."
+
+#: bars/config_views.py
+msgid ""
+"This drink has recorded trades and cannot be deleted. Adjust its prices "
+"instead."
+msgstr ""
+"Für dieses Getränk gibt es Buchungen, daher kann es nicht gelöscht werden. "
+"Passe stattdessen seine Preise an."
+
+#: bars/management/commands/ensure_dev_data.py
+msgid "Rush Hour Surge"
+msgstr "Rush-Hour-Ansturm"
+
+#: bars/management/commands/ensure_dev_data.py
+msgid "Bright lagers and saisons keep pouring as the crowd floods in."
+msgstr ""
+"Helle Lager und Saisons fließen in Strömen, während die Menge hereinströmt."
+
+#: bars/management/commands/ensure_dev_data.py
+msgid "Citrus Focus Shift"
+msgstr "Zitrus im Fokus"
+
+#: bars/management/commands/ensure_dev_data.py
+msgid "The citrus-forward lineup becomes the one to chase for a limited time."
+msgstr "Für kurze Zeit sind die zitrusbetonten Getränke besonders gefragt."
+
+#: bars/management/commands/ensure_dev_data.py
+msgid "Harbor Deep Crash"
+msgstr "Hafen-Crash"
+
+#: bars/management/commands/ensure_dev_data.py
+msgid "A chill settling in makes prices slide as more sips to try."
+msgstr "Es wird ruhiger, die Preise rutschen ab und laden zum Probieren ein."
+
+#: bars/management/commands/ensure_dev_data.py
+msgid "Rye Focus Blast"
+msgstr "Roggen im Fokus"
+
+#: bars/management/commands/ensure_dev_data.py
+msgid "North Harbor’s rye and amber pours steal the spotlight."
+msgstr "Roggen- und Amber-Biere von North Harbor stehen im Rampenlicht."
+
+#: bars/management/commands/ensure_dev_data.py
+msgid "Domstadt Reset"
+msgstr "Domstadt-Reset"
+
+#: bars/management/commands/ensure_dev_data.py
+msgid "Prices gently drift back toward base as the rush eases."
+msgstr ""
+"Der Ansturm lässt nach, die Preise gleiten sanft zum Basispreis zurück."
+
+#: bars/management/commands/ensure_dev_data.py
+msgid "Radler Warm-Up"
+msgstr "Radler-Aufwärmrunde"
+
+#: bars/management/commands/ensure_dev_data.py
+msgid "Refreshment builds around spritzers and Radlers."
+msgstr "Schorlen und Radler sind als Erfrischung gefragt."
+
+#: bars/management/commands/ensure_dev_data.py
+msgid ""
+"Populates development fixtures (superuser, bars, drinks, price points, "
+"trades)."
+msgstr ""
+"Legt Entwicklungsdaten an (Superuser, Bars, Getränke, Preispunkte, "
+"Buchungen)."
+
+#: bars/management/commands/ensure_dev_data.py
+msgid "Development fixtures are available."
+msgstr "Entwicklungsdaten sind vorhanden."
+
+#: bars/models/bar.py
+msgid "slug"
+msgstr "Kennung"
+
+#: bars/models/bar.py events/models/event_definition.py market/models/drink.py
+msgid "name"
+msgstr "Name"
+
+#: bars/models/bar.py events/models/event_definition.py
+msgid "description"
+msgstr "Beschreibung"
+
+#: bars/models/bar.py
+msgid "tick interval (seconds)"
+msgstr "Tick-Intervall (Sekunden)"
+
+#: bars/models/bar.py
+msgid "reversion rate"
+msgstr "Rückkehrrate"
+
+#: bars/models/bar.py
+msgid "last tick at"
+msgstr "letzter Tick"
+
+#: bars/models/bar.py
+msgid "tick counter"
+msgstr "Tick-Zähler"
+
+#: bars/models/bar.py
+msgid "impulse factor"
+msgstr "Kauf-Impuls"
+
+#: bars/models/bar.py
+msgid "normalization factor"
+msgstr "Normalisierung"
+
+#: bars/models/bar.py
+msgid "price point retention (ticks)"
+msgstr "Verlauf speichern alle n Ticks"
+
+#: bars/models/bar.py bars/models/bar_assignment.py
+#: events/models/active_event.py events/models/event_definition.py
+#: market/models/drink.py market/models/market_session.py
+#: market/models/price_point.py market/models/trade.py
+msgid "bar"
+msgstr "Bar"
+
+#: bars/models/bar.py
+msgid "bars"
+msgstr "Bars"
+
+#: bars/models/bar_assignment.py
+msgid "operator"
+msgstr "Bedienung"
+
+#: bars/models/bar_assignment.py
+msgid "manager"
+msgstr "Manager"
+
+#: bars/models/bar_assignment.py
+msgid "user"
+msgstr "Benutzer"
+
+#: bars/models/bar_assignment.py
+msgid "role"
+msgstr "Rolle"
+
+#: bars/models/bar_assignment.py
+msgid "bar assignment"
+msgstr "Bar-Zuordnung"
+
+#: bars/models/bar_assignment.py
+msgid "bar assignments"
+msgstr "Bar-Zuordnungen"
+
+#: bars/permissions.py bars/views.py
+msgid "You are not assigned to this bar."
+msgstr "Du bist dieser Bar nicht zugewiesen."
+
+#: bars/permissions.py
+msgid "Only bar managers can change the market configuration."
+msgstr "Nur Manager der Bar können die Marktkonfiguration ändern."
+
+#: bars/views.py
+msgid "Choose a drink of this bar."
+msgstr "Wähle ein Getränk dieser Bar."
+
+#: bars/views.py
+msgid "Quantity must be a whole number of at least 1."
+msgstr "Die Menge muss eine ganze Zahl von mindestens 1 sein."
+
+#: events/forms/event_definition_form.py
+msgid "An event with this name already exists for this bar."
+msgstr "Für diese Bar gibt es bereits ein Marktereignis mit diesem Namen."
+
+#: events/forms/event_definition_form.py
+msgid "Parameters must be an object."
+msgstr "Die Parameter müssen ein Objekt sein."
+
+#: events/forms/event_definition_form.py
+#, python-format
+msgid "Unsupported parameters: %(keys)s."
+msgstr "Nicht unterstützte Parameter: %(keys)s."
+
+#: events/forms/event_definition_form.py
+msgid "The start multiplier must be a number greater than 0."
+msgstr "Der Start-Multiplikator muss eine Zahl größer als 0 sein."
+
+#: events/forms/event_definition_form.py
+msgid "Target drinks must be a list of drink ids."
+msgstr "Die Getränke im Fokus müssen eine Liste von Getränke-IDs sein."
+
+#: events/forms/event_definition_form.py
+msgid "Target drinks must belong to this bar."
+msgstr "Die Getränke im Fokus müssen zu dieser Bar gehören."
+
+#: events/models/active_event.py events/models/event_definition.py
+msgid "event definition"
+msgstr "Ereignis-Definition"
+
+#: events/models/active_event.py
+msgid "starts at"
+msgstr "Beginn"
+
+#: events/models/active_event.py
+msgid "ends at"
+msgstr "Ende"
+
+#: events/models/active_event.py
+msgid "active"
+msgstr "aktiv"
+
+#: events/models/active_event.py
+msgid "state"
+msgstr "Zustand"
+
+#: events/models/active_event.py
+msgid "active event"
+msgstr "aktives Marktereignis"
+
+#: events/models/active_event.py
+msgid "active events"
+msgstr "aktive Marktereignisse"
+
+#: events/models/active_event.py
+msgid "Event end must be after the start time."
+msgstr "Das Ende des Ereignisses muss nach dem Beginn liegen."
+
+#: events/models/event_definition.py
+msgid "boom"
+msgstr "Boom"
+
+#: events/models/event_definition.py
+msgid "crash"
+msgstr "Crash"
+
+#: events/models/event_definition.py
+msgid "focus"
+msgstr "Fokus"
+
+#: events/models/event_definition.py
+msgid "normalize"
+msgstr "Normalisierung"
+
+#: events/models/event_definition.py
+msgid "type"
+msgstr "Typ"
+
+#: events/models/event_definition.py
+msgid "Higher weight increases the chances this definition is selected."
+msgstr ""
+"Je höher die Gewichtung, desto häufiger wird dieses Ereignis ausgewählt."
+
+#: events/models/event_definition.py
+msgid "probability weight"
+msgstr "Gewichtung"
+
+#: events/models/event_definition.py
+msgid "Duration in seconds the event should run before expiring."
+msgstr "Wie viele Sekunden das Ereignis läuft, bevor es endet."
+
+#: events/models/event_definition.py
+msgid "duration (seconds)"
+msgstr "Dauer (Sekunden)"
+
+#: events/models/event_definition.py
+msgid "Optional wait time after an event ends before it can start again."
+msgstr ""
+"Optionale Wartezeit nach dem Ende, bevor das Ereignis erneut starten kann."
+
+#: events/models/event_definition.py
+msgid "cooldown (seconds)"
+msgstr "Sperrzeit (Sekunden)"
+
+#: events/models/event_definition.py
+msgid "Arbitrary configuration such as start_multiplier or target_drink_ids."
+msgstr "Weitere Einstellungen wie start_multiplier oder target_drink_ids."
+
+#: events/models/event_definition.py
+msgid "parameters"
+msgstr "Parameter"
+
+#: events/models/event_definition.py
+msgid "event definitions"
+msgstr "Ereignis-Definitionen"
+
+#: market/models/drink.py
+msgid "base price"
+msgstr "Basispreis"
+
+#: market/models/drink.py
+msgid "current price"
+msgstr "aktueller Preis"
+
+#: market/models/drink.py
+msgid "minimum price"
+msgstr "Mindestpreis"
+
+#: market/models/drink.py
+msgid "maximum price"
+msgstr "Höchstpreis"
+
+#: market/models/drink.py
+msgid "volatility"
+msgstr "Volatilität"
+
+#: market/models/drink.py
+msgid "weight"
+msgstr "Gewicht"
+
+#: market/models/drink.py
+msgid "rounding step"
+msgstr "Rundungsschritt"
+
+#: market/models/drink.py market/models/price_point.py market/models/trade.py
+msgid "drink"
+msgstr "Getränk"
+
+#: market/models/drink.py
+msgid "drinks"
+msgstr "Getränke"
+
+#: market/models/drink.py
+msgid "Minimum price cannot exceed the maximum price."
+msgstr "Der Mindestpreis darf nicht über dem Höchstpreis liegen."
+
+#: market/models/drink.py
+msgid "Base price must sit between min and max price."
+msgstr "Der Basispreis muss zwischen Mindest- und Höchstpreis liegen."
+
+#: market/models/drink.py
+msgid "Current price must remain between the configured bounds."
+msgstr "Der aktuelle Preis muss zwischen Mindest- und Höchstpreis bleiben."
+
+#: market/models/market_session.py
+msgid "running"
+msgstr "läuft"
+
+#: market/models/market_session.py
+msgid "paused"
+msgstr "pausiert"
+
+#: market/models/market_session.py
+msgid "closed"
+msgstr "geschlossen"
+
+#: market/models/market_session.py
+msgid "status"
+msgstr "Status"
+
+#: market/models/market_session.py
+msgid "started at"
+msgstr "gestartet"
+
+#: market/models/market_session.py
+msgid "ended at"
+msgstr "beendet"
+
+#: market/models/market_session.py
+msgid "metadata"
+msgstr "Metadaten"
+
+#: market/models/market_session.py
+msgid "market session"
+msgstr "Marktsitzung"
+
+#: market/models/market_session.py
+msgid "market sessions"
+msgstr "Marktsitzungen"
+
+#: market/models/price_point.py market/models/trade.py
+msgid "price"
+msgstr "Preis"
+
+#: market/models/price_point.py
+msgid "recorded at"
+msgstr "erfasst"
+
+#: market/models/price_point.py
+msgid "price point"
+msgstr "Preispunkt"
+
+#: market/models/price_point.py
+msgid "price points"
+msgstr "Preispunkte"
+
+#: market/models/trade.py
+msgid "quantity"
+msgstr "Menge"
+
+#: market/models/trade.py
+msgid "occurred at"
+msgstr "Zeitpunkt"
+
+#: market/models/trade.py
+msgid "trade"
+msgstr "Buchung"
+
+#: market/models/trade.py
+msgid "trades"
+msgstr "Buchungen"

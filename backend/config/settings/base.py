@@ -65,6 +65,8 @@ LANGUAGES = [
     ("de", "Deutsch"),
 ]
 LANGUAGE_CODE = "en-us"
+# Our own German catalog; compiled `.mo` files are build output (see AGENTS.md, "Translations").
+LOCALE_PATHS = [BASE_DIR / "locale"]
 TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True

@@ -26,6 +26,11 @@ if [ "$BASE_HASH" != "$CURRENT_HASH" ] || [ ! -x "/app/.venv/bin/python" ]; then
 fi
 
 if [ "${DJANGO_SETTINGS_MODULE:-}" = "config.settings.dev" ] && [ "${DJANGO_MIGRATE_ON_START:-1}" != "0" ]; then
+  # Dev mounts the sources over the image, so compile the German catalog from the mounted .po file. Only the
+  # service that migrates does this; the Celery containers share the mount.
+  if command -v msgfmt >/dev/null 2>&1; then
+    python manage.py compilemessages -l de --ignore=.venv --ignore=staticfiles --verbosity 0
+  fi
   python manage.py migrate --noinput
   if [ "${DEV_FIXTURES_ENABLED:-1}" != "0" ]; then
     python manage.py ensure_dev_data

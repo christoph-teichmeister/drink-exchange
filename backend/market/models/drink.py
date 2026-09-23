@@ -12,42 +12,56 @@ from bars.models import Bar
 class Drink(CommonInfo):
     """Represents a bar-specific beverage and its current pricing metadata."""
 
-    bar = models.ForeignKey(Bar, on_delete=models.CASCADE, related_name="drinks")
-    name = models.CharField(max_length=128)
+    bar = models.ForeignKey(
+        Bar,
+        on_delete=models.CASCADE,
+        related_name="drinks",
+        verbose_name=_("bar"),
+    )
+    name = models.CharField(
+        max_length=128,
+        verbose_name=_("name"),
+    )
     base_price = models.DecimalField(
         max_digits=10,
         decimal_places=2,
         validators=[MinValueValidator(Decimal("0.01"))],
+        verbose_name=_("base price"),
     )
     current_price = models.DecimalField(
         max_digits=10,
         decimal_places=2,
         default=Decimal("0.00"),
         validators=[MinValueValidator(Decimal("0.01"))],
+        verbose_name=_("current price"),
     )
     min_price = models.DecimalField(
         max_digits=10,
         decimal_places=2,
         default=Decimal("0.01"),
         validators=[MinValueValidator(Decimal("0.01"))],
+        verbose_name=_("minimum price"),
     )
     max_price = models.DecimalField(
         max_digits=10,
         decimal_places=2,
         default=Decimal("9999.99"),
         validators=[MinValueValidator(Decimal("0.01"))],
+        verbose_name=_("maximum price"),
     )
     volatility = models.DecimalField(
         max_digits=6,
         decimal_places=4,
         default=Decimal("0.05"),
         validators=[MinValueValidator(Decimal("0"))],
+        verbose_name=_("volatility"),
     )
     weight = models.DecimalField(
         max_digits=6,
         decimal_places=4,
         default=Decimal("1.00"),
         validators=[MinValueValidator(Decimal("0"))],
+        verbose_name=_("weight"),
     )
     rounding_step = models.DecimalField(
         max_digits=10,
@@ -55,6 +69,7 @@ class Drink(CommonInfo):
         null=True,
         blank=True,
         validators=[MinValueValidator(Decimal("0.00"))],
+        verbose_name=_("rounding step"),
     )
 
     class Meta:

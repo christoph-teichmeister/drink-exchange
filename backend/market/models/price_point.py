@@ -13,14 +13,28 @@ from market.models.drink import Drink
 class PricePoint(CommonInfo):
     """Stores a time-series checkpoint of a drink's price for analytics."""
 
-    bar = models.ForeignKey(Bar, on_delete=models.CASCADE, related_name="price_points")
-    drink = models.ForeignKey(Drink, on_delete=models.CASCADE, related_name="price_points")
+    bar = models.ForeignKey(
+        Bar,
+        on_delete=models.CASCADE,
+        related_name="price_points",
+        verbose_name=_("bar"),
+    )
+    drink = models.ForeignKey(
+        Drink,
+        on_delete=models.CASCADE,
+        related_name="price_points",
+        verbose_name=_("drink"),
+    )
     price = models.DecimalField(
         max_digits=10,
         decimal_places=2,
         validators=[MinValueValidator(Decimal("0.00"))],
+        verbose_name=_("price"),
     )
-    recorded_at = models.DateTimeField(default=timezone.now)
+    recorded_at = models.DateTimeField(
+        default=timezone.now,
+        verbose_name=_("recorded at"),
+    )
 
     class Meta:
         ordering = ["-recorded_at"]
